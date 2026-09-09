@@ -1,0 +1,777 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 95388116,
+        "source": "landsat",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "name": "Thoothukudi - Tiruchendur - Kanyakumari Road",
+        "oneway": "yes",
+        "ref": "SH176",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1377624,
+            8.775689
+          ],
+          [
+            78.1378411,
+            8.7757509
+          ],
+          [
+            78.138569,
+            8.7763119
+          ],
+          [
+            78.1387246,
+            8.7765558
+          ],
+          [
+            78.1388828,
+            8.7768924
+          ],
+          [
+            78.1392509,
+            8.7780723
+          ],
+          [
+            78.1395551,
+            8.7790912
+          ],
+          [
+            78.1399082,
+            8.7802734
+          ],
+          [
+            78.1400764,
+            8.7808368
+          ],
+          [
+            78.1405404,
+            8.7826287
+          ],
+          [
+            78.1406209,
+            8.7830714
+          ],
+          [
+            78.1408462,
+            8.7843013
+          ],
+          [
+            78.1408802,
+            8.7845163
+          ],
+          [
+            78.1409454,
+            8.7849481
+          ],
+          [
+            78.1409793,
+            8.7852307
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 549426965,
+        "source": "landsat",
+        "bridge": "yes",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "layer": "1",
+        "maxweight:signed": "no",
+        "name": "Thoothukudi - Tiruchendur - Kanyakumari Road",
+        "oneway": "yes",
+        "ref": "SH176",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1355274,
+            8.773677
+          ],
+          [
+            78.13564,
+            8.7738546
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 549997728,
+        "source": "bing",
+        "frontage_road": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "oneway": "yes",
+        "source:surface": "bing",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1431745,
+            8.7601489
+          ],
+          [
+            78.14346,
+            8.7602078
+          ],
+          [
+            78.1448266,
+            8.7599922
+          ],
+          [
+            78.1468429,
+            8.7596637
+          ],
+          [
+            78.147417,
+            8.7595685
+          ],
+          [
+            78.1477024,
+            8.7595362
+          ],
+          [
+            78.1488875,
+            8.7593228
+          ],
+          [
+            78.1508388,
+            8.7590295
+          ],
+          [
+            78.1523659,
+            8.758804
+          ],
+          [
+            78.1526729,
+            8.7587466
+          ],
+          [
+            78.1529036,
+            8.7586144
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 549997729,
+        "source": "bing",
+        "frontage_road": "yes",
+        "highway": "tertiary",
+        "oneway": "yes",
+        "sidewalk": "left",
+        "source:surface": "bing",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1529978,
+            8.7584856
+          ],
+          [
+            78.1526273,
+            8.758441
+          ],
+          [
+            78.1523513,
+            8.7584923
+          ],
+          [
+            78.1507894,
+            8.7586856
+          ],
+          [
+            78.1500524,
+            8.7587978
+          ],
+          [
+            78.149598,
+            8.758884
+          ],
+          [
+            78.1482743,
+            8.759089
+          ],
+          [
+            78.1477722,
+            8.7591628
+          ],
+          [
+            78.1473785,
+            8.7592357
+          ],
+          [
+            78.1443694,
+            8.7597227
+          ],
+          [
+            78.1442552,
+            8.7597411
+          ],
+          [
+            78.1435104,
+            8.7598498
+          ],
+          [
+            78.1434445,
+            8.7598634
+          ],
+          [
+            78.1429129,
+            8.7599728
+          ],
+          [
+            78.1427786,
+            8.7600156
+          ],
+          [
+            78.1422033,
+            8.7601861
+          ],
+          [
+            78.1417862,
+            8.7603563
+          ],
+          [
+            78.1415801,
+            8.760545
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 549997734,
+        "source": "landsat",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "name": "Thoothukudi - Tiruchendur - Kanyakumari Road",
+        "oneway": "yes",
+        "ref": "SH176",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1331147,
+            8.7653669
+          ],
+          [
+            78.1332341,
+            8.7655376
+          ],
+          [
+            78.1332643,
+            8.7657283
+          ],
+          [
+            78.1333059,
+            8.7658807
+          ],
+          [
+            78.133363,
+            8.7662267
+          ],
+          [
+            78.1336572,
+            8.767942
+          ],
+          [
+            78.1341992,
+            8.7708774
+          ],
+          [
+            78.1342445,
+            8.7711396
+          ],
+          [
+            78.134387,
+            8.7716483
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 550005485,
+        "source": "landsat",
+        "embankment": "yes",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "name": "Thoothukudi - Tiruchendur - Kanyakumari Road",
+        "oneway": "yes",
+        "ref": "SH176",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.134387,
+            8.7716483
+          ],
+          [
+            78.1349745,
+            8.7727431
+          ],
+          [
+            78.1355274,
+            8.773677
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 550005486,
+        "source": "landsat",
+        "embankment": "yes",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "name": "Thoothukudi - Tiruchendur - Kanyakumari Road",
+        "oneway": "yes",
+        "ref": "SH176",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.13564,
+            8.7738546
+          ],
+          [
+            78.1358761,
+            8.7741701
+          ],
+          [
+            78.1361389,
+            8.7744563
+          ],
+          [
+            78.1377624,
+            8.775689
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1149883735,
+        "source": "OpenStreetMap",
+        "highway": "primary",
+        "oneway": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1409515,
+            8.7845034
+          ],
+          [
+            78.1407145,
+            8.7830581
+          ],
+          [
+            78.1406395,
+            8.782612
+          ],
+          [
+            78.1403896,
+            8.7816907
+          ],
+          [
+            78.140057,
+            8.7804713
+          ],
+          [
+            78.1396991,
+            8.7792456
+          ],
+          [
+            78.1396726,
+            8.7791548
+          ],
+          [
+            78.1392899,
+            8.7779496
+          ],
+          [
+            78.1392086,
+            8.7776595
+          ],
+          [
+            78.1389537,
+            8.7768345
+          ],
+          [
+            78.1386307,
+            8.7762419
+          ],
+          [
+            78.138569,
+            8.7761836
+          ],
+          [
+            78.1380067,
+            8.7757488
+          ],
+          [
+            78.1378171,
+            8.7756393
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1149883737,
+        "source": "OpenStreetMap",
+        "highway": "primary",
+        "oneway": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1344549,
+            8.7716189
+          ],
+          [
+            78.1343625,
+            8.7713927
+          ],
+          [
+            78.1343182,
+            8.7711375
+          ],
+          [
+            78.1341981,
+            8.7703531
+          ],
+          [
+            78.1341389,
+            8.7699665
+          ],
+          [
+            78.1339548,
+            8.7690157
+          ],
+          [
+            78.1337405,
+            8.7679296
+          ],
+          [
+            78.1334334,
+            8.766211
+          ],
+          [
+            78.1333939,
+            8.7659557
+          ],
+          [
+            78.1333757,
+            8.7657667
+          ],
+          [
+            78.1333788,
+            8.7656438
+          ],
+          [
+            78.1333845,
+            8.7654836
+          ],
+          [
+            78.1334003,
+            8.7653841
+          ],
+          [
+            78.1334117,
+            8.765308
+          ],
+          [
+            78.133419,
+            8.7652232
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1149883738,
+        "source": "OpenStreetMap",
+        "embankment": "yes",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1356034,
+            8.773637
+          ],
+          [
+            78.1350616,
+            8.772757
+          ],
+          [
+            78.1345127,
+            8.7717602
+          ],
+          [
+            78.1344549,
+            8.7716189
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1149883739,
+        "source": "OpenStreetMap",
+        "bridge": "yes",
+        "highway": "primary",
+        "layer": "1",
+        "maxweight:signed": "no",
+        "oneway": "yes"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1357286,
+            8.7738279
+          ],
+          [
+            78.1356034,
+            8.773637
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1149883740,
+        "source": "OpenStreetMap",
+        "embankment": "yes",
+        "highway": "primary",
+        "lane_markings": "yes",
+        "lanes": "2",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1378171,
+            8.7756393
+          ],
+          [
+            78.136755,
+            8.7748493
+          ],
+          [
+            78.1363741,
+            8.7745524
+          ],
+          [
+            78.1358412,
+            8.773994
+          ],
+          [
+            78.1357286,
+            8.7738279
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1409140022,
+        "source": "OpenStreetMap",
+        "frontage_road": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1417862,
+            8.7603563
+          ],
+          [
+            78.1411654,
+            8.7606056
+          ],
+          [
+            78.136854,
+            8.7629107
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1409140024,
+        "source": "OpenStreetMap",
+        "frontage_road": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.1372696,
+            8.7630493
+          ],
+          [
+            78.1376302,
+            8.7628906
+          ],
+          [
+            78.1396974,
+            8.7617997
+          ],
+          [
+            78.141278,
+            8.7609396
+          ],
+          [
+            78.142072,
+            8.7606003
+          ],
+          [
+            78.1429034,
+            8.7603352
+          ],
+          [
+            78.14346,
+            8.7602078
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1409140029,
+        "source": "OpenStreetMap",
+        "frontage_road": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "oneway": "yes",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            78.108799,
+            8.7805058
+          ],
+          [
+            78.1098103,
+            8.7785757
+          ],
+          [
+            78.1103092,
+            8.7778865
+          ],
+          [
+            78.1108832,
+            8.7773616
+          ],
+          [
+            78.1111729,
+            8.7771734
+          ],
+          [
+            78.1127876,
+            8.7762827
+          ],
+          [
+            78.1154765,
+            8.7748197
+          ],
+          [
+            78.1178751,
+            8.7735436
+          ],
+          [
+            78.1191096,
+            8.7728815
+          ],
+          [
+            78.1212258,
+            8.7717339
+          ],
+          [
+            78.1235825,
+            8.7704716
+          ],
+          [
+            78.1258942,
+            8.7692276
+          ],
+          [
+            78.1285182,
+            8.7678106
+          ],
+          [
+            78.1295826,
+            8.7672303
+          ]
+        ]
+      }
+    }
+  ]
+}

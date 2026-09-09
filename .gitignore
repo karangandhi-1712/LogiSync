@@ -1,0 +1,23 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# OS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Project Specific
+backend/data/

@@ -1,0 +1,41 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1029896292,
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "simulated_capacity": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1367817,
+              8.7624063
+            ],
+            [
+              78.137341,
+              8.7623737
+            ],
+            [
+              78.1372752,
+              8.7614876
+            ],
+            [
+              78.1367159,
+              8.7615364
+            ],
+            [
+              78.1367817,
+              8.7624063
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
