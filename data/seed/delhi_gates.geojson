@@ -5,7 +5,7 @@
       "type": "Feature",
       "properties": {
         "id": 3000,
-        "name": "Main Commercial Freight Access Gate #01 (Thoothukudi)",
+        "name": "Main Commercial Freight Access Gate #01 (Delhi)",
         "lanes": 4,
         "has_anpr": true,
         "has_rfid": true,
@@ -17,8 +17,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          78.1358,
-          8.7652
+          77.521,
+          28.521
         ]
       }
     },
@@ -26,7 +26,7 @@
       "type": "Feature",
       "properties": {
         "id": 3001,
-        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (Thoothukudi)",
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (Delhi)",
         "lanes": 4,
         "has_anpr": true,
         "has_rfid": true,
@@ -38,8 +38,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          78.1168,
-          8.756200000000002
+          77.502,
+          28.512
         ]
       }
     },
@@ -47,7 +47,7 @@
       "type": "Feature",
       "properties": {
         "id": 3002,
-        "name": "Express Customs Fast-Track Gate #03 (Thoothukudi)",
+        "name": "Express Customs Fast-Track Gate #03 (Delhi)",
         "lanes": 4,
         "has_anpr": true,
         "has_rfid": true,
@@ -59,8 +59,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          78.1568,
-          8.760200000000001
+          77.542,
+          28.516
         ]
       }
     }

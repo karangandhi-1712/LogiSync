@@ -5,10 +5,10 @@
       "type": "Feature",
       "properties": {
         "id": 2000,
-        "name": "Intermodal Container Stacking Yard 1 (Thoothukudi)",
-        "area_sqm": 357061.6,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
+        "name": "Intermodal Container Stacking Yard 1 (JNPT)",
+        "area_sqm": 341674.7,
+        "slots_total_estimated": 8991,
+        "slots_occupied_simulated": 6653,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -19,24 +19,24 @@
         "coordinates": [
           [
             [
-              78.1528,
-              8.7752
+              72.996,
+              18.965999999999998
             ],
             [
-              78.1593,
-              8.7752
+              73.0025,
+              18.965999999999998
             ],
             [
-              78.1593,
-              8.7797
+              73.0025,
+              18.970499999999998
             ],
             [
-              78.1528,
-              8.7797
+              72.996,
+              18.970499999999998
             ],
             [
-              78.1528,
-              8.7752
+              72.996,
+              18.965999999999998
             ]
           ]
         ]
@@ -46,10 +46,10 @@
       "type": "Feature",
       "properties": {
         "id": 2001,
-        "name": "Inbound Heavy Trailer Transit Yard 2 (Thoothukudi)",
-        "area_sqm": 357054.8,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (JNPT)",
+        "area_sqm": 341660.4,
+        "slots_total_estimated": 8991,
+        "slots_occupied_simulated": 6653,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -60,24 +60,24 @@
         "coordinates": [
           [
             [
-              78.1198,
-              8.782200000000001
+              72.963,
+              18.973
             ],
             [
-              78.1263,
-              8.782200000000001
+              72.9695,
+              18.973
             ],
             [
-              78.1263,
-              8.786700000000002
+              72.9695,
+              18.9775
             ],
             [
-              78.1198,
-              8.786700000000002
+              72.963,
+              18.9775
             ],
             [
-              78.1198,
-              8.782200000000001
+              72.963,
+              18.973
             ]
           ]
         ]
@@ -87,10 +87,10 @@
       "type": "Feature",
       "properties": {
         "id": 2002,
-        "name": "Empty Container Depot & Maintenance Zone 3 (Thoothukudi)",
-        "area_sqm": 357090.4,
-        "slots_total_estimated": 9397,
-        "slots_occupied_simulated": 6953,
+        "name": "Empty Container Depot & Maintenance Zone 3 (JNPT)",
+        "area_sqm": 341736.2,
+        "slots_total_estimated": 8993,
+        "slots_occupied_simulated": 6654,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -101,24 +101,24 @@
         "coordinates": [
           [
             [
-              78.1308,
-              8.7452
+              72.97399999999999,
+              18.936
             ],
             [
-              78.1373,
-              8.7452
+              72.98049999999999,
+              18.936
             ],
             [
-              78.1373,
-              8.7497
+              72.98049999999999,
+              18.9405
             ],
             [
-              78.1308,
-              8.7497
+              72.97399999999999,
+              18.9405
             ],
             [
-              78.1308,
-              8.7452
+              72.97399999999999,
+              18.936
             ]
           ]
         ]

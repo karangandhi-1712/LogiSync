@@ -5,9 +5,9 @@
       "type": "Feature",
       "properties": {
         "id": 1000,
-        "name": "Cold Storage Agro Logistics Hub A (Thoothukudi)",
-        "area_sqm": 93997.4,
-        "capacity_pallets_estimated": 131596,
+        "name": "Cold Storage Agro Logistics Hub A (JNPT)",
+        "area_sqm": 89948.9,
+        "capacity_pallets_estimated": 125928,
         "occupancy_pct_simulated": 58.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -18,24 +18,24 @@
         "coordinates": [
           [
             [
-              78.1428,
-              8.769200000000001
+              72.98599999999999,
+              18.959999999999997
             ],
             [
-              78.1463,
-              8.769200000000001
+              72.98949999999999,
+              18.959999999999997
             ],
             [
-              78.1463,
-              8.771400000000002
+              72.98949999999999,
+              18.962199999999996
             ],
             [
-              78.1428,
-              8.771400000000002
+              72.98599999999999,
+              18.962199999999996
             ],
             [
-              78.1428,
-              8.769200000000001
+              72.98599999999999,
+              18.959999999999997
             ]
           ]
         ]
@@ -45,9 +45,9 @@
       "type": "Feature",
       "properties": {
         "id": 1001,
-        "name": "Heavy Freight Fulfillment Warehouse B (Thoothukudi)",
-        "area_sqm": 93995.7,
-        "capacity_pallets_estimated": 131593,
+        "name": "Heavy Freight Fulfillment Warehouse B (JNPT)",
+        "area_sqm": 89945.1,
+        "capacity_pallets_estimated": 125923,
         "occupancy_pct_simulated": 65.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -58,24 +58,24 @@
         "coordinates": [
           [
             [
-              78.1288,
-              8.776200000000001
+              72.972,
+              18.967
             ],
             [
-              78.1323,
-              8.776200000000001
+              72.9755,
+              18.967
             ],
             [
-              78.1323,
-              8.778400000000001
+              72.9755,
+              18.969199999999997
             ],
             [
-              78.1288,
-              8.778400000000001
+              72.972,
+              18.969199999999997
             ],
             [
-              78.1288,
-              8.776200000000001
+              72.972,
+              18.967
             ]
           ]
         ]
@@ -85,9 +85,9 @@
       "type": "Feature",
       "properties": {
         "id": 1002,
-        "name": "Cross-Dock Transit Distribution Center C (Thoothukudi)",
-        "area_sqm": 94001.0,
-        "capacity_pallets_estimated": 131601,
+        "name": "Cross-Dock Transit Distribution Center C (JNPT)",
+        "area_sqm": 89956.4,
+        "capacity_pallets_estimated": 125938,
         "occupancy_pct_simulated": 73.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -98,24 +98,24 @@
         "coordinates": [
           [
             [
-              78.1488,
-              8.7552
+              72.99199999999999,
+              18.945999999999998
             ],
             [
-              78.1523,
-              8.7552
+              72.99549999999999,
+              18.945999999999998
             ],
             [
-              78.1523,
-              8.7574
+              72.99549999999999,
+              18.948199999999996
             ],
             [
-              78.1488,
-              8.7574
+              72.99199999999999,
+              18.948199999999996
             ],
             [
-              78.1488,
-              8.7552
+              72.99199999999999,
+              18.945999999999998
             ]
           ]
         ]
@@ -125,9 +125,9 @@
       "type": "Feature",
       "properties": {
         "id": 1003,
-        "name": "Automotive Component Storage Bay D (Thoothukudi)",
-        "area_sqm": 94000.5,
-        "capacity_pallets_estimated": 131600,
+        "name": "Automotive Component Storage Bay D (JNPT)",
+        "area_sqm": 89955.3,
+        "capacity_pallets_estimated": 125937,
         "occupancy_pct_simulated": 80.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -138,24 +138,24 @@
         "coordinates": [
           [
             [
-              78.1228,
-              8.757200000000001
+              72.966,
+              18.947999999999997
             ],
             [
-              78.1263,
-              8.757200000000001
+              72.9695,
+              18.947999999999997
             ],
             [
-              78.1263,
-              8.759400000000001
+              72.9695,
+              18.950199999999995
             ],
             [
-              78.1228,
-              8.759400000000001
+              72.966,
+              18.950199999999995
             ],
             [
-              78.1228,
-              8.757200000000001
+              72.966,
+              18.947999999999997
             ]
           ]
         ]
@@ -165,9 +165,9 @@
       "type": "Feature",
       "properties": {
         "id": 1004,
-        "name": "Chemical & HazMat Bonded Warehouse E (Thoothukudi)",
-        "area_sqm": 94002.5,
-        "capacity_pallets_estimated": 131603,
+        "name": "Chemical & HazMat Bonded Warehouse E (JNPT)",
+        "area_sqm": 89959.7,
+        "capacity_pallets_estimated": 125943,
         "occupancy_pct_simulated": 88.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -178,24 +178,24 @@
         "coordinates": [
           [
             [
-              78.1378,
-              8.7492
+              72.981,
+              18.939999999999998
             ],
             [
-              78.1413,
-              8.7492
+              72.9845,
+              18.939999999999998
             ],
             [
-              78.1413,
-              8.7514
+              72.9845,
+              18.942199999999996
             ],
             [
-              78.1378,
-              8.7514
+              72.981,
+              18.942199999999996
             ],
             [
-              78.1378,
-              8.7492
+              72.981,
+              18.939999999999998
             ]
           ]
         ]

@@ -5,10 +5,10 @@
       "type": "Feature",
       "properties": {
         "id": 2000,
-        "name": "Intermodal Container Stacking Yard 1 (Thoothukudi)",
-        "area_sqm": 357061.6,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
+        "name": "Intermodal Container Stacking Yard 1 (Mundra)",
+        "area_sqm": 332933.0,
+        "slots_total_estimated": 8761,
+        "slots_occupied_simulated": 6483,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -19,24 +19,24 @@
         "coordinates": [
           [
             [
-              78.1528,
-              8.7752
+              69.738,
+              22.851
             ],
             [
-              78.1593,
-              8.7752
+              69.7445,
+              22.851
             ],
             [
-              78.1593,
-              8.7797
+              69.7445,
+              22.8555
             ],
             [
-              78.1528,
-              8.7797
+              69.738,
+              22.8555
             ],
             [
-              78.1528,
-              8.7752
+              69.738,
+              22.851
             ]
           ]
         ]
@@ -46,10 +46,10 @@
       "type": "Feature",
       "properties": {
         "id": 2001,
-        "name": "Inbound Heavy Trailer Transit Yard 2 (Thoothukudi)",
-        "area_sqm": 357054.8,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (Mundra)",
+        "area_sqm": 332915.9,
+        "slots_total_estimated": 8760,
+        "slots_occupied_simulated": 6482,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -60,24 +60,24 @@
         "coordinates": [
           [
             [
-              78.1198,
-              8.782200000000001
+              69.705,
+              22.858
             ],
             [
-              78.1263,
-              8.782200000000001
+              69.7115,
+              22.858
             ],
             [
-              78.1263,
-              8.786700000000002
+              69.7115,
+              22.8625
             ],
             [
-              78.1198,
-              8.786700000000002
+              69.705,
+              22.8625
             ],
             [
-              78.1198,
-              8.782200000000001
+              69.705,
+              22.858
             ]
           ]
         ]
@@ -87,10 +87,10 @@
       "type": "Feature",
       "properties": {
         "id": 2002,
-        "name": "Empty Container Depot & Maintenance Zone 3 (Thoothukudi)",
-        "area_sqm": 357090.4,
-        "slots_total_estimated": 9397,
-        "slots_occupied_simulated": 6953,
+        "name": "Empty Container Depot & Maintenance Zone 3 (Mundra)",
+        "area_sqm": 333006.4,
+        "slots_total_estimated": 8763,
+        "slots_occupied_simulated": 6484,
         "occupancy_pct_simulated": 74.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -101,24 +101,24 @@
         "coordinates": [
           [
             [
-              78.1308,
-              8.7452
+              69.716,
+              22.821
             ],
             [
-              78.1373,
-              8.7452
+              69.7225,
+              22.821
             ],
             [
-              78.1373,
-              8.7497
+              69.7225,
+              22.8255
             ],
             [
-              78.1308,
-              8.7497
+              69.716,
+              22.8255
             ],
             [
-              78.1308,
-              8.7452
+              69.716,
+              22.821
             ]
           ]
         ]
