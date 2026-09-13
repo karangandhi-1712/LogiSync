@@ -3,15 +3,42 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .db import init_db, SessionLocal
 from .seed import seed
-from .routers import gis, routing, operations
+from .routers import (
+    gis,
+    entities,
+    telemetry,
+    digital_twin,
+    simulation,
+    optimization,
+    sensors,
+    scenarios,
+    routing,
+    operations
+)
 
-app = FastAPI(title="LogiSync AI Logistics Digital Twin API",
-              version="0.3.0-phase3",
-              description="Phase 1-3: Dynamic Multi-City GIS, Real-Time Routing, Telemetry & Operational Entities.")
+app = FastAPI(
+    title="Thoothukudi MMLP & AI Logistics Digital Twin API",
+    version="1.3.0-multimodal",
+    description="Full Industrial Logistics App + 3D Multi-Modal OpenStreetMap Digital Twin with Maritime Ships, Freight Trains, IoT Sensors, SimPy Simulation, OR-Tools Optimization, and Multi-City Routing."
+)
 
-app.add_middleware(CORSMiddleware, allow_origins=["*"],
-                   allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+# Mount all core subsystem routers
 app.include_router(gis.router)
+app.include_router(entities.router)
+app.include_router(telemetry.router)
+app.include_router(digital_twin.router)
+app.include_router(simulation.router)
+app.include_router(optimization.router)
+app.include_router(sensors.router)
+app.include_router(scenarios.router)
 app.include_router(routing.router)
 app.include_router(operations.router)
 app.include_router(operations.ws_router)
@@ -23,12 +50,26 @@ def health():
         "status": "ok",
         "phase": 3,
         "implementation_status": "IMPLEMENTED",
-        "features": [
-            "Multi-City GIS Footprints (OSM Authentic)",
-            "Multi-Stop Routing (A, B, C, D, E) & Real-Time Roadblocks",
-            "Operational Entities CRUD (Trucks, Containers, Shipments)",
-            "Real-Time MQTT Telemetry Ingestion & WebSocket Broadcast"
-        ]
+        "system": "Thoothukudi MMLP Logistics & Digital Twin Core",
+        "active_phases": {
+            "phase_1_foundation": "IMPLEMENTED",
+            "phase_2_real_gis_osm": "IMPLEMENTED",
+            "phase_3_entities_crud_telemetry": "IMPLEMENTED",
+            "phase_4_digital_twin_state_separation": "IMPLEMENTED",
+            "phase_5_simpy_discrete_event_simulation": "IMPLEMENTED",
+            "phase_6_ortools_optimization": "IMPLEMENTED"
+        },
+        "logistics_subsystems": {
+            "iot_sensor_network": "ACTIVE",
+            "port_gate_anpr_weighbridge": "ACTIVE",
+            "warehouse_dock_management": "ACTIVE",
+            "scenario_benchmarking_engine": "ACTIVE",
+            "maritime_and_rail_telematics": "ACTIVE",
+            "multi_city_routing_and_roadblocks": "ACTIVE"
+        },
+        "gis_engine": "OpenStreetMap + MapLibre GL 3D",
+        "simulation_engine": "SimPy Discrete-Event Core",
+        "optimization_engine": "Google OR-Tools CP-SAT & Linear Solver"
     }
 
 

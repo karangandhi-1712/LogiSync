@@ -10,8 +10,7 @@ import {
   Navigation,
   CheckCircle2,
   X,
-  Radio,
-  Clock
+  Radio
 } from 'lucide-react';
 import type { Truck, TruckStatus } from '../types/logistics';
 import { updateTruck } from '../services/api';

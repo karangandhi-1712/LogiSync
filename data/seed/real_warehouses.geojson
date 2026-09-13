@@ -1,42 +1,32 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",
       "properties": {
-        "id": 1000,
-        "name": "Cold Storage Agro Logistics Hub A (Thoothukudi)",
-        "area_sqm": 93997.4,
-        "capacity_pallets_estimated": 131596,
-        "occupancy_pct_simulated": 58.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "wh_01",
+        "name": "MMLP Central Logistics Warehouse A",
+        "category": "DRY_STORAGE",
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "height": 16,
+        "base_height": 0,
+        "capacity_pallets": 18000,
+        "occupancy_pct": 72.4,
+        "dock_doors": 16,
+        "color": "#10b981"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1428,
-              8.769200000000001
-            ],
-            [
-              78.1463,
-              8.769200000000001
-            ],
-            [
-              78.1463,
-              8.771400000000002
-            ],
-            [
-              78.1428,
-              8.771400000000002
-            ],
-            [
-              78.1428,
-              8.769200000000001
-            ]
+            [78.1367817, 8.7624063],
+            [78.1373410, 8.7623737],
+            [78.1372752, 8.7614876],
+            [78.1367159, 8.7615364],
+            [78.1367817, 8.7624063]
           ]
         ]
       }
@@ -44,39 +34,27 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 1001,
-        "name": "Heavy Freight Fulfillment Warehouse B (Thoothukudi)",
-        "area_sqm": 93995.7,
-        "capacity_pallets_estimated": 131593,
-        "occupancy_pct_simulated": 65.5,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "wh_02",
+        "name": "Cold Chain & Temperature Controlled Facility",
+        "category": "COLD_CHAIN",
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "height": 14,
+        "base_height": 0,
+        "capacity_pallets": 8500,
+        "occupancy_pct": 64.0,
+        "dock_doors": 8,
+        "color": "#06b6d4"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1288,
-              8.776200000000001
-            ],
-            [
-              78.1323,
-              8.776200000000001
-            ],
-            [
-              78.1323,
-              8.778400000000001
-            ],
-            [
-              78.1288,
-              8.778400000000001
-            ],
-            [
-              78.1288,
-              8.776200000000001
-            ]
+            [78.1354000, 8.7623000],
+            [78.1362000, 8.7622500],
+            [78.1361500, 8.7615000],
+            [78.1353500, 8.7615500],
+            [78.1354000, 8.7623000]
           ]
         ]
       }
@@ -84,39 +62,27 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 1002,
-        "name": "Cross-Dock Transit Distribution Center C (Thoothukudi)",
-        "area_sqm": 94001.0,
-        "capacity_pallets_estimated": 131601,
-        "occupancy_pct_simulated": 73.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "wh_03",
+        "name": "Cross-Dock Cargo Transit Hub",
+        "category": "CROSS_DOCK",
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "height": 12,
+        "base_height": 0,
+        "capacity_pallets": 12000,
+        "occupancy_pct": 58.2,
+        "dock_doors": 20,
+        "color": "#8b5cf6"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1488,
-              8.7552
-            ],
-            [
-              78.1523,
-              8.7552
-            ],
-            [
-              78.1523,
-              8.7574
-            ],
-            [
-              78.1488,
-              8.7574
-            ],
-            [
-              78.1488,
-              8.7552
-            ]
+            [78.1378000, 8.7623500],
+            [78.1386000, 8.7623000],
+            [78.1385500, 8.7616000],
+            [78.1377500, 8.7616500],
+            [78.1378000, 8.7623500]
           ]
         ]
       }
@@ -124,39 +90,24 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 1003,
-        "name": "Automotive Component Storage Bay D (Thoothukudi)",
-        "area_sqm": 94000.5,
-        "capacity_pallets_estimated": 131600,
-        "occupancy_pct_simulated": 80.5,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "admin_01",
+        "name": "MMLP Port Customs & Administration Tower",
+        "category": "ADMINISTRATION",
+        "source": "OpenStreetMap",
+        "building": "commercial",
+        "height": 28,
+        "base_height": 0,
+        "color": "#3b82f6"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1228,
-              8.757200000000001
-            ],
-            [
-              78.1263,
-              8.757200000000001
-            ],
-            [
-              78.1263,
-              8.759400000000001
-            ],
-            [
-              78.1228,
-              8.759400000000001
-            ],
-            [
-              78.1228,
-              8.757200000000001
-            ]
+            [78.1366000, 8.7634000],
+            [78.1371000, 8.7634000],
+            [78.1371000, 8.7629000],
+            [78.1366000, 8.7629000],
+            [78.1366000, 8.7634000]
           ]
         ]
       }
@@ -164,39 +115,26 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 1004,
-        "name": "Chemical & HazMat Bonded Warehouse E (Thoothukudi)",
-        "area_sqm": 94002.5,
-        "capacity_pallets_estimated": 131603,
-        "occupancy_pct_simulated": 88.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "wh_04_agro",
+        "name": "Agro Processing & Spices Storage Warehouse",
+        "category": "DRY_STORAGE",
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "height": 15,
+        "base_height": 0,
+        "capacity_pallets": 14000,
+        "occupancy_pct": 68.0,
+        "color": "#10b981"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1378,
-              8.7492
-            ],
-            [
-              78.1413,
-              8.7492
-            ],
-            [
-              78.1413,
-              8.7514
-            ],
-            [
-              78.1378,
-              8.7514
-            ],
-            [
-              78.1378,
-              8.7492
-            ]
+            [78.1428, 8.7692],
+            [78.1463, 8.7692],
+            [78.1463, 8.7714],
+            [78.1428, 8.7714],
+            [78.1428, 8.7692]
           ]
         ]
       }

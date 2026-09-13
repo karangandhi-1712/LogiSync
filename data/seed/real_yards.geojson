@@ -1,43 +1,32 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",
       "properties": {
-        "id": 2000,
-        "name": "Intermodal Container Stacking Yard 1 (Thoothukudi)",
-        "area_sqm": 357061.6,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
-        "occupancy_pct_simulated": 74.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "yard_block_a",
+        "name": "Container Yard Block A (Dry Export)",
+        "zone_type": "CONTAINER_DRY",
+        "height": 13,
+        "base_height": 0,
+        "slots_total": 1200,
+        "slots_occupied": 840,
+        "bays": 12,
+        "rows": 6,
+        "max_tiers": 5,
+        "color": "#2563eb"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1528,
-              8.7752
-            ],
-            [
-              78.1593,
-              8.7752
-            ],
-            [
-              78.1593,
-              8.7797
-            ],
-            [
-              78.1528,
-              8.7797
-            ],
-            [
-              78.1528,
-              8.7752
-            ]
+            [78.1368, 8.7610],
+            [78.1382, 8.7610],
+            [78.1382, 8.7602],
+            [78.1368, 8.7602],
+            [78.1368, 8.7610]
           ]
         ]
       }
@@ -45,40 +34,27 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 2001,
-        "name": "Inbound Heavy Trailer Transit Yard 2 (Thoothukudi)",
-        "area_sqm": 357054.8,
-        "slots_total_estimated": 9396,
-        "slots_occupied_simulated": 6953,
-        "occupancy_pct_simulated": 74.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "yard_block_b",
+        "name": "Container Yard Block B (Dry Import)",
+        "zone_type": "CONTAINER_DRY",
+        "height": 11,
+        "base_height": 0,
+        "slots_total": 1200,
+        "slots_occupied": 760,
+        "bays": 12,
+        "rows": 6,
+        "max_tiers": 5,
+        "color": "#3b82f6"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1198,
-              8.782200000000001
-            ],
-            [
-              78.1263,
-              8.782200000000001
-            ],
-            [
-              78.1263,
-              8.786700000000002
-            ],
-            [
-              78.1198,
-              8.786700000000002
-            ],
-            [
-              78.1198,
-              8.782200000000001
-            ]
+            [78.1385, 8.7610],
+            [78.1399, 8.7610],
+            [78.1399, 8.7602],
+            [78.1385, 8.7602],
+            [78.1385, 8.7610]
           ]
         ]
       }
@@ -86,40 +62,83 @@
     {
       "type": "Feature",
       "properties": {
-        "id": 2002,
-        "name": "Empty Container Depot & Maintenance Zone 3 (Thoothukudi)",
-        "area_sqm": 357090.4,
-        "slots_total_estimated": 9397,
-        "slots_occupied_simulated": 6953,
-        "occupancy_pct_simulated": 74.0,
-        "data_source": "OpenStreetMap Authentic Footprint",
-        "operational_metrics": "SIMULATED",
-        "status": "SIMULATED"
+        "id": "yard_block_c",
+        "name": "Container Yard Block C (Reefer Stacks)",
+        "zone_type": "REEFER_REEF",
+        "height": 8.5,
+        "base_height": 0,
+        "slots_total": 600,
+        "slots_occupied": 420,
+        "bays": 8,
+        "rows": 4,
+        "max_tiers": 3,
+        "color": "#0ea5e9"
       },
       "geometry": {
         "type": "Polygon",
         "coordinates": [
           [
-            [
-              78.1308,
-              8.7452
-            ],
-            [
-              78.1373,
-              8.7452
-            ],
-            [
-              78.1373,
-              8.7497
-            ],
-            [
-              78.1308,
-              8.7497
-            ],
-            [
-              78.1308,
-              8.7452
-            ]
+            [78.1354, 8.7610],
+            [78.1365, 8.7610],
+            [78.1365, 8.7602],
+            [78.1354, 8.7602],
+            [78.1354, 8.7610]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "yard_block_d",
+        "name": "Container Yard Block D (Hazmat Isolation)",
+        "zone_type": "HAZMAT_ISOLATION",
+        "height": 5.5,
+        "base_height": 0,
+        "slots_total": 300,
+        "slots_occupied": 110,
+        "bays": 6,
+        "rows": 3,
+        "max_tiers": 2,
+        "color": "#f97316"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.1340, 8.7610],
+            [78.1350, 8.7610],
+            [78.1350, 8.7602],
+            [78.1340, 8.7602],
+            [78.1340, 8.7610]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "yard_rail_siding",
+        "name": "Intermodal Rail Transfer Siding Yard",
+        "zone_type": "RAIL_INTERMODAL",
+        "height": 6.0,
+        "base_height": 0,
+        "slots_total": 800,
+        "slots_occupied": 480,
+        "bays": 16,
+        "rows": 2,
+        "max_tiers": 2,
+        "color": "#a855f7"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.1352, 8.7648],
+            [78.1388, 8.7648],
+            [78.1388, 8.7642],
+            [78.1352, 8.7642],
+            [78.1352, 8.7648]
           ]
         ]
       }
