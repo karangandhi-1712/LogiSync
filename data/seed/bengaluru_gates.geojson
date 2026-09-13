@@ -1,0 +1,68 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3000,
+        "name": "Main Commercial Freight Access Gate #01 (Bengaluru)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.721,
+          12.981
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3001,
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (Bengaluru)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.702,
+          12.972000000000001
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3002,
+        "name": "Express Customs Fast-Track Gate #03 (Bengaluru)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.742,
+          12.976
+        ]
+      }
+    }
+  ]
+}

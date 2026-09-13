@@ -1,0 +1,128 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2000,
+        "name": "Intermodal Container Stacking Yard 1 (Mundra)",
+        "area_sqm": 332933.0,
+        "slots_total_estimated": 8761,
+        "slots_occupied_simulated": 6483,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.738,
+              22.851
+            ],
+            [
+              69.7445,
+              22.851
+            ],
+            [
+              69.7445,
+              22.8555
+            ],
+            [
+              69.738,
+              22.8555
+            ],
+            [
+              69.738,
+              22.851
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2001,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (Mundra)",
+        "area_sqm": 332915.9,
+        "slots_total_estimated": 8760,
+        "slots_occupied_simulated": 6482,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.705,
+              22.858
+            ],
+            [
+              69.7115,
+              22.858
+            ],
+            [
+              69.7115,
+              22.8625
+            ],
+            [
+              69.705,
+              22.8625
+            ],
+            [
+              69.705,
+              22.858
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2002,
+        "name": "Empty Container Depot & Maintenance Zone 3 (Mundra)",
+        "area_sqm": 333006.4,
+        "slots_total_estimated": 8763,
+        "slots_occupied_simulated": 6484,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.716,
+              22.821
+            ],
+            [
+              69.7225,
+              22.821
+            ],
+            [
+              69.7225,
+              22.8255
+            ],
+            [
+              69.716,
+              22.8255
+            ],
+            [
+              69.716,
+              22.821
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

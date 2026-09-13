@@ -74,12 +74,13 @@ class Truck(Base):
     __tablename__ = "trucks"
     id = Column(String, primary_key=True)
     license_plate = Column(String, nullable=False)
+    plate_number = Column(String, nullable=True) # Alias for multi-city schema compatibility
+    city_id = Column(String, default="thoothukudi")
     carrier = Column(String, default="MMLP Logistics Express")
     driver_name = Column(String, default="K. Ramanathan")
     driver_phone = Column(String, default="+91 98401 23456")
     truck_type = Column(String, default="PRIME_MOVER_40FT") # PRIME_MOVER_20FT, PRIME_MOVER_40FT, MULTI_AXLE, EV_TERMINAL_AGV
     status = Column(String, default="INBOUND_TRANSIT") 
-    # Status lifecycle: INBOUND_TRANSIT -> GATE_QUEUED -> WEIGHBRIDGE_MEASURING -> MOVING_TO_YARD -> YARD_STACKING -> WAREHOUSE_DOCK -> OUTBOUND_QUEUED -> DEPARTED
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     heading = Column(Float, default=0.0)
@@ -97,22 +98,24 @@ class Container(Base):
     __tablename__ = "containers"
     id = Column(String, primary_key=True)
     container_no = Column(String, nullable=False) # e.g. MSKU-749210-4
+    container_number = Column(String, nullable=True) # Alias for multi-city schema compatibility
+    city_id = Column(String, default="thoothukudi")
     iso_type = Column(String, default="40HC") # 20GP, 40HC, 40RF (Reefer), 20HZ (Hazmat), 45HC
-    cargo_type = Column(String, default="GENERAL_CARGO") # GENERAL_CARGO, AUTO_PARTS, SEAFOOD_COLD_CHAIN, CHEMICALS_HAZMAT, TEXTILES
+    cargo_type = Column(String, default="GENERAL_CARGO")
     gross_weight_tonnes = Column(Float, default=24.5)
     tare_weight_tonnes = Column(Float, default=3.8)
     seal_number = Column(String, default="SL-998234")
-    status = Column(String, default="AT_YARD_STACK") # IN_TRANSIT, AT_YARD_STACK, LOADED_ON_TRUCK, IN_WAREHOUSE, LOADED_ON_RAIL, GATE_INSPECTED
+    status = Column(String, default="AT_YARD_STACK")
     yard_block_id = Column(String, default="YARD_BLOCK_A")
     bay = Column(Integer, default=3)
     row = Column(Integer, default=2)
-    tier = Column(Integer, default=1) # 1 (bottom) to 5 (top)
+    tier = Column(Integer, default=1)
     assigned_truck_id = Column(String, nullable=True)
     assigned_equipment_id = Column(String, nullable=True)
     dwell_hours = Column(Float, default=18.4)
     export_cutoff_time = Column(DateTime, default=datetime.utcnow)
-    hazmat_class = Column(String, nullable=True) # None or "CLASS_3_FLAMMABLE", "CLASS_8_CORROSIVE"
-    temperature_celsius = Column(Float, nullable=True) # for Reefer
+    hazmat_class = Column(String, nullable=True)
+    temperature_celsius = Column(Float, nullable=True)
     data_source = Column(String, default=DATA_SOURCE_SIMULATED)
 
 
@@ -120,11 +123,11 @@ class Equipment(Base):
     __tablename__ = "equipment"
     id = Column(String, primary_key=True)
     name = Column(String, nullable=False)
-    equipment_type = Column(String, default="RTG_CRANE") # RTG_CRANE, REACH_STACKER, RMG_RAIL_CRANE, TERMINAL_AGV, FORKLIFT
+    equipment_type = Column(String, default="RTG_CRANE")
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
     heading = Column(Float, default=90.0)
-    status = Column(String, default="IDLE") # IDLE, LIFTING, MOVING, MAINTENANCE, CHARGING
+    status = Column(String, default="IDLE")
     current_job_id = Column(String, nullable=True)
     moves_completed_today = Column(Integer, default=42)
     fuel_efficiency_teu_per_hr = Column(Float, default=26.4)
@@ -134,15 +137,15 @@ class Equipment(Base):
 class GatePass(Base):
     __tablename__ = "gate_passes"
     id = Column(String, primary_key=True)
-    pass_number = Column(String, nullable=False) # e.g. GP-2026-09-0012
+    pass_number = Column(String, nullable=False)
     truck_id = Column(String, nullable=False)
     container_id = Column(String, nullable=True)
     driver_name = Column(String, nullable=False)
-    pass_type = Column(String, default="INBOUND_IMPORT") # INBOUND_IMPORT, OUTBOUND_EXPORT, EMPTY_RETURN, INTERMODAL_RAIL
+    pass_type = Column(String, default="INBOUND_IMPORT")
     appointment_window_start = Column(DateTime, default=datetime.utcnow)
     appointment_window_end = Column(DateTime, default=datetime.utcnow)
     gate_lane_id = Column(String, default="GATE_LANE_01")
-    status = Column(String, default="SCHEDULED") # SCHEDULED, CHECKED_IN, WEIGHBRIDGE_VERIFIED, OCR_CLEARED, COMPLETED, REJECTED
+    status = Column(String, default="SCHEDULED")
     booked_weight_tonnes = Column(Float, default=24.5)
     measured_weight_tonnes = Column(Float, nullable=True)
     weighbridge_discrepancy_flag = Column(Boolean, default=False)
@@ -153,12 +156,27 @@ class MultimodalSchedule(Base):
     __tablename__ = "multimodal_schedules"
     id = Column(String, primary_key=True)
     manifest_no = Column(String, nullable=False)
-    mode_type = Column(String, default="CONTAINER_TRAIN_RAKE") # VESSEL_VOC_PORT, CONTAINER_TRAIN_RAKE
+    mode_type = Column(String, default="CONTAINER_TRAIN_RAKE")
     carrier_name = Column(String, default="CONCOR Southern Express / Port Line")
     terminal_location = Column(String, default="MMLP_RAIL_SIDING_01")
     scheduled_arrival = Column(DateTime, default=datetime.utcnow)
     scheduled_departure = Column(DateTime, default=datetime.utcnow)
     total_teu = Column(Integer, default=90)
     teu_handled = Column(Integer, default=35)
-    status = Column(String, default="IN_OPERATION") # SCHEDULED, BERTHED, IN_OPERATION, COMPLETED
+    status = Column(String, default="IN_OPERATION")
+    data_source = Column(String, default=DATA_SOURCE_SIMULATED)
+
+
+class Shipment(Base):
+    __tablename__ = "shipments"
+    id = Column(String, primary_key=True)
+    tracking_code = Column(String, nullable=False)
+    city_id = Column(String, default="thoothukudi")
+    origin_name = Column(String, default="VOC Port Terminal Gate 1")
+    destination_name = Column(String, default="NH-38 National Freight Highway Interchange")
+    status = Column(String, default="in_transit")
+    eta_minutes = Column(Integer, default=25)
+    priority = Column(String, default="standard")
+    weight_tonnes = Column(Float, default=18.2)
+    assigned_truck_id = Column(String, nullable=True)
     data_source = Column(String, default=DATA_SOURCE_SIMULATED)

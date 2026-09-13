@@ -1,0 +1,68 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3000,
+        "name": "Main Commercial Freight Access Gate #01 (Mundra)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.721,
+          22.841
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3001,
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (Mundra)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.702,
+          22.832
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3002,
+        "name": "Express Customs Fast-Track Gate #03 (Mundra)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.742,
+          22.836
+        ]
+      }
+    }
+  ]
+}

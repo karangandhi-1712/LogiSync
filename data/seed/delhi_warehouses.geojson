@@ -1,0 +1,205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1000,
+        "name": "Cold Storage Agro Logistics Hub A (Delhi)",
+        "area_sqm": 83563.3,
+        "capacity_pallets_estimated": 116988,
+        "occupancy_pct_simulated": 58.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.52799999999999,
+              28.525
+            ],
+            [
+              77.5315,
+              28.525
+            ],
+            [
+              77.5315,
+              28.527199999999997
+            ],
+            [
+              77.52799999999999,
+              28.527199999999997
+            ],
+            [
+              77.52799999999999,
+              28.525
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "name": "Heavy Freight Fulfillment Warehouse B (Delhi)",
+        "area_sqm": 83557.8,
+        "capacity_pallets_estimated": 116980,
+        "occupancy_pct_simulated": 65.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.514,
+              28.532
+            ],
+            [
+              77.5175,
+              28.532
+            ],
+            [
+              77.5175,
+              28.5342
+            ],
+            [
+              77.514,
+              28.5342
+            ],
+            [
+              77.514,
+              28.532
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "name": "Cross-Dock Transit Distribution Center C (Delhi)",
+        "area_sqm": 83574.4,
+        "capacity_pallets_estimated": 117004,
+        "occupancy_pct_simulated": 73.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.53399999999999,
+              28.511
+            ],
+            [
+              77.5375,
+              28.511
+            ],
+            [
+              77.5375,
+              28.513199999999998
+            ],
+            [
+              77.53399999999999,
+              28.513199999999998
+            ],
+            [
+              77.53399999999999,
+              28.511
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "name": "Automotive Component Storage Bay D (Delhi)",
+        "area_sqm": 83572.8,
+        "capacity_pallets_estimated": 117001,
+        "occupancy_pct_simulated": 80.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.508,
+              28.512999999999998
+            ],
+            [
+              77.5115,
+              28.512999999999998
+            ],
+            [
+              77.5115,
+              28.515199999999997
+            ],
+            [
+              77.508,
+              28.515199999999997
+            ],
+            [
+              77.508,
+              28.512999999999998
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "name": "Chemical & HazMat Bonded Warehouse E (Delhi)",
+        "area_sqm": 83579.2,
+        "capacity_pallets_estimated": 117010,
+        "occupancy_pct_simulated": 88.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.523,
+              28.505
+            ],
+            [
+              77.5265,
+              28.505
+            ],
+            [
+              77.5265,
+              28.507199999999997
+            ],
+            [
+              77.523,
+              28.507199999999997
+            ],
+            [
+              77.523,
+              28.505
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",
@@ -106,6 +108,33 @@
             [78.1371000, 8.7629000],
             [78.1366000, 8.7629000],
             [78.1366000, 8.7634000]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "wh_04_agro",
+        "name": "Agro Processing & Spices Storage Warehouse",
+        "category": "DRY_STORAGE",
+        "source": "OpenStreetMap",
+        "building": "warehouse",
+        "height": 15,
+        "base_height": 0,
+        "capacity_pallets": 14000,
+        "occupancy_pct": 68.0,
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [78.1428, 8.7692],
+            [78.1463, 8.7692],
+            [78.1463, 8.7714],
+            [78.1428, 8.7714],
+            [78.1428, 8.7692]
           ]
         ]
       }

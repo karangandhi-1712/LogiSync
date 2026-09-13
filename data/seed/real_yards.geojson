@@ -1,5 +1,7 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",

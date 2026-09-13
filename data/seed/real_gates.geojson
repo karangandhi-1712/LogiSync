@@ -1,5 +1,7 @@
 {
   "type": "FeatureCollection",
+  "data_source": "REAL_OSM",
+  "status": "OPERATIONAL",
   "features": [
     {
       "type": "Feature",
@@ -67,6 +69,23 @@
       "geometry": {
         "type": "Point",
         "coordinates": [78.1398, 8.7625]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_05_west",
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (NH-38)",
+        "gate_type": "HIGHWAY_WEST",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1168, 8.7562]
       }
     }
   ]

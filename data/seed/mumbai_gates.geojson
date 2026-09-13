@@ -1,0 +1,68 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3000,
+        "name": "Main Commercial Freight Access Gate #01 (JNPT)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.979,
+          18.956
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3001,
+        "name": "Weighbridge & ANPR Inbound Checkpoint #02 (JNPT)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          72.96,
+          18.947
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 3002,
+        "name": "Express Customs Fast-Track Gate #03 (JNPT)",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.0,
+          18.950999999999997
+        ]
+      }
+    }
+  ]
+}

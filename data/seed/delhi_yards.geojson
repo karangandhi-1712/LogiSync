@@ -1,0 +1,128 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2000,
+        "name": "Intermodal Container Stacking Yard 1 (Delhi)",
+        "area_sqm": 317411.2,
+        "slots_total_estimated": 8352,
+        "slots_occupied_simulated": 6180,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.538,
+              28.531
+            ],
+            [
+              77.5445,
+              28.531
+            ],
+            [
+              77.5445,
+              28.5355
+            ],
+            [
+              77.538,
+              28.5355
+            ],
+            [
+              77.538,
+              28.531
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2001,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (Delhi)",
+        "area_sqm": 317390.1,
+        "slots_total_estimated": 8352,
+        "slots_occupied_simulated": 6180,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.505,
+              28.538
+            ],
+            [
+              77.5115,
+              28.538
+            ],
+            [
+              77.5115,
+              28.5425
+            ],
+            [
+              77.505,
+              28.5425
+            ],
+            [
+              77.505,
+              28.538
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2002,
+        "name": "Empty Container Depot & Maintenance Zone 3 (Delhi)",
+        "area_sqm": 317501.5,
+        "slots_total_estimated": 8355,
+        "slots_occupied_simulated": 6182,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.51599999999999,
+              28.501
+            ],
+            [
+              77.5225,
+              28.501
+            ],
+            [
+              77.5225,
+              28.5055
+            ],
+            [
+              77.51599999999999,
+              28.5055
+            ],
+            [
+              77.51599999999999,
+              28.501
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

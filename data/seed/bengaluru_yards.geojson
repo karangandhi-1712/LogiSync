@@ -1,0 +1,128 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2000,
+        "name": "Intermodal Container Stacking Yard 1 (Bengaluru)",
+        "area_sqm": 352042.7,
+        "slots_total_estimated": 9264,
+        "slots_occupied_simulated": 6855,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.738,
+              12.991
+            ],
+            [
+              77.7445,
+              12.991
+            ],
+            [
+              77.7445,
+              12.9955
+            ],
+            [
+              77.738,
+              12.9955
+            ],
+            [
+              77.738,
+              12.991
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2001,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (Bengaluru)",
+        "area_sqm": 352032.8,
+        "slots_total_estimated": 9264,
+        "slots_occupied_simulated": 6855,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.705,
+              12.998000000000001
+            ],
+            [
+              77.7115,
+              12.998000000000001
+            ],
+            [
+              77.7115,
+              13.002500000000001
+            ],
+            [
+              77.705,
+              13.002500000000001
+            ],
+            [
+              77.705,
+              12.998000000000001
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2002,
+        "name": "Empty Container Depot & Maintenance Zone 3 (Bengaluru)",
+        "area_sqm": 352085.2,
+        "slots_total_estimated": 9265,
+        "slots_occupied_simulated": 6856,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.716,
+              12.961
+            ],
+            [
+              77.7225,
+              12.961
+            ],
+            [
+              77.7225,
+              12.9655
+            ],
+            [
+              77.716,
+              12.9655
+            ],
+            [
+              77.716,
+              12.961
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1000,
+        "name": "Cold Storage Agro Logistics Hub A (JNPT)",
+        "area_sqm": 89948.9,
+        "capacity_pallets_estimated": 125928,
+        "occupancy_pct_simulated": 58.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.98599999999999,
+              18.959999999999997
+            ],
+            [
+              72.98949999999999,
+              18.959999999999997
+            ],
+            [
+              72.98949999999999,
+              18.962199999999996
+            ],
+            [
+              72.98599999999999,
+              18.962199999999996
+            ],
+            [
+              72.98599999999999,
+              18.959999999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "name": "Heavy Freight Fulfillment Warehouse B (JNPT)",
+        "area_sqm": 89945.1,
+        "capacity_pallets_estimated": 125923,
+        "occupancy_pct_simulated": 65.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.972,
+              18.967
+            ],
+            [
+              72.9755,
+              18.967
+            ],
+            [
+              72.9755,
+              18.969199999999997
+            ],
+            [
+              72.972,
+              18.969199999999997
+            ],
+            [
+              72.972,
+              18.967
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "name": "Cross-Dock Transit Distribution Center C (JNPT)",
+        "area_sqm": 89956.4,
+        "capacity_pallets_estimated": 125938,
+        "occupancy_pct_simulated": 73.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.99199999999999,
+              18.945999999999998
+            ],
+            [
+              72.99549999999999,
+              18.945999999999998
+            ],
+            [
+              72.99549999999999,
+              18.948199999999996
+            ],
+            [
+              72.99199999999999,
+              18.948199999999996
+            ],
+            [
+              72.99199999999999,
+              18.945999999999998
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "name": "Automotive Component Storage Bay D (JNPT)",
+        "area_sqm": 89955.3,
+        "capacity_pallets_estimated": 125937,
+        "occupancy_pct_simulated": 80.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.966,
+              18.947999999999997
+            ],
+            [
+              72.9695,
+              18.947999999999997
+            ],
+            [
+              72.9695,
+              18.950199999999995
+            ],
+            [
+              72.966,
+              18.950199999999995
+            ],
+            [
+              72.966,
+              18.947999999999997
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "name": "Chemical & HazMat Bonded Warehouse E (JNPT)",
+        "area_sqm": 89959.7,
+        "capacity_pallets_estimated": 125943,
+        "occupancy_pct_simulated": 88.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.981,
+              18.939999999999998
+            ],
+            [
+              72.9845,
+              18.939999999999998
+            ],
+            [
+              72.9845,
+              18.942199999999996
+            ],
+            [
+              72.981,
+              18.942199999999996
+            ],
+            [
+              72.981,
+              18.939999999999998
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

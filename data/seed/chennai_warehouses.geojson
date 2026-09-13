@@ -1,0 +1,205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1000,
+        "name": "Cold Storage Agro Logistics Hub A (Chennai)",
+        "area_sqm": 92645.3,
+        "capacity_pallets_estimated": 129703,
+        "occupancy_pct_simulated": 58.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.253,
+              13.07
+            ],
+            [
+              80.2565,
+              13.07
+            ],
+            [
+              80.2565,
+              13.0722
+            ],
+            [
+              80.253,
+              13.0722
+            ],
+            [
+              80.253,
+              13.07
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "name": "Heavy Freight Fulfillment Warehouse B (Chennai)",
+        "area_sqm": 92642.6,
+        "capacity_pallets_estimated": 129699,
+        "occupancy_pct_simulated": 65.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.239,
+              13.077
+            ],
+            [
+              80.2425,
+              13.077
+            ],
+            [
+              80.2425,
+              13.0792
+            ],
+            [
+              80.239,
+              13.0792
+            ],
+            [
+              80.239,
+              13.077
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "name": "Cross-Dock Transit Distribution Center C (Chennai)",
+        "area_sqm": 92650.5,
+        "capacity_pallets_estimated": 129710,
+        "occupancy_pct_simulated": 73.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.259,
+              13.056
+            ],
+            [
+              80.2625,
+              13.056
+            ],
+            [
+              80.2625,
+              13.0582
+            ],
+            [
+              80.259,
+              13.0582
+            ],
+            [
+              80.259,
+              13.056
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "name": "Automotive Component Storage Bay D (Chennai)",
+        "area_sqm": 92649.8,
+        "capacity_pallets_estimated": 129709,
+        "occupancy_pct_simulated": 80.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.233,
+              13.058
+            ],
+            [
+              80.2365,
+              13.058
+            ],
+            [
+              80.2365,
+              13.0602
+            ],
+            [
+              80.233,
+              13.0602
+            ],
+            [
+              80.233,
+              13.058
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "name": "Chemical & HazMat Bonded Warehouse E (Chennai)",
+        "area_sqm": 92652.8,
+        "capacity_pallets_estimated": 129713,
+        "occupancy_pct_simulated": 88.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.248,
+              13.049999999999999
+            ],
+            [
+              80.25150000000001,
+              13.049999999999999
+            ],
+            [
+              80.25150000000001,
+              13.0522
+            ],
+            [
+              80.248,
+              13.0522
+            ],
+            [
+              80.248,
+              13.049999999999999
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

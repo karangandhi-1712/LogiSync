@@ -4,6 +4,97 @@
 
 @layer base {
   body {
-    @apply m-0 p-0 overflow-hidden bg-gray-900;
+    @apply m-0 p-0 overflow-hidden bg-cyber-950 text-slate-100 font-sans select-none;
+    -webkit-font-smoothing: antialiased;
   }
+}
+
+/* Custom Glassmorphism */
+.glass-panel {
+  background: rgba(11, 15, 23, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 254, 0.05);
+}
+
+.glass-panel-subtle {
+  background: rgba(19, 27, 42, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(29, 39, 59, 0.75);
+  border-color: rgba(0, 242, 254, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 242, 254, 0.15);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(11, 15, 23, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 242, 254, 0.4);
+}
+
+/* MapLibre Canvas overrides */
+.maplibregl-ctrl-attrib {
+  display: none !important;
+}
+
+/* Custom HTML Markers */
+.custom-waypoint-marker {
+  cursor: pointer;
+  transform: translate(-50%, -100%);
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.custom-waypoint-marker:hover {
+  transform: translate(-50%, -115%) scale(1.1);
+  z-index: 50;
+}
+
+/* Radar pulse animation */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0.1;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Glowing text */
+.glow-cyan {
+  text-shadow: 0 0 16px rgba(0, 242, 254, 0.6);
+}
+
+.glow-emerald {
+  text-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
+}
+
+.glow-rose {
+  text-shadow: 0 0 16px rgba(244, 63, 94, 0.6);
 }

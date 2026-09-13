@@ -1,0 +1,205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1000,
+        "name": "Cold Storage Agro Logistics Hub A (Thoothukudi)",
+        "area_sqm": 93997.4,
+        "capacity_pallets_estimated": 131596,
+        "occupancy_pct_simulated": 58.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1428,
+              8.769200000000001
+            ],
+            [
+              78.1463,
+              8.769200000000001
+            ],
+            [
+              78.1463,
+              8.771400000000002
+            ],
+            [
+              78.1428,
+              8.771400000000002
+            ],
+            [
+              78.1428,
+              8.769200000000001
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "name": "Heavy Freight Fulfillment Warehouse B (Thoothukudi)",
+        "area_sqm": 93995.7,
+        "capacity_pallets_estimated": 131593,
+        "occupancy_pct_simulated": 65.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1288,
+              8.776200000000001
+            ],
+            [
+              78.1323,
+              8.776200000000001
+            ],
+            [
+              78.1323,
+              8.778400000000001
+            ],
+            [
+              78.1288,
+              8.778400000000001
+            ],
+            [
+              78.1288,
+              8.776200000000001
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "name": "Cross-Dock Transit Distribution Center C (Thoothukudi)",
+        "area_sqm": 94001.0,
+        "capacity_pallets_estimated": 131601,
+        "occupancy_pct_simulated": 73.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1488,
+              8.7552
+            ],
+            [
+              78.1523,
+              8.7552
+            ],
+            [
+              78.1523,
+              8.7574
+            ],
+            [
+              78.1488,
+              8.7574
+            ],
+            [
+              78.1488,
+              8.7552
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "name": "Automotive Component Storage Bay D (Thoothukudi)",
+        "area_sqm": 94000.5,
+        "capacity_pallets_estimated": 131600,
+        "occupancy_pct_simulated": 80.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1228,
+              8.757200000000001
+            ],
+            [
+              78.1263,
+              8.757200000000001
+            ],
+            [
+              78.1263,
+              8.759400000000001
+            ],
+            [
+              78.1228,
+              8.759400000000001
+            ],
+            [
+              78.1228,
+              8.757200000000001
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "name": "Chemical & HazMat Bonded Warehouse E (Thoothukudi)",
+        "area_sqm": 94002.5,
+        "capacity_pallets_estimated": 131603,
+        "occupancy_pct_simulated": 88.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              78.1378,
+              8.7492
+            ],
+            [
+              78.1413,
+              8.7492
+            ],
+            [
+              78.1413,
+              8.7514
+            ],
+            [
+              78.1378,
+              8.7514
+            ],
+            [
+              78.1378,
+              8.7492
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

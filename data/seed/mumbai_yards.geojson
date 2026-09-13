@@ -1,0 +1,128 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2000,
+        "name": "Intermodal Container Stacking Yard 1 (JNPT)",
+        "area_sqm": 341674.7,
+        "slots_total_estimated": 8991,
+        "slots_occupied_simulated": 6653,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.996,
+              18.965999999999998
+            ],
+            [
+              73.0025,
+              18.965999999999998
+            ],
+            [
+              73.0025,
+              18.970499999999998
+            ],
+            [
+              72.996,
+              18.970499999999998
+            ],
+            [
+              72.996,
+              18.965999999999998
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2001,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (JNPT)",
+        "area_sqm": 341660.4,
+        "slots_total_estimated": 8991,
+        "slots_occupied_simulated": 6653,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.963,
+              18.973
+            ],
+            [
+              72.9695,
+              18.973
+            ],
+            [
+              72.9695,
+              18.9775
+            ],
+            [
+              72.963,
+              18.9775
+            ],
+            [
+              72.963,
+              18.973
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2002,
+        "name": "Empty Container Depot & Maintenance Zone 3 (JNPT)",
+        "area_sqm": 341736.2,
+        "slots_total_estimated": 8993,
+        "slots_occupied_simulated": 6654,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.97399999999999,
+              18.936
+            ],
+            [
+              72.98049999999999,
+              18.936
+            ],
+            [
+              72.98049999999999,
+              18.9405
+            ],
+            [
+              72.97399999999999,
+              18.9405
+            ],
+            [
+              72.97399999999999,
+              18.936
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

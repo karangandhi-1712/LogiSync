@@ -3,12 +3,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .db import init_db, SessionLocal
 from .seed import seed
-from .routers import gis, entities, telemetry, digital_twin, simulation, optimization, sensors, scenarios
+from .routers import (
+    gis,
+    entities,
+    telemetry,
+    digital_twin,
+    simulation,
+    optimization,
+    sensors,
+    scenarios,
+    routing,
+    operations
+)
 
 app = FastAPI(
-    title="Thoothukudi MMLP Industrial Logistics & Digital Twin API",
-    version="1.2.0-phase6",
-    description="Full Industrial Logistics App + 3D OpenStreetMap Digital Twin with IoT Sensors, SimPy Discrete-Event Simulation, and Google OR-Tools Mathematical Optimization."
+    title="Thoothukudi MMLP & AI Logistics Digital Twin API",
+    version="1.3.0-multimodal",
+    description="Full Industrial Logistics App + 3D Multi-Modal OpenStreetMap Digital Twin with Maritime Ships, Freight Trains, IoT Sensors, SimPy Simulation, OR-Tools Optimization, and Multi-City Routing."
 )
 
 app.add_middleware(
@@ -28,12 +39,17 @@ app.include_router(simulation.router)
 app.include_router(optimization.router)
 app.include_router(sensors.router)
 app.include_router(scenarios.router)
+app.include_router(routing.router)
+app.include_router(operations.router)
+app.include_router(operations.ws_router)
 
 
 @app.get("/api/health")
 def health():
     return {
         "status": "ok",
+        "phase": 3,
+        "implementation_status": "IMPLEMENTED",
         "system": "Thoothukudi MMLP Logistics & Digital Twin Core",
         "active_phases": {
             "phase_1_foundation": "IMPLEMENTED",
@@ -47,7 +63,9 @@ def health():
             "iot_sensor_network": "ACTIVE",
             "port_gate_anpr_weighbridge": "ACTIVE",
             "warehouse_dock_management": "ACTIVE",
-            "scenario_benchmarking_engine": "ACTIVE"
+            "scenario_benchmarking_engine": "ACTIVE",
+            "maritime_and_rail_telematics": "ACTIVE",
+            "multi_city_routing_and_roadblocks": "ACTIVE"
         },
         "gis_engine": "OpenStreetMap + MapLibre GL 3D",
         "simulation_engine": "SimPy Discrete-Event Core",

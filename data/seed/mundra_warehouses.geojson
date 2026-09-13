@@ -1,0 +1,205 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1000,
+        "name": "Cold Storage Agro Logistics Hub A (Mundra)",
+        "area_sqm": 87648.4,
+        "capacity_pallets_estimated": 122707,
+        "occupancy_pct_simulated": 58.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.728,
+              22.845
+            ],
+            [
+              69.7315,
+              22.845
+            ],
+            [
+              69.7315,
+              22.847199999999997
+            ],
+            [
+              69.728,
+              22.847199999999997
+            ],
+            [
+              69.728,
+              22.845
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1001,
+        "name": "Heavy Freight Fulfillment Warehouse B (Mundra)",
+        "area_sqm": 87643.8,
+        "capacity_pallets_estimated": 122701,
+        "occupancy_pct_simulated": 65.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.714,
+              22.852
+            ],
+            [
+              69.7175,
+              22.852
+            ],
+            [
+              69.7175,
+              22.8542
+            ],
+            [
+              69.714,
+              22.8542
+            ],
+            [
+              69.714,
+              22.852
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1002,
+        "name": "Cross-Dock Transit Distribution Center C (Mundra)",
+        "area_sqm": 87657.4,
+        "capacity_pallets_estimated": 122720,
+        "occupancy_pct_simulated": 73.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.734,
+              22.831
+            ],
+            [
+              69.7375,
+              22.831
+            ],
+            [
+              69.7375,
+              22.833199999999998
+            ],
+            [
+              69.734,
+              22.833199999999998
+            ],
+            [
+              69.734,
+              22.831
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1003,
+        "name": "Automotive Component Storage Bay D (Mundra)",
+        "area_sqm": 87656.1,
+        "capacity_pallets_estimated": 122718,
+        "occupancy_pct_simulated": 80.5,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.708,
+              22.833
+            ],
+            [
+              69.7115,
+              22.833
+            ],
+            [
+              69.7115,
+              22.835199999999997
+            ],
+            [
+              69.708,
+              22.835199999999997
+            ],
+            [
+              69.708,
+              22.833
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 1004,
+        "name": "Chemical & HazMat Bonded Warehouse E (Mundra)",
+        "area_sqm": 87661.2,
+        "capacity_pallets_estimated": 122725,
+        "occupancy_pct_simulated": 88.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              69.723,
+              22.825
+            ],
+            [
+              69.7265,
+              22.825
+            ],
+            [
+              69.7265,
+              22.827199999999998
+            ],
+            [
+              69.723,
+              22.827199999999998
+            ],
+            [
+              69.723,
+              22.825
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

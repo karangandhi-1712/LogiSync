@@ -10,6 +10,26 @@ import { DigitalTwinStatePanel } from './components/DigitalTwinStatePanel';
 import { SimControlPanel } from './components/SimControlPanel';
 import { OptimizationPanel } from './components/OptimizationPanel';
 import { FleetTrackerPanel } from './components/FleetTrackerPanel';
+import { OperationsPanel } from './components/OperationsPanel';
+import { WaypointManager } from './components/WaypointManager';
+import { TrafficRoadblocksPanel } from './components/TrafficRoadblocksPanel';
+import { TripSimulator } from './components/TripSimulator';
+import { CitySelector } from './components/CitySelector';
+import { PRESET_CITIES, calculateMultiPointRoute } from './services/api';
+import type { City, Waypoint, RouteResult, TrafficIncident, SimulationState } from './types/logistics';
+import { 
+  Globe, 
+  Map as MapIcon, 
+  Layers, 
+  Sparkles, 
+  Cpu, 
+  PlayCircle, 
+  Radio, 
+  RefreshCw, 
+  Truck, 
+  Ship, 
+  Train 
+} from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const WS_URL = API_URL.replace(/^http/, 'ws') + '/api/telemetry/ws';
@@ -23,6 +43,26 @@ export function App() {
   const [equipment, setEquipment] = useState<any[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [selectedEntityForModal, setSelectedEntityForModal] = useState<any | null>(null);
+
+  // Multi-City Routing State
+  const [selectedCity, setSelectedCity] = useState<City>(PRESET_CITIES[0]);
+  const [waypoints, setWaypoints] = useState<Waypoint[]>(
+    (PRESET_CITIES[0].defaultWaypoints || []).map((w, idx) => ({ ...w, id: `wp-${idx}` }))
+  );
+  const [routeResult, setRouteResult] = useState<RouteResult | null>(null);
+  const [incidents] = useState<TrafficIncident[]>([]);
+  const [showTrafficLayer, setShowTrafficLayer] = useState<boolean>(true);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState<boolean>(false);
+  const [activeMapPickStopId, setActiveMapPickStopId] = useState<string | null>(null);
+  const [simulationState, setSimulationState] = useState<SimulationState>({
+    isPlaying: false,
+    progress: 0,
+    playbackSpeed: 1,
+    currentCoord: [78.1368, 8.7624],
+    currentHeading: 0,
+    currentSpeedKmH: 45,
+    currentLegIndex: 0
+  });
 
   // Multi-Speed Simulation State
   const [simSpeed, setSimSpeed] = useState<number>(1);
@@ -52,46 +92,63 @@ export function App() {
 
   useEffect(() => {
     fetchInitialData();
+    const interval = setInterval(fetchInitialData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
-    // WebSocket Connection for Real-Time Multi-Modal Telemetry
+  // Calculate Multi-Point Route
+  const handleCalculateRoute = async () => {
+    if (waypoints.length < 2) return;
+    setIsCalculatingRoute(true);
     try {
-      const ws = new WebSocket(WS_URL);
-      wsRef.current = ws;
-
-      ws.onmessage = (event) => {
-        try {
-          const packet = JSON.parse(event.data);
-          if (packet.type === 'TELEMETRY_STREAM') {
-            if (packet.trucks) setTrucks(packet.trucks);
-            if (packet.vessels) setVessels(packet.vessels);
-            if (packet.trains) setTrains(packet.trains);
-            if (packet.equipment) setEquipment(packet.equipment);
-          }
-        } catch (e) {
-          console.error('Error parsing telemetry ws packet:', e);
-        }
-      };
-
-      ws.onerror = () => {
-        console.warn('WebSocket connection failed, switching to polling mode.');
-      };
+      const res = await calculateMultiPointRoute(waypoints);
+      setRouteResult(res);
     } catch (e) {
-      console.warn('WebSocket init error:', e);
+      console.error('Routing calculation error:', e);
+    } finally {
+      setIsCalculatingRoute(false);
     }
+  };
 
-    // Polling interval adjusted by speed factor
-    const intervalTime = isPaused ? 999999 : Math.max(200, Math.round(2000 / simSpeed));
-    const interval = setInterval(fetchInitialData, intervalTime);
+  // WebSocket Live Physics Telemetry Stream
+  useEffect(() => {
+    const connectWS = () => {
+      try {
+        const ws = new WebSocket(WS_URL);
+        wsRef.current = ws;
 
+        ws.onmessage = (event) => {
+          if (isPaused) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'TELEMETRY_BATCH') {
+              if (data.trucks) setTrucks(data.trucks);
+              if (data.vessels) setVessels(data.vessels);
+              if (data.trains) setTrains(data.trains);
+              if (data.equipment) setEquipment(data.equipment);
+            }
+          } catch (e) {
+            console.error('WS parse error:', e);
+          }
+        };
+
+        ws.onclose = () => {
+          setTimeout(connectWS, 3000);
+        };
+      } catch (err) {
+        console.error('WebSocket connection error:', err);
+      }
+    };
+
+    connectWS();
     return () => {
-      clearInterval(interval);
       if (wsRef.current) wsRef.current.close();
     };
-  }, [simSpeed, isPaused]);
+  }, [isPaused]);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white">
-      {/* Top Glassmorphism KPI & Nav Header */}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-white">
+      {/* Top Header & Real-Time Logistics KPIs */}
       <HeaderKPIs
         kpis={kpis}
         activeMode={activeMode}
@@ -99,86 +156,243 @@ export function App() {
         liveTelemetryCount={trucks.length + vessels.length + trains.length}
       />
 
-      {/* Main Viewport Container */}
-      <main className="flex-1 p-4 lg:p-6 max-w-[1800px] w-full mx-auto">
-        {/* Mode 1: 3D Digital Twin Map View */}
+      {/* Main Navigation Bar */}
+      <div className="bg-slate-900 border-b border-slate-800 px-6 py-2 flex flex-wrap items-center justify-between gap-3 shadow-lg">
+        <div className="flex flex-wrap items-center gap-1 text-xs font-semibold">
+          <button
+            onClick={() => setActiveMode('3d-map')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === '3d-map'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Globe className="w-4 h-4 text-cyan-300" />
+            <span>3D Multi-Modal Twin</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('city-routing')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'city-routing'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <MapIcon className="w-4 h-4 text-emerald-400" />
+            <span>Multi-City Routing & Roadblocks</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('operations')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'operations'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Layers className="w-4 h-4 text-purple-400" />
+            <span>Operations & Gate Management</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('scenarios')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'scenarios'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <span>Scenario Benchmarking</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('optimization')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'optimization'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Cpu className="w-4 h-4 text-indigo-400" />
+            <span>OR-Tools Optimization</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('simulation')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'simulation'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <PlayCircle className="w-4 h-4 text-rose-400" />
+            <span>SimPy DES Simulation</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('sensors')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'sensors'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Radio className="w-4 h-4 text-emerald-400" />
+            <span>IoT Sensors & ANPR</span>
+          </button>
+
+          <button
+            onClick={() => setActiveMode('digital-twin')}
+            className={`px-3 py-2 rounded-xl flex items-center gap-2 transition ${
+              activeMode === 'digital-twin'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <RefreshCw className="w-4 h-4 text-cyan-400" />
+            <span>Digital Twin State</span>
+          </button>
+        </div>
+
+        {/* Multi-Modal Live Counter Indicator */}
+        <div className="flex items-center gap-2 text-xs font-mono bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800 text-slate-300">
+          <span className="flex items-center gap-1 text-cyan-300">
+            <Ship className="w-3.5 h-3.5" /> {vessels.length} Ships
+          </span>
+          <span className="text-slate-600">|</span>
+          <span className="flex items-center gap-1 text-purple-300">
+            <Train className="w-3.5 h-3.5" /> {trains.length} Trains
+          </span>
+          <span className="text-slate-600">|</span>
+          <span className="flex items-center gap-1 text-blue-300">
+            <Truck className="w-3.5 h-3.5" /> {trucks.length} Trucks
+          </span>
+        </div>
+      </div>
+
+      {/* Main Workspace Viewport */}
+      <main className="flex-1 p-6 space-y-6">
         {activeMode === '3d-map' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-140px)] min-h-[600px]">
-            {/* 3D MapLibre Canvas Viewport (8 Columns) */}
-            <div className="lg:col-span-8 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-[700px]">
+            <div className="lg:col-span-3 h-[700px]">
               <Map3D
                 apiUrl={API_URL}
                 trucks={trucks}
                 vessels={vessels}
                 trains={trains}
                 simSpeed={simSpeed}
-                onSimSpeedChange={(spd) => setSimSpeed(spd)}
+                onSimSpeedChange={setSimSpeed}
                 isPaused={isPaused}
                 onTogglePause={() => setIsPaused(!isPaused)}
-                onSelectVehicle={(id) => setSelectedVehicleId(id)}
-                onOpenEntityModal={(entity) => setSelectedEntityForModal(entity)}
+                onSelectVehicle={setSelectedVehicleId}
+                onOpenEntityModal={setSelectedEntityForModal}
               />
             </div>
 
-            {/* Fleet & Telemetry Live Inspector Panel (4 Columns) */}
-            <div className="lg:col-span-4 h-full">
+            <div className="lg:col-span-1 h-[700px]">
               <FleetTrackerPanel
                 trucks={trucks}
                 vessels={vessels}
                 trains={trains}
                 equipment={equipment}
                 selectedVehicleId={selectedVehicleId}
-                onSelectVehicle={(id) => setSelectedVehicleId(id)}
-                onOpenEntityModal={(entity) => setSelectedEntityForModal(entity)}
+                onSelectVehicle={setSelectedVehicleId}
+                onOpenEntityModal={setSelectedEntityForModal}
               />
             </div>
           </div>
         )}
 
-        {/* Mode 2: Logistics Operations & Gate Passes */}
-        {activeMode === 'logistics-app' && (
-          <div className="max-w-7xl mx-auto">
+        {activeMode === 'city-routing' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="space-y-6">
+              <CitySelector
+                selectedCity={selectedCity}
+                onSelectCity={setSelectedCity}
+              />
+              <WaypointManager
+                waypoints={waypoints}
+                onUpdateWaypoints={setWaypoints}
+                onSelectMapPickStop={setActiveMapPickStopId}
+                activeMapPickStopId={activeMapPickStopId}
+                selectedCity={selectedCity}
+                onCalculateRoute={handleCalculateRoute}
+                isCalculating={isCalculatingRoute}
+              />
+            </div>
+
+            <div className="lg:col-span-2 space-y-6">
+              <div className="h-[520px] rounded-2xl overflow-hidden border border-slate-800">
+                <Map3D
+                  apiUrl={API_URL}
+                  trucks={trucks}
+                  vessels={vessels}
+                  trains={trains}
+                  simSpeed={simSpeed}
+                  onSimSpeedChange={setSimSpeed}
+                  isPaused={isPaused}
+                  onTogglePause={() => setIsPaused(!isPaused)}
+                  onSelectVehicle={setSelectedVehicleId}
+                  onOpenEntityModal={setSelectedEntityForModal}
+                />
+              </div>
+              <TrafficRoadblocksPanel
+                incidents={incidents}
+                showTrafficLayer={showTrafficLayer}
+                onToggleTrafficLayer={() => setShowTrafficLayer(!showTrafficLayer)}
+                onAutoDetour={() => {}}
+                isRerouted={false}
+              />
+              {routeResult && (
+                <TripSimulator
+                  routeResult={routeResult}
+                  simulation={simulationState}
+                  waypoints={waypoints}
+                  onTogglePlay={() => setSimulationState(prev => ({ ...prev, isPlaying: !prev.isPlaying }))}
+                  onReset={() => setSimulationState(prev => ({ ...prev, progress: 0, isPlaying: false }))}
+                  onChangeSpeed={(speed: number) => setSimulationState(prev => ({ ...prev, playbackSpeed: speed }))}
+                  onSeek={(progress: number) => setSimulationState(prev => ({ ...prev, progress }))}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeMode === 'operations' && (
+          <div className="space-y-6">
             <LogisticsAppPanel apiUrl={API_URL} />
+            <OperationsPanel
+              selectedCity={selectedCity}
+              isOpen={true}
+              onClose={() => {}}
+            />
           </div>
         )}
 
-        {/* Mode 3: Logistics IoT Sensor Network & Gate Hardware */}
-        {activeMode === 'sensors' && (
-          <div className="max-w-7xl mx-auto">
-            <SensorsPanel apiUrl={API_URL} />
-          </div>
-        )}
-
-        {/* Mode 4: Logistics Scenarios & Benchmark Comparisons */}
         {activeMode === 'scenarios' && (
-          <div className="max-w-7xl mx-auto">
-            <ScenariosPanel apiUrl={API_URL} />
-          </div>
+          <ScenariosPanel apiUrl={API_URL} />
         )}
 
-        {/* Mode 5: Phase 4 Digital Twin State Separation */}
-        {activeMode === 'digital-twin-state' && (
-          <div className="max-w-6xl mx-auto">
-            <DigitalTwinStatePanel apiUrl={API_URL} />
-          </div>
-        )}
-
-        {/* Mode 6: Phase 5 SimPy Discrete-Event Simulation */}
-        {activeMode === 'simulation' && (
-          <div className="max-w-6xl mx-auto">
-            <SimControlPanel apiUrl={API_URL} />
-          </div>
-        )}
-
-        {/* Mode 7: Phase 6 Google OR-Tools Mathematical Optimization */}
         {activeMode === 'optimization' && (
-          <div className="max-w-6xl mx-auto">
-            <OptimizationPanel apiUrl={API_URL} />
-          </div>
+          <OptimizationPanel apiUrl={API_URL} />
+        )}
+
+        {activeMode === 'simulation' && (
+          <SimControlPanel apiUrl={API_URL} />
+        )}
+
+        {activeMode === 'sensors' && (
+          <SensorsPanel apiUrl={API_URL} />
+        )}
+
+        {activeMode === 'digital-twin' && (
+          <DigitalTwinStatePanel apiUrl={API_URL} />
         )}
       </main>
 
-      {/* Unified Multi-Modal Entity Detail Modal (Ships, Trains, Interstate Trucks) */}
+      {/* Deep Inspection Modal for Ships, Trains, and Trucks */}
       {selectedEntityForModal && (
         <EntityDetailModal
           entity={selectedEntityForModal}

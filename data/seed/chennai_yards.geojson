@@ -1,0 +1,128 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2000,
+        "name": "Intermodal Container Stacking Yard 1 (Chennai)",
+        "area_sqm": 351921.8,
+        "slots_total_estimated": 9261,
+        "slots_occupied_simulated": 6853,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.263,
+              13.075999999999999
+            ],
+            [
+              80.26950000000001,
+              13.075999999999999
+            ],
+            [
+              80.26950000000001,
+              13.080499999999999
+            ],
+            [
+              80.263,
+              13.080499999999999
+            ],
+            [
+              80.263,
+              13.075999999999999
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2001,
+        "name": "Inbound Heavy Trailer Transit Yard 2 (Chennai)",
+        "area_sqm": 351911.8,
+        "slots_total_estimated": 9260,
+        "slots_occupied_simulated": 6852,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.23,
+              13.083
+            ],
+            [
+              80.2365,
+              13.083
+            ],
+            [
+              80.2365,
+              13.0875
+            ],
+            [
+              80.23,
+              13.0875
+            ],
+            [
+              80.23,
+              13.083
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": 2002,
+        "name": "Empty Container Depot & Maintenance Zone 3 (Chennai)",
+        "area_sqm": 351964.6,
+        "slots_total_estimated": 9262,
+        "slots_occupied_simulated": 6853,
+        "occupancy_pct_simulated": 74.0,
+        "data_source": "OpenStreetMap Authentic Footprint",
+        "operational_metrics": "SIMULATED",
+        "status": "SIMULATED"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              80.241,
+              13.046
+            ],
+            [
+              80.2475,
+              13.046
+            ],
+            [
+              80.2475,
+              13.0505
+            ],
+            [
+              80.241,
+              13.0505
+            ],
+            [
+              80.241,
+              13.046
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
