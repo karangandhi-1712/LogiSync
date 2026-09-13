@@ -5,9 +5,9 @@
       "type": "Feature",
       "properties": {
         "id": 1000,
-        "name": "Cold Storage Agro Logistics Hub A (Thoothukudi)",
-        "area_sqm": 93997.4,
-        "capacity_pallets_estimated": 131596,
+        "name": "Cold Storage Agro Logistics Hub A (Delhi)",
+        "area_sqm": 83563.3,
+        "capacity_pallets_estimated": 116988,
         "occupancy_pct_simulated": 58.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -18,24 +18,24 @@
         "coordinates": [
           [
             [
-              78.1428,
-              8.769200000000001
+              77.52799999999999,
+              28.525
             ],
             [
-              78.1463,
-              8.769200000000001
+              77.5315,
+              28.525
             ],
             [
-              78.1463,
-              8.771400000000002
+              77.5315,
+              28.527199999999997
             ],
             [
-              78.1428,
-              8.771400000000002
+              77.52799999999999,
+              28.527199999999997
             ],
             [
-              78.1428,
-              8.769200000000001
+              77.52799999999999,
+              28.525
             ]
           ]
         ]
@@ -45,9 +45,9 @@
       "type": "Feature",
       "properties": {
         "id": 1001,
-        "name": "Heavy Freight Fulfillment Warehouse B (Thoothukudi)",
-        "area_sqm": 93995.7,
-        "capacity_pallets_estimated": 131593,
+        "name": "Heavy Freight Fulfillment Warehouse B (Delhi)",
+        "area_sqm": 83557.8,
+        "capacity_pallets_estimated": 116980,
         "occupancy_pct_simulated": 65.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -58,24 +58,24 @@
         "coordinates": [
           [
             [
-              78.1288,
-              8.776200000000001
+              77.514,
+              28.532
             ],
             [
-              78.1323,
-              8.776200000000001
+              77.5175,
+              28.532
             ],
             [
-              78.1323,
-              8.778400000000001
+              77.5175,
+              28.5342
             ],
             [
-              78.1288,
-              8.778400000000001
+              77.514,
+              28.5342
             ],
             [
-              78.1288,
-              8.776200000000001
+              77.514,
+              28.532
             ]
           ]
         ]
@@ -85,9 +85,9 @@
       "type": "Feature",
       "properties": {
         "id": 1002,
-        "name": "Cross-Dock Transit Distribution Center C (Thoothukudi)",
-        "area_sqm": 94001.0,
-        "capacity_pallets_estimated": 131601,
+        "name": "Cross-Dock Transit Distribution Center C (Delhi)",
+        "area_sqm": 83574.4,
+        "capacity_pallets_estimated": 117004,
         "occupancy_pct_simulated": 73.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -98,24 +98,24 @@
         "coordinates": [
           [
             [
-              78.1488,
-              8.7552
+              77.53399999999999,
+              28.511
             ],
             [
-              78.1523,
-              8.7552
+              77.5375,
+              28.511
             ],
             [
-              78.1523,
-              8.7574
+              77.5375,
+              28.513199999999998
             ],
             [
-              78.1488,
-              8.7574
+              77.53399999999999,
+              28.513199999999998
             ],
             [
-              78.1488,
-              8.7552
+              77.53399999999999,
+              28.511
             ]
           ]
         ]
@@ -125,9 +125,9 @@
       "type": "Feature",
       "properties": {
         "id": 1003,
-        "name": "Automotive Component Storage Bay D (Thoothukudi)",
-        "area_sqm": 94000.5,
-        "capacity_pallets_estimated": 131600,
+        "name": "Automotive Component Storage Bay D (Delhi)",
+        "area_sqm": 83572.8,
+        "capacity_pallets_estimated": 117001,
         "occupancy_pct_simulated": 80.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -138,24 +138,24 @@
         "coordinates": [
           [
             [
-              78.1228,
-              8.757200000000001
+              77.508,
+              28.512999999999998
             ],
             [
-              78.1263,
-              8.757200000000001
+              77.5115,
+              28.512999999999998
             ],
             [
-              78.1263,
-              8.759400000000001
+              77.5115,
+              28.515199999999997
             ],
             [
-              78.1228,
-              8.759400000000001
+              77.508,
+              28.515199999999997
             ],
             [
-              78.1228,
-              8.757200000000001
+              77.508,
+              28.512999999999998
             ]
           ]
         ]
@@ -165,9 +165,9 @@
       "type": "Feature",
       "properties": {
         "id": 1004,
-        "name": "Chemical & HazMat Bonded Warehouse E (Thoothukudi)",
-        "area_sqm": 94002.5,
-        "capacity_pallets_estimated": 131603,
+        "name": "Chemical & HazMat Bonded Warehouse E (Delhi)",
+        "area_sqm": 83579.2,
+        "capacity_pallets_estimated": 117010,
         "occupancy_pct_simulated": 88.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -178,24 +178,24 @@
         "coordinates": [
           [
             [
-              78.1378,
-              8.7492
+              77.523,
+              28.505
             ],
             [
-              78.1413,
-              8.7492
+              77.5265,
+              28.505
             ],
             [
-              78.1413,
-              8.7514
+              77.5265,
+              28.507199999999997
             ],
             [
-              78.1378,
-              8.7514
+              77.523,
+              28.507199999999997
             ],
             [
-              78.1378,
-              8.7492
+              77.523,
+              28.505
             ]
           ]
         ]

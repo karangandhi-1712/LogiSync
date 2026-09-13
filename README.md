@@ -1,25 +1,36 @@
-# Thoothukudi MMLP Digital Twin
+# LogiSync — AI Multimodal Logistics Digital Twin
 
-An open-source AI logistics digital twin for the Thoothukudi Multimodal Logistics Park (MMLP). It provides interactive GIS mapping, authentic geographical layout visualization via OpenStreetMap, operational KPI monitoring, and an extensible architecture for logistics optimization and simulation.
-
----
-
-## Architecture & Current Implementation
-
-### Phase 1: Foundation (IMPLEMENTED)
-
-- **FastAPI Backend**: Asynchronous REST API serving spatial GIS layers, KPI aggregations, and health monitoring.
-- **React + MapLibre GL Frontend**: High-performance vector map interface styled with Tailwind CSS, utilizing Carto Dark Matter base tiles and custom GeoJSON vector layers.
-- **Dual-Mode Data Layer**: Supports local PostgreSQL + PostGIS spatial database storage with automatic, zero-setup fallback to local GeoJSON seed files.
-
-### Phase 2: Real GIS Data Integration (IMPLEMENTED)
-
-- **Authentic OSM Boundaries**: Extracted real geographical footprints for Thoothukudi industrial warehouses, container yards, and connecting road networks using the Overpass API.
-- **Data Honesty & Simulation Tagging**: Real geographical geometry is paired with explicitly marked `SIMULATED` operational metrics (capacities, occupancies) to ensure strict transparency for unmeasured parameters.
-- **Automated Data Fetching**: Integrated script to query and regenerate fresh Thoothukudi GIS seed datasets from OpenStreetMap.
+LogiSync is an enterprise-grade AI logistics digital twin. It provides interactive GIS mapping, authentic geographical layout visualization via OpenStreetMap, operational KPI monitoring, dynamic multi-city selection, multi-point freight dispatching (A, B, C, D, E stops), real-time traffic congestion tracking, and live roadblock/hazard avoidance.
 
 ---
 
+## Architecture & Phased Implementation
+
+### Phase 1: Foundation, Dynamic Multi-City & Real-Time Traffic Routing (IMPLEMENTED)
+
+- **Framer Motion Dynamic Frontend**: State-of-the-art glassmorphic user interface powered by React 19, MapLibre GL, and Framer Motion.
+  - **Dynamic Multi-City Selection**: Instant fly-to capability between preset freight corridors (Thoothukudi MMLP & VOC Port, Chennai Port & Sriperumbudur MMLP, JNPT Navi Mumbai, Bengaluru ICD Whitefield, Delhi NCR Multimodal Hub Dadri, Mundra Port) plus global search-as-you-type geocoding for *any* city worldwide.
+  - **Multi-Point Waypoints (A, B, C, D, E)**: Interactive multi-stop routing planner supporting origin, cross-dock checkpoints, and destination terminals with address autocomplete and direct click-on-map coordinate picking.
+  - **Real-Time Traffic & Roadblocks Engine**: Live incident stream detecting construction closures, accidents, and heavy freight congestion, with a single-click "Smart Detour" rerouting mechanism.
+  - **Autonomous Fleet Simulator**: Interactive trip timeline scrubber animating heavy freight vehicles along the calculated polyline with live coordinates and speedometer telemetry.
+- **FastAPI Backend Services**:
+  - `/api/cities`: Pre-configured logistics corridors and bounding boxes.
+  - `/api/geocode`: Fast global geocoding proxy using Photon & Nominatim.
+  - `/api/route`: Multi-waypoint driving route calculation via OSRM with distance, duration, and turn-by-turn navigation instructions.
+  - `/api/traffic/incidents`: Real-time traffic slowdowns, road closures, and construction hazards.
+  - Spatial GIS endpoints (`/api/warehouses`, `/api/yards`, `/api/gates`, `/api/roads`, `/api/mmlp/boundary`, `/api/kpis`).
+- **Dual-Mode Data Layer**: Supports local PostgreSQL + PostGIS spatial database storage with zero-setup automatic fallback to local GeoJSON seed files.
+
+### Phase 2: Real GIS Data Integration & Facility Inspector (IMPLEMENTED)
+
+- **Multi-City Authentic OSM Extraction**: Extracted authentic geographical boundaries for warehouses, container yards, and connecting road networks across all major corridors (Thoothukudi, Chennai, Mumbai JNPT, Bengaluru, Delhi Dadri, Mundra) via OpenStreetMap Overpass engine.
+- **Data Honesty & Capacity Simulation Engine**: Accurate polygon ground area calculation using the Shoelace formula on real latitude/longitude coordinates to derive realistic pallet capacities (`area_sqm * 1.4`) and container TEU slots (`area_sqm / 38`), paired with explicit `"data_source": "OpenStreetMap Authentic Footprint"` and `"operational_metrics": "SIMULATED"` transparency tagging.
+- **Interactive Facility Inspector Card**: Click on any emerald warehouse polygon, blue container yard, or magenta access gate to inspect live footprint dimensions, capacity metrics, and occupancy gauges.
+- **Direct Waypoint Integration**: Single-click "Add as Waypoint Stop in Route" button inside the Facility Inspector automatically routes freight vehicles directly into the facility!
+- **Consolidated GIS Endpoint**: `/api/gis/layers?city={city}` serving dynamically filtered and styled spatial collections for the active city.
+
+---
+...............+.
 ## Repository Structure
 
 ```text
@@ -137,6 +148,11 @@ This updates the GeoJSON files located in `data/seed/`:
 | Endpoint | Method | Description |
 | :--- | :--- | :--- |
 | `/api/health` | `GET` | Service status and current implementation phase |
+| `/api/cities` | `GET` | Supported freight hubs, bounding boxes, and initial waypoints |
+| `/api/geocode` | `GET` | Fast global geocoding proxy for cities, terminals, and addresses |
+| `/api/route` | `POST` | Multi-point OSRM routing engine (supports A, B, C, D, E waypoints) |
+| `/api/traffic/incidents` | `GET` | Real-time roadblocks, construction zones, and traffic slowdowns |
+| `/api/gis/layers` | `GET` | Consolidated authentic OSM layers (warehouses, yards, gates, roads) |
 | `/api/kpis` | `GET` | Aggregated counts for gates, warehouses, and simulated yard occupancy |
 | `/api/mmlp/boundary` | `GET` | GeoJSON polygon for the Thoothukudi MMLP boundary |
 | `/api/roads` | `GET` | GeoJSON LineStrings representing regional road networks |

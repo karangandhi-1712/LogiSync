@@ -5,9 +5,9 @@
       "type": "Feature",
       "properties": {
         "id": 1000,
-        "name": "Cold Storage Agro Logistics Hub A (Thoothukudi)",
-        "area_sqm": 93997.4,
-        "capacity_pallets_estimated": 131596,
+        "name": "Cold Storage Agro Logistics Hub A (Mundra)",
+        "area_sqm": 87648.4,
+        "capacity_pallets_estimated": 122707,
         "occupancy_pct_simulated": 58.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -18,24 +18,24 @@
         "coordinates": [
           [
             [
-              78.1428,
-              8.769200000000001
+              69.728,
+              22.845
             ],
             [
-              78.1463,
-              8.769200000000001
+              69.7315,
+              22.845
             ],
             [
-              78.1463,
-              8.771400000000002
+              69.7315,
+              22.847199999999997
             ],
             [
-              78.1428,
-              8.771400000000002
+              69.728,
+              22.847199999999997
             ],
             [
-              78.1428,
-              8.769200000000001
+              69.728,
+              22.845
             ]
           ]
         ]
@@ -45,9 +45,9 @@
       "type": "Feature",
       "properties": {
         "id": 1001,
-        "name": "Heavy Freight Fulfillment Warehouse B (Thoothukudi)",
-        "area_sqm": 93995.7,
-        "capacity_pallets_estimated": 131593,
+        "name": "Heavy Freight Fulfillment Warehouse B (Mundra)",
+        "area_sqm": 87643.8,
+        "capacity_pallets_estimated": 122701,
         "occupancy_pct_simulated": 65.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -58,24 +58,24 @@
         "coordinates": [
           [
             [
-              78.1288,
-              8.776200000000001
+              69.714,
+              22.852
             ],
             [
-              78.1323,
-              8.776200000000001
+              69.7175,
+              22.852
             ],
             [
-              78.1323,
-              8.778400000000001
+              69.7175,
+              22.8542
             ],
             [
-              78.1288,
-              8.778400000000001
+              69.714,
+              22.8542
             ],
             [
-              78.1288,
-              8.776200000000001
+              69.714,
+              22.852
             ]
           ]
         ]
@@ -85,9 +85,9 @@
       "type": "Feature",
       "properties": {
         "id": 1002,
-        "name": "Cross-Dock Transit Distribution Center C (Thoothukudi)",
-        "area_sqm": 94001.0,
-        "capacity_pallets_estimated": 131601,
+        "name": "Cross-Dock Transit Distribution Center C (Mundra)",
+        "area_sqm": 87657.4,
+        "capacity_pallets_estimated": 122720,
         "occupancy_pct_simulated": 73.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -98,24 +98,24 @@
         "coordinates": [
           [
             [
-              78.1488,
-              8.7552
+              69.734,
+              22.831
             ],
             [
-              78.1523,
-              8.7552
+              69.7375,
+              22.831
             ],
             [
-              78.1523,
-              8.7574
+              69.7375,
+              22.833199999999998
             ],
             [
-              78.1488,
-              8.7574
+              69.734,
+              22.833199999999998
             ],
             [
-              78.1488,
-              8.7552
+              69.734,
+              22.831
             ]
           ]
         ]
@@ -125,9 +125,9 @@
       "type": "Feature",
       "properties": {
         "id": 1003,
-        "name": "Automotive Component Storage Bay D (Thoothukudi)",
-        "area_sqm": 94000.5,
-        "capacity_pallets_estimated": 131600,
+        "name": "Automotive Component Storage Bay D (Mundra)",
+        "area_sqm": 87656.1,
+        "capacity_pallets_estimated": 122718,
         "occupancy_pct_simulated": 80.5,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -138,24 +138,24 @@
         "coordinates": [
           [
             [
-              78.1228,
-              8.757200000000001
+              69.708,
+              22.833
             ],
             [
-              78.1263,
-              8.757200000000001
+              69.7115,
+              22.833
             ],
             [
-              78.1263,
-              8.759400000000001
+              69.7115,
+              22.835199999999997
             ],
             [
-              78.1228,
-              8.759400000000001
+              69.708,
+              22.835199999999997
             ],
             [
-              78.1228,
-              8.757200000000001
+              69.708,
+              22.833
             ]
           ]
         ]
@@ -165,9 +165,9 @@
       "type": "Feature",
       "properties": {
         "id": 1004,
-        "name": "Chemical & HazMat Bonded Warehouse E (Thoothukudi)",
-        "area_sqm": 94002.5,
-        "capacity_pallets_estimated": 131603,
+        "name": "Chemical & HazMat Bonded Warehouse E (Mundra)",
+        "area_sqm": 87661.2,
+        "capacity_pallets_estimated": 122725,
         "occupancy_pct_simulated": 88.0,
         "data_source": "OpenStreetMap Authentic Footprint",
         "operational_metrics": "SIMULATED",
@@ -178,24 +178,24 @@
         "coordinates": [
           [
             [
-              78.1378,
-              8.7492
+              69.723,
+              22.825
             ],
             [
-              78.1413,
-              8.7492
+              69.7265,
+              22.825
             ],
             [
-              78.1413,
-              8.7514
+              69.7265,
+              22.827199999999998
             ],
             [
-              78.1378,
-              8.7514
+              69.723,
+              22.827199999999998
             ],
             [
-              78.1378,
-              8.7492
+              69.723,
+              22.825
             ]
           ]
         ]
