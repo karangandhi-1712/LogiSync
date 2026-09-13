@@ -1,4 +1,73 @@
 {
   "type": "FeatureCollection",
-  "features": []
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_01_main",
+        "name": "MMLP Main Inbound Gate Complex (SH-176 Access)",
+        "gate_type": "MAIN_INBOUND",
+        "lanes": 4,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1368, 8.7624]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_02_outbound",
+        "name": "MMLP Main Outbound Exit Gate & Tare Scale",
+        "gate_type": "MAIN_OUTBOUND",
+        "lanes": 2,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1376, 8.7624]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_03_rail",
+        "name": "Intermodal Rail Siding Security Gate",
+        "gate_type": "RAIL_GATE",
+        "lanes": 2,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": false,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1352, 8.7645]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "gate_04_port",
+        "name": "VOC Port Dedicated Express Freight Corridor Gate",
+        "gate_type": "PORT_GATE",
+        "lanes": 3,
+        "has_anpr": true,
+        "has_rfid": true,
+        "has_weighbridge": true,
+        "status": "OPERATIONAL"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [78.1398, 8.7625]
+      }
+    }
+  ]
 }
