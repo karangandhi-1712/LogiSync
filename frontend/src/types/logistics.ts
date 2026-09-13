@@ -65,6 +65,8 @@ export interface SimulationState {
   currentHeading: number;
   currentSpeedKmH: number;
   currentLegIndex: number;
+  fuelBurned?: number; // litres consumed so far
+  fuelTotal?: number;  // total fuel estimate for trip
 }
 
 export type TruckStatus = 'inbound' | 'at_gate' | 'in_yard' | 'loading' | 'outbound' | 'in_transit';
@@ -125,3 +127,73 @@ export interface TelemetryStats {
   broker_status: string;
 }
 
+// ==================== PHASE 5-6: Optimization Types ====================
+
+export type OptimizationMode = 'fuel_efficient' | 'time_efficient' | 'balanced';
+
+export interface TruckProfile {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  icon: string;
+  max_payload_tonnes: number;
+  gross_vehicle_weight_tonnes: number;
+  tare_weight_tonnes: number;
+  axle_count: number;
+  length_m: number;
+  width_m: number;
+  height_m: number;
+  turning_radius_m: number;
+  engine_power_hp: number;
+  fuel_tank_capacity_L: number;
+  fuel_type: string;
+  base_fuel_rate_L_per_100km: number;
+  loaded_fuel_rate_L_per_100km: number;
+  max_speed_kmh: number;
+  optimal_speed_kmh: number;
+  drag_coefficient: number;
+  frontal_area_m2: number;
+  rolling_resistance: number;
+  drivetrain_efficiency: number;
+  fuel_cost_per_litre_INR: number;
+  toll_class: string;
+  co2_emission_factor_kg_per_L: number;
+  refrigeration_fuel_overhead_pct?: number;
+}
+
+export interface OptimizationLeg {
+  from_idx: number;
+  to_idx: number;
+  distance_km: number;
+  time_mins: number;
+  fuel_litres: number;
+  co2_kg: number;
+}
+
+export interface OptimizationResult {
+  optimized_order: number[];
+  optimized_waypoint_names: string[];
+  total_distance_km: number;
+  total_time_mins: number;
+  total_fuel_L: number;
+  total_co2_kg: number;
+  total_cost_inr: number;
+  fuel_rate_L_per_100km: number;
+  efficiency_score: number;
+  legs: OptimizationLeg[];
+  generations_run: number;
+  improvement_pct: number;
+  truck_type: string;
+  payload_tonnes: number;
+  optimization_mode: OptimizationMode;
+  // Original route comparison
+  original_distance_km: number;
+  original_time_mins: number;
+  original_fuel_L: number;
+  original_co2_kg: number;
+  original_cost_inr: number;
+  fuel_saved_L: number;
+  time_saved_mins: number;
+  cost_saved_inr: number;
+}

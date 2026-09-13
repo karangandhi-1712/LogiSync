@@ -10,24 +10,107 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
-  Radio,
-  Truck as TruckIcon
+  LogOut,
 } from 'lucide-react';
 
-import type { City, Waypoint, RouteResult, TrafficIncident, SimulationState, Truck } from './types/logistics';
-import { PRESET_CITIES, calculateMultiPointRoute, fetchCityIncidents, fetchCityGisLayers, fetchTrucks, createTelemetryWebSocket } from './services/api';
-import { CitySelector } from './components/CitySelector';
-import { WaypointManager } from './components/WaypointManager';
+import type { City, Waypoint, RouteResult, TrafficIncident, SimulationState, Truck, TruckProfile, OptimizationResult } from './types/logistics';
+import { PRESET_CITIES, calculateMultiPointRoute, fetchCityIncidents, fetchCityGisLayers, fetchTrucks, createTelemetryWebSocket, fetchTruckProfiles } from './services/api';
+import { GlobalCitySearch } from './components/GlobalCitySearch';
 import { TrafficRoadblocksPanel } from './components/TrafficRoadblocksPanel';
 import { TripSimulator } from './components/TripSimulator';
 import { KPIStatsHeader } from './components/KPIStatsHeader';
 import { FacilityInspector, type SelectedFacility } from './components/FacilityInspector';
-import { TruckInspector } from './components/TruckInspector';
-import { OperationsPanel } from './components/OperationsPanel';
+import { OptimizationResults } from './components/OptimizationResults';
+import { ThemeToggle } from './components/ThemeToggle';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { LoginScreen } from './components/LoginScreen';
+import { GoogleMapLayerPicker, type MapTileStyle } from './components/GoogleMapLayerPicker';
+import { DispatchPlanner } from './components/DispatchPlanner';
 
-function App() {
+// Google Maps & CARTO tile styles
+const MAP_STYLES: Record<MapTileStyle, any> = {
+  google_roadmap: {
+    version: 8,
+    sources: {
+      'google-tiles': {
+        type: 'raster',
+        tiles: ['https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'],
+        tileSize: 256,
+        attribution: '© Google Maps'
+      }
+    },
+    layers: [
+      {
+        id: 'google-tiles-layer',
+        type: 'raster',
+        source: 'google-tiles',
+        minzoom: 0,
+        maxzoom: 22
+      }
+    ]
+  },
+  google_hybrid: {
+    version: 8,
+    sources: {
+      'google-hybrid-tiles': {
+        type: 'raster',
+        tiles: ['https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'],
+        tileSize: 256,
+        attribution: '© Google Maps Satellite'
+      }
+    },
+    layers: [
+      {
+        id: 'google-hybrid-layer',
+        type: 'raster',
+        source: 'google-hybrid-tiles',
+        minzoom: 0,
+        maxzoom: 22
+      }
+    ]
+  },
+  google_terrain: {
+    version: 8,
+    sources: {
+      'google-terrain-tiles': {
+        type: 'raster',
+        tiles: ['https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}'],
+        tileSize: 256,
+        attribution: '© Google Maps Terrain'
+      }
+    },
+    layers: [
+      {
+        id: 'google-terrain-layer',
+        type: 'raster',
+        source: 'google-terrain-tiles',
+        minzoom: 0,
+        maxzoom: 22
+      }
+    ]
+  },
+  carto_dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+  carto_light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+};
+
+function AppInner() {
+  const { theme, isDark } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<{ name: string; role: string; email: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem('logisync_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Basemap & Google Maps API State
+  const [mapTileStyle, setMapTileStyle] = useState<MapTileStyle>('google_roadmap');
+  const [googleApiKey, setGoogleApiKey] = useState(() => localStorage.getItem('google_maps_api_key') || '');
 
   // Markers references
   const waypointMarkersRef = useRef<maplibregl.Marker[]>([]);
@@ -35,14 +118,14 @@ function App() {
   const truckMarkerRef = useRef<maplibregl.Marker | null>(null);
   const operationalTruckMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map());
 
-  // Core State
+  // Core State (Defaulting to Mumbai)
   const [selectedCity, setSelectedCity] = useState<City>(PRESET_CITIES[0]);
   const [waypoints, setWaypoints] = useState<Waypoint[]>(
     (PRESET_CITIES[0].defaultWaypoints || []).map((w, idx) => ({ ...w, id: `wp-${idx}` }))
   );
   const [routeResult, setRouteResult] = useState<RouteResult | null>(null);
   const [incidents, setIncidents] = useState<TrafficIncident[]>([]);
-  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
+  const [, setIsCalculatingRoute] = useState(false);
   const [showTrafficLayer, setShowTrafficLayer] = useState(true);
   const [showGisLayers, setShowGisLayers] = useState(true);
   const [isRerouted, setIsRerouted] = useState(false);
@@ -51,15 +134,19 @@ function App() {
 
   // Phase 3: Operational Fleet & Telemetry State
   const [operationalTrucks, setOperationalTrucks] = useState<Truck[]>([]);
-  const [selectedTruck, setSelectedTruck] = useState<Truck | null>(null);
-  const [isOperationsOpen, setIsOperationsOpen] = useState(false);
-  const [telemetryConnected, setTelemetryConnected] = useState(true);
-  const [telemetryPacketsCount, setTelemetryPacketsCount] = useState(0);
+  const [, setSelectedTruck] = useState<Truck | null>(null);
+  const [, setTelemetryConnected] = useState(true);
+  const [, setTelemetryPacketsCount] = useState(0);
+
+  // Phase 5-6: Optimization & Fleet State
+  const [, setTruckProfiles] = useState<TruckProfile[]>([]);
+  const [selectedTruckProfile, setSelectedTruckProfile] = useState<TruckProfile | null>(null);
+  const [payloadTonnes, setPayloadTonnes] = useState(16.5);
+  const [optimizationResult, setOptimizationResult] = useState<OptimizationResult | null>(null);
 
   // UI Tabs & Panels
-  const [activeSidebarTab, setActiveSidebarTab] = useState<'waypoints' | 'traffic'>('waypoints');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'dispatch' | 'traffic'>('dispatch');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
 
   // Simulation State
   const [simulation, setSimulation] = useState<SimulationState>({
@@ -69,10 +156,20 @@ function App() {
     currentCoord: PRESET_CITIES[0].center,
     currentHeading: 0,
     currentSpeedKmH: 45,
-    currentLegIndex: 0
+    currentLegIndex: 0,
+    fuelBurned: 0,
+    fuelTotal: 0,
   });
 
   const animFrameRef = useRef<number | null>(null);
+
+  // Load truck profiles on mount
+  useEffect(() => {
+    fetchTruckProfiles().then(profiles => {
+      setTruckProfiles(profiles);
+      if (profiles.length > 0) setSelectedTruckProfile(profiles[0]);
+    });
+  }, []);
 
   // 1. Initialize MapLibre GL
   useEffect(() => {
@@ -80,7 +177,7 @@ function App() {
 
     const m = new maplibregl.Map({
       container: mapContainer.current,
-      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      style: MAP_STYLES[mapTileStyle] || MAP_STYLES.google_roadmap,
       center: selectedCity.center,
       zoom: selectedCity.zoom,
       pitch: 35,
@@ -100,14 +197,24 @@ function App() {
         }
       });
 
-      // Route Glow Outline
+      // Optimized route source (for comparison overlay)
+      m.addSource('optimized-route-line', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'LineString', coordinates: [] }
+        }
+      });
+
+      // Original Route Glow
       m.addLayer({
         id: 'route-line-glow',
         type: 'line',
         source: 'route-line',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#00f2fe',
+          'line-color': isDark ? '#00f2fe' : '#4f46e5',
           'line-width': 9,
           'line-opacity': 0.35,
           'line-blur': 4
@@ -121,7 +228,7 @@ function App() {
         source: 'route-line',
         layout: { 'line-cap': 'round', 'line-join': 'round' },
         paint: {
-          'line-color': '#00f2fe',
+          'line-color': isDark ? '#00f2fe' : '#4f46e5',
           'line-width': 4.5,
           'line-opacity': 0.95
         }
@@ -258,6 +365,108 @@ function App() {
     };
   }, []);
 
+  // Switch map style when mapTileStyle or theme changes
+  useEffect(() => {
+    if (!map.current) return;
+    const m = map.current;
+    let newStyle = MAP_STYLES[mapTileStyle];
+    if (mapTileStyle === 'carto_dark') {
+      newStyle = MAP_STYLES.carto_dark;
+    } else if (mapTileStyle === 'carto_light') {
+      newStyle = MAP_STYLES.carto_light;
+    } else if (!newStyle) {
+      newStyle = MAP_STYLES.google_roadmap;
+    }
+
+    // Save current state
+    const center = m.getCenter();
+    const zoom = m.getZoom();
+    const pitch = m.getPitch();
+    const bearing = m.getBearing();
+
+    m.setStyle(newStyle);
+
+    m.once('style.load', () => {
+      // Restore camera
+      m.setCenter(center);
+      m.setZoom(zoom);
+      m.setPitch(pitch);
+      m.setBearing(bearing);
+
+      // Re-add all custom sources and layers
+      if (!m.getSource('route-line')) {
+        m.addSource('route-line', {
+          type: 'geojson',
+          data: routeResult ? {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates: routeResult.coordinates }
+          } : { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } }
+        });
+      }
+
+      if (!m.getSource('optimized-route-line')) {
+        m.addSource('optimized-route-line', {
+          type: 'geojson',
+          data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } }
+        });
+      }
+
+      const routeColor = isDark ? '#00f2fe' : '#4f46e5';
+
+      if (!m.getLayer('route-line-glow')) {
+        m.addLayer({
+          id: 'route-line-glow',
+          type: 'line',
+          source: 'route-line',
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': routeColor, 'line-width': 9, 'line-opacity': 0.35, 'line-blur': 4 }
+        });
+      }
+
+      if (!m.getLayer('route-line-main')) {
+        m.addLayer({
+          id: 'route-line-main',
+          type: 'line',
+          source: 'route-line',
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': routeColor, 'line-width': 4.5, 'line-opacity': 0.95 }
+        });
+      }
+
+      // GIS sources
+      if (!m.getSource('gis-warehouses')) {
+        m.addSource('gis-warehouses', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      }
+      if (!m.getSource('gis-yards')) {
+        m.addSource('gis-yards', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      }
+      if (!m.getSource('gis-gates')) {
+        m.addSource('gis-gates', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      }
+
+      // GIS layers
+      if (!m.getLayer('gis-warehouses-fill')) {
+        m.addLayer({ id: 'gis-warehouses-fill', type: 'fill', source: 'gis-warehouses', paint: { 'fill-color': '#10b981', 'fill-opacity': 0.28 } });
+      }
+      if (!m.getLayer('gis-warehouses-line')) {
+        m.addLayer({ id: 'gis-warehouses-line', type: 'line', source: 'gis-warehouses', paint: { 'line-color': '#10b981', 'line-width': 1.5 } });
+      }
+      if (!m.getLayer('gis-yards-fill')) {
+        m.addLayer({ id: 'gis-yards-fill', type: 'fill', source: 'gis-yards', paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.28 } });
+      }
+      if (!m.getLayer('gis-yards-line')) {
+        m.addLayer({ id: 'gis-yards-line', type: 'line', source: 'gis-yards', paint: { 'line-color': '#3b82f6', 'line-width': 1.5 } });
+      }
+      if (!m.getLayer('gis-gates-circle')) {
+        m.addLayer({ id: 'gis-gates-circle', type: 'circle', source: 'gis-gates', paint: { 'circle-color': '#a855f7', 'circle-radius': 6.5, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      }
+
+      // Reload GIS data
+      loadCityGisLayers(m, selectedCity.id);
+    });
+  }, [mapTileStyle, theme]);
+
   // Ref to track activeMapPickStopId inside map click callback
   const activeMapPickStopIdRef = useRef<string | null>(null);
   activeMapPickStopIdRef.current = activeMapPickStopId;
@@ -302,6 +511,7 @@ function App() {
     setSelectedCity(city);
     setIsRerouted(false);
     setSelectedFacility(null);
+    setOptimizationResult(null);
 
     // Fly camera smoothly to new city
     if (map.current) {
@@ -327,7 +537,9 @@ function App() {
       ...prev,
       isPlaying: false,
       progress: 0,
-      currentCoord: newWaypoints[0]?.coordinates || city.center
+      currentCoord: newWaypoints[0]?.coordinates || city.center,
+      fuelBurned: 0,
+      fuelTotal: 0,
     }));
   };
 
@@ -355,7 +567,8 @@ function App() {
             }
           });
 
-          const color = res.status === 'blocked' ? '#f43f5e' : res.status === 'rerouted' ? '#10b981' : '#00f2fe';
+          const defaultColor = isDark ? '#00f2fe' : '#4f46e5';
+          const color = res.status === 'blocked' ? '#f43f5e' : res.status === 'rerouted' ? '#10b981' : defaultColor;
           map.current.setPaintProperty('route-line-main', 'line-color', color);
           map.current.setPaintProperty('route-line-glow', 'line-color', color);
         }
@@ -366,13 +579,24 @@ function App() {
         map.current.fitBounds(bounds, { padding: { top: 90, bottom: 120, left: 340, right: 80 }, maxZoom: 14, duration: 1500 });
       }
 
+      // Estimate fuel for trip
+      let fuelTotal = 0;
+      if (selectedTruckProfile) {
+        const rate = selectedTruckProfile.base_fuel_rate_L_per_100km +
+          (selectedTruckProfile.loaded_fuel_rate_L_per_100km - selectedTruckProfile.base_fuel_rate_L_per_100km) *
+          (payloadTonnes / Math.max(selectedTruckProfile.max_payload_tonnes, 1));
+        fuelTotal = (rate / 100) * res.totalDistanceKm;
+      }
+
       if (res.coordinates.length > 0) {
         setSimulation(prev => ({
           ...prev,
           progress: 0,
           currentCoord: res.coordinates[0],
           currentHeading: 0,
-          currentLegIndex: 0
+          currentLegIndex: 0,
+          fuelBurned: 0,
+          fuelTotal,
         }));
       }
     } catch (err) {
@@ -380,7 +604,7 @@ function App() {
     } finally {
       setIsCalculatingRoute(false);
     }
-  }, [waypoints, isRerouted, incidents]);
+  }, [waypoints, isRerouted, incidents, isDark, selectedTruckProfile, payloadTonnes]);
 
   // Recalculate route whenever waypoints change
   useEffect(() => {
@@ -422,7 +646,32 @@ function App() {
     setSelectedFacility(null);
   };
 
-  // 8. Render Custom DOM Markers on MapLibre (Waypoints & Roadblocks)
+  // 8. Handle Optimization Result
+  const handleOptimizationResult = (result: OptimizationResult) => {
+    setOptimizationResult(result);
+  };
+
+  const handleApplyOptimizedRoute = (result: OptimizationResult) => {
+    // Reorder waypoints based on optimization
+    const reorderedWaypoints = result.optimized_order.map((originalIdx, newIdx) => {
+      const wp = waypoints[originalIdx];
+      return {
+        ...wp,
+        label: String.fromCharCode(65 + newIdx),
+      };
+    });
+    setWaypoints(reorderedWaypoints);
+    setOptimizationResult(null);
+
+    // Update fuel estimate for simulation
+    setSimulation(prev => ({
+      ...prev,
+      fuelTotal: result.total_fuel_L,
+      fuelBurned: 0,
+    }));
+  };
+
+  // 9. Render Custom DOM Markers on MapLibre (Waypoints & Roadblocks)
   useEffect(() => {
     if (!map.current) return;
     const m = map.current;
@@ -436,20 +685,20 @@ function App() {
 
       const isOrigin = idx === 0;
       const isDest = idx === waypoints.length - 1;
-      const badgeBg = isOrigin ? '#10b981' : isDest ? '#f43f5e' : '#00f2fe';
+      const badgeBg = isOrigin ? '#10b981' : isDest ? '#f43f5e' : isDark ? '#00f2fe' : '#4f46e5';
 
       el.innerHTML = `
         <div style="background-color: ${badgeBg}; box-shadow: 0 0 15px ${badgeBg};" class="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-black font-extrabold text-xs font-mono shadow-xl relative">
           <span>${wp.label}</span>
           <div class="absolute -inset-1 rounded-full border border-white/50 animate-pulse-ring pointer-events-none"></div>
         </div>
-        <div class="mt-1 px-2 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-white/20 text-[10px] text-white font-medium whitespace-nowrap shadow-lg">
+        <div class="mt-1 px-2 py-0.5 rounded-md ${isDark ? 'bg-black/85' : 'bg-white/90'} backdrop-blur-md border ${isDark ? 'border-white/20' : 'border-black/10'} text-[10px] ${isDark ? 'text-white' : 'text-slate-800'} font-medium whitespace-nowrap shadow-lg">
           ${wp.name.slice(0, 18)}
         </div>
       `;
 
       el.addEventListener('click', () => {
-        setActiveSidebarTab('waypoints');
+        setActiveSidebarTab('dispatch');
         setIsSidebarOpen(true);
       });
 
@@ -471,13 +720,13 @@ function App() {
 
         el.className = 'cursor-pointer flex flex-col items-center group -translate-y-1/2';
         el.innerHTML = `
-          <div style="background: rgba(15, 23, 42, 0.9); border: 2px solid ${color}; box-shadow: 0 0 14px ${color}80;" class="p-1.5 rounded-xl text-white shadow-xl relative">
+          <div style="background: ${isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255,255,255,0.92)'}; border: 2px solid ${color}; box-shadow: 0 0 14px ${color}80;" class="p-1.5 rounded-xl shadow-xl relative">
             <span style="color: ${color}; font-size: 14px;">${isBlock ? '⛔' : '⚠️'}</span>
             ${isBlock ? `<div style="border-color: ${color};" class="absolute -inset-1.5 rounded-xl border animate-ping pointer-events-none opacity-40"></div>` : ''}
           </div>
-          <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1.5 px-2.5 py-1 rounded-lg bg-black/90 text-[10px] text-white whitespace-nowrap border border-white/20 shadow-2xl pointer-events-none z-50">
+          <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1.5 px-2.5 py-1 rounded-lg ${isDark ? 'bg-black/90' : 'bg-white/95'} text-[10px] ${isDark ? 'text-white' : 'text-slate-800'} whitespace-nowrap border ${isDark ? 'border-white/20' : 'border-black/10'} shadow-2xl pointer-events-none z-50">
             <strong style="color: ${color};">${inc.title}</strong>
-            <div class="text-slate-400">${inc.roadName || ''} (+${inc.delayMins}m)</div>
+            <div class="${isDark ? 'text-slate-400' : 'text-slate-500'}">${inc.roadName || ''} (+${inc.delayMins}m)</div>
           </div>
         `;
 
@@ -488,17 +737,19 @@ function App() {
         incidentMarkersRef.current.push(marker);
       });
     }
-  }, [waypoints, incidents, showTrafficLayer]);
+  }, [waypoints, incidents, showTrafficLayer, isDark]);
 
-  // 9. Vehicle Simulation Loop & Moving Truck Marker
+  // 10. Vehicle Simulation Loop & Moving Truck Marker
   useEffect(() => {
     if (!map.current) return;
     const m = map.current;
 
     if (!truckMarkerRef.current) {
       const el = document.createElement('div');
-      el.className = 'w-9 h-9 rounded-full bg-cyan-400 text-black border-2 border-white shadow-[0_0_20px_#00f2fe] flex items-center justify-center font-bold text-sm -translate-x-1/2 -translate-y-1/2 z-40 transition-transform duration-75';
-      el.innerHTML = `🚚`;
+      el.className = 'w-9 h-9 rounded-full border-2 border-white flex items-center justify-center font-bold text-sm -translate-x-1/2 -translate-y-1/2 z-40 transition-transform duration-75 text-xl';
+      el.style.background = isDark ? '#22d3ee' : '#4f46e5';
+      el.style.boxShadow = isDark ? '0 0 20px #00f2fe' : '0 0 20px #4f46e5';
+      el.innerHTML = selectedTruckProfile?.icon || '🚚';
 
       truckMarkerRef.current = new maplibregl.Marker({ element: el })
         .setLngLat(simulation.currentCoord)
@@ -547,12 +798,16 @@ function App() {
 
         const speed = isRerouted ? 52 : prev.currentSpeedKmH;
 
+        // Update fuel burned proportionally
+        const fuelBurned = (prev.fuelTotal || 0) * newProgress;
+
         if (newProgress >= 1) {
           return {
             ...prev,
             isPlaying: false,
             progress: 1,
-            currentCoord: coords[coords.length - 1]
+            currentCoord: coords[coords.length - 1],
+            fuelBurned: prev.fuelTotal || 0,
           };
         }
 
@@ -561,7 +816,8 @@ function App() {
           progress: newProgress,
           currentCoord: [currentLon, currentLat],
           currentLegIndex: Math.max(0, legIdx),
-          currentSpeedKmH: speed
+          currentSpeedKmH: speed,
+          fuelBurned,
         };
       });
 
@@ -586,10 +842,13 @@ function App() {
     const p1 = coords[lowIndex];
     const p2 = coords[lowIndex + 1] || p1;
 
+    const fuelBurned = (simulation.fuelTotal || 0) * newProgress;
+
     setSimulation(prev => ({
       ...prev,
       progress: newProgress,
-      currentCoord: [p1[0] + (p2[0] - p1[0]) * ratio, p1[1] + (p2[1] - p1[1]) * ratio]
+      currentCoord: [p1[0] + (p2[0] - p1[0]) * ratio, p1[1] + (p2[1] - p1[1]) * ratio],
+      fuelBurned,
     }));
   };
 
@@ -662,7 +921,6 @@ function App() {
     if (!map.current) return;
     const m = map.current;
 
-    // Remove stale markers
     const existingIds = new Set(operationalTrucks.map(t => t.id));
     operationalTruckMarkersRef.current.forEach((marker, id) => {
       if (!existingIds.has(id)) {
@@ -671,7 +929,6 @@ function App() {
       }
     });
 
-    // Create/update markers for each truck
     operationalTrucks.forEach(truck => {
       const existing = operationalTruckMarkersRef.current.get(truck.id);
       if (existing) {
@@ -692,13 +949,13 @@ function App() {
       const el = document.createElement('div');
       el.className = 'cursor-pointer flex flex-col items-center group';
       el.innerHTML = `
-        <div style="background: rgba(15,23,42,0.92); border: 2px solid ${color}; box-shadow: 0 0 12px ${color}60;" class="w-7 h-7 rounded-full flex items-center justify-center text-xs relative">
+        <div style="background: ${isDark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.92)'}; border: 2px solid ${color}; box-shadow: 0 0 12px ${color}60;" class="w-7 h-7 rounded-full flex items-center justify-center text-xs relative">
           🚛
           <div style="border-color: ${color};" class="absolute -inset-0.5 rounded-full border opacity-50 animate-pulse pointer-events-none"></div>
         </div>
-        <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1 px-2 py-0.5 rounded bg-black/90 text-[9px] text-white whitespace-nowrap border border-white/20 z-50 pointer-events-none">
+        <div class="opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1 px-2 py-0.5 rounded ${isDark ? 'bg-black/90 text-white' : 'bg-white/95 text-slate-800'} text-[9px] whitespace-nowrap border ${isDark ? 'border-white/20' : 'border-black/10'} z-50 pointer-events-none">
           <strong style="color: ${color};">${truck.plate_number}</strong>
-          <div class="text-slate-400">${truck.status.replace(/_/g, ' ')} · ${truck.speed_kmh} km/h</div>
+          <div class="${isDark ? 'text-slate-400' : 'text-slate-500'}">${truck.status.replace(/_/g, ' ')} · ${truck.speed_kmh} km/h</div>
         </div>
       `;
 
@@ -712,23 +969,24 @@ function App() {
 
       operationalTruckMarkersRef.current.set(truck.id, marker);
     });
-  }, [operationalTrucks]);
+  }, [operationalTrucks, isDark]);
 
-  // ==================== PHASE 3: Focus Truck on Map ====================
-  const handleFocusTruck = useCallback((truck: Truck) => {
-    if (map.current) {
-      map.current.flyTo({
-        center: [truck.longitude, truck.latitude],
-        zoom: 16,
-        pitch: 45,
-        duration: 1500
-      });
-    }
-    setSelectedTruck(truck);
-  }, []);
+
+
+  // Render login screen if user is not authenticated
+  if (!currentUser) {
+    return (
+      <LoginScreen
+        onLogin={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('logisync_user', JSON.stringify(user));
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="relative w-full h-screen bg-cyber-950 text-slate-100 overflow-hidden font-sans select-none">
+    <div className={`relative w-full h-screen ${isDark ? 'bg-cyber-950 text-slate-100' : 'bg-surface-50 text-slate-800'} overflow-hidden font-sans select-none`}>
       {/* 1. MapLibre Canvas */}
       <div
         ref={mapContainer}
@@ -760,26 +1018,38 @@ function App() {
 
       {/* 2. Top Navigation & Stats Bar */}
       <header className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
-        {/* Left: Brand & City Selector */}
-        <div className="flex items-center gap-3 pointer-events-auto">
+        {/* Left: Brand, Global City Search, Google Map Layers, & Profile */}
+        <div className="flex items-center gap-2.5 pointer-events-auto flex-wrap">
           <div className="glass-panel py-2 px-3.5 rounded-xl border border-white/10 flex items-center gap-2.5 shadow-xl">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center font-black text-black font-display text-sm tracking-wider shadow-[0_0_12px_rgba(0,242,254,0.4)]">
+            <div className={`w-8 h-8 rounded-lg bg-gradient-to-tr ${isDark ? 'from-cyan-500 to-blue-600' : 'from-indigo-500 to-blue-600'} flex items-center justify-center font-black text-white font-display text-sm tracking-wider shadow-[0_0_12px_rgba(0,242,254,0.4)]`}>
               LS
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <h1 className="text-sm font-bold text-white font-display tracking-wide">
+                <h1 className="text-sm font-bold font-display tracking-wide">
                   LogiSync
                 </h1>
-                <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  PHASE 3
+                <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded ${isDark ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' : 'bg-indigo-500/20 text-indigo-600 border-indigo-500/30'} border`}>
+                  PHASE 6 PRO
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400">AI Multimodal Logistics Twin</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>AI Fleet & Freight Twin</p>
             </div>
           </div>
 
-          <CitySelector selectedCity={selectedCity} onSelectCity={handleSelectCity} />
+          {/* Global City Search (Any City Worldwide) */}
+          <GlobalCitySearch selectedCity={selectedCity} onSelectCity={handleSelectCity} />
+
+          {/* Google Maps Layer Switcher */}
+          <GoogleMapLayerPicker
+            currentStyle={mapTileStyle}
+            onSelectStyle={(style) => setMapTileStyle(style)}
+            apiKey={googleApiKey}
+            onSaveApiKey={(key) => {
+              setGoogleApiKey(key);
+              localStorage.setItem('google_maps_api_key', key);
+            }}
+          />
 
           {/* GIS Layers Toggle Button */}
           <button
@@ -788,12 +1058,34 @@ function App() {
             className={`glass-panel py-2 px-3 rounded-xl border text-xs flex items-center gap-2 transition-colors ${
               showGisLayers
                 ? 'border-emerald-500/40 text-emerald-300 bg-emerald-500/10'
-                : 'border-white/10 text-slate-400 hover:text-white'
+                : `border-white/10 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`
             }`}
           >
             {showGisLayers ? <Eye className="w-3.5 h-3.5 text-emerald-400" /> : <EyeOff className="w-3.5 h-3.5" />}
             <span className="text-[11px] font-mono font-medium hidden sm:inline">OSM GIS</span>
           </button>
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Dispatcher User Profile Badge & Logout */}
+          <div className="glass-panel px-3 py-1.5 rounded-xl border border-white/10 text-xs flex items-center gap-2 shadow-lg">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="hidden lg:block text-left">
+              <div className="font-bold text-white text-[11px] leading-tight">{currentUser.name}</div>
+              <div className="text-[9px] text-cyan-400 leading-tight">{currentUser.role}</div>
+            </div>
+            <button
+              onClick={() => {
+                setCurrentUser(null);
+                localStorage.removeItem('logisync_user');
+              }}
+              title="Sign Out of Dispatcher Portal"
+              className="p-1 rounded-lg hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-colors ml-1"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Right: Live Telemetry & KPI Cards */}
@@ -806,7 +1098,7 @@ function App() {
         </div>
       </header>
 
-      {/* 3. Left Floating Controls Dock (Waypoints & Roadblocks) */}
+      {/* 3. Left Floating Controls Dock (Dispatch Planner & Roadblocks) */}
       <div className="absolute top-22 left-4 z-20 flex items-start gap-2">
         <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -823,32 +1115,34 @@ function App() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
-              className="w-88 flex flex-col gap-2.5"
+              className="w-96 flex flex-col gap-2.5"
             >
               {/* Tab Selector Buttons */}
               <div className="glass-panel p-1 rounded-xl flex items-center border border-white/10 shadow-lg">
                 <button
-                  onClick={() => setActiveSidebarTab('waypoints')}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
-                    activeSidebarTab === 'waypoints'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                  onClick={() => setActiveSidebarTab('dispatch')}
+                  className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                    activeSidebarTab === 'dispatch'
+                      ? isDark
+                        ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm'
+                        : 'bg-indigo-500/20 text-indigo-600 border border-indigo-500/40 shadow-sm'
+                      : `${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`
                   }`}
                 >
                   <Route className="w-3.5 h-3.5" />
-                  <span>Waypoints (A → {String.fromCharCode(65 + waypoints.length - 1)})</span>
+                  <span>Dispatch & Freight Planner</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSidebarTab('traffic')}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all relative ${
+                  className={`py-1.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all relative ${
                     activeSidebarTab === 'traffic'
                       ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm'
-                      : 'text-slate-400 hover:text-white'
+                      : `${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'}`
                   }`}
                 >
                   <ShieldAlert className="w-3.5 h-3.5" />
-                  <span>Traffic & Blocks</span>
+                  <span>Traffic</span>
                   {incidents.filter(i => i.type === 'roadblock').length > 0 && (
                     <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping absolute top-1.5 right-2" />
                   )}
@@ -856,15 +1150,17 @@ function App() {
               </div>
 
               {/* Tab Content */}
-              {activeSidebarTab === 'waypoints' ? (
-                <WaypointManager
+              {activeSidebarTab === 'dispatch' ? (
+                <DispatchPlanner
                   waypoints={waypoints}
                   onUpdateWaypoints={setWaypoints}
-                  onSelectMapPickStop={setActiveMapPickStopId}
                   activeMapPickStopId={activeMapPickStopId}
-                  selectedCity={selectedCity}
-                  onCalculateRoute={handleCalculateRoute}
-                  isCalculating={isCalculatingRoute}
+                  onSelectMapPickStop={setActiveMapPickStopId}
+                  onOptimizationResult={handleOptimizationResult}
+                  selectedTruckProfile={selectedTruckProfile}
+                  onSelectTruckProfile={setSelectedTruckProfile}
+                  payloadTonnes={payloadTonnes}
+                  onUpdatePayloadTonnes={setPayloadTonnes}
                 />
               ) : (
                 <TrafficRoadblocksPanel
@@ -889,21 +1185,40 @@ function App() {
         />
       </div>
 
-      {/* 5. Bottom Trip Simulator Dock */}
+      {/* 5. Optimization Results Panel (Phase 6) */}
+      <div className="absolute top-40 right-4 z-20 pointer-events-auto">
+        <OptimizationResults
+          result={optimizationResult}
+          onClose={() => setOptimizationResult(null)}
+          onApplyOptimizedRoute={handleApplyOptimizedRoute}
+        />
+      </div>
+
+      {/* 6. Bottom Trip Simulator Dock */}
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-full px-4 flex justify-center pointer-events-none">
-        <div className="pointer-events-auto w-full max-w-4xl">
+        <div className="pointer-events-auto w-full max-w-5xl">
           <TripSimulator
             simulation={simulation}
             routeResult={routeResult}
             waypoints={waypoints}
             onTogglePlay={() => setSimulation(prev => ({ ...prev, isPlaying: !prev.isPlaying }))}
-            onReset={() => setSimulation(prev => ({ ...prev, isPlaying: false, progress: 0, currentCoord: routeResult?.coordinates[0] || selectedCity.center }))}
+            onReset={() => setSimulation(prev => ({ ...prev, isPlaying: false, progress: 0, currentCoord: routeResult?.coordinates[0] || selectedCity.center, fuelBurned: 0 }))}
             onChangeSpeed={(spd) => setSimulation(prev => ({ ...prev, playbackSpeed: spd }))}
             onSeek={handleSeekSimulation}
+            truckProfile={selectedTruckProfile}
+            payloadTonnes={payloadTonnes}
           />
         </div>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
   );
 }
 

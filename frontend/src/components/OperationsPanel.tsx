@@ -12,9 +12,6 @@ import {
   Gauge,
   Fuel,
   Thermometer,
-  ShieldCheck,
-  AlertTriangle,
-  Clock,
   Play,
   Pause,
   MapPin

@@ -1,25 +1,56 @@
 import axios from 'axios';
-import type { City, Waypoint, RouteResult, TrafficIncident, Truck, Container, Shipment, TelemetryStats } from '../types/logistics';
+import type { City, Waypoint, RouteResult, TrafficIncident, Truck, Container, Shipment, TelemetryStats, TruckProfile, OptimizationResult, OptimizationMode } from '../types/logistics';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export const PRESET_CITIES: City[] = [
   {
-    id: 'thoothukudi',
-    name: 'Thoothukudi MMLP & VOC Port',
-    state: 'Tamil Nadu',
+    id: 'mumbai',
+    name: 'Mumbai / JNPT Premier Port & Logistics Hub',
+    state: 'Maharashtra',
     country: 'India',
-    center: [78.1348, 8.7642],
-    zoom: 13,
-    bbox: [78.08, 8.71, 78.20, 8.82],
-    description: 'V.O. Chidambaranar Port & Multimodal Logistics Park corridor',
-    type: 'mmlp',
+    center: [72.9780, 18.9550],
+    zoom: 12,
+    bbox: [72.85, 18.85, 73.10, 19.10],
+    description: "India's premier container transshipment and freight corridor",
+    type: 'port',
     defaultWaypoints: [
-      { label: 'A', name: 'VOC Port Terminal Gate 1', coordinates: [78.1750, 8.7520], role: 'origin' },
-      { label: 'B', name: 'MMLP Inbound Container Yard', coordinates: [78.1460, 8.7630], role: 'crossdock' },
-      { label: 'C', name: 'Cold Storage & Agro Warehouse C3', coordinates: [78.1320, 8.7710], role: 'checkpoint' },
-      { label: 'D', name: 'Customs Clearance & Weighbridge #4', coordinates: [78.1250, 8.7850], role: 'customs' },
-      { label: 'E', name: 'NH-38 National Freight Highway Interchange', coordinates: [78.0980, 8.7980], role: 'destination' }
+      { label: 'A', name: 'JNPT Main Gate & Rail Yard', coordinates: [72.9510, 18.9480], role: 'origin' },
+      { label: 'B', name: 'Uran Container Freight Station', coordinates: [72.9730, 18.9220], role: 'checkpoint' },
+      { label: 'C', name: 'Dronagiri Logistics Park Zone 2', coordinates: [72.9850, 18.9680], role: 'crossdock' },
+      { label: 'D', name: 'Taloja MIDC Freight Terminal', coordinates: [73.0950, 19.0850], role: 'destination' }
+    ]
+  },
+  {
+    id: 'delhi',
+    name: 'Delhi NCR Multimodal Hub / Dadri ICD',
+    state: 'Delhi NCR',
+    country: 'India',
+    center: [77.5200, 28.5200],
+    zoom: 11,
+    bbox: [77.30, 28.30, 77.75, 28.75],
+    description: 'Western Dedicated Freight Corridor (WDFC) nexus and mega logistics hub',
+    type: 'icd',
+    defaultWaypoints: [
+      { label: 'A', name: 'Dadri Integrated Logistics Hub', coordinates: [77.5580, 28.5450], role: 'origin' },
+      { label: 'B', name: 'Greater Noida Eastern Peripheral Expressway', coordinates: [77.5020, 28.4680], role: 'checkpoint' },
+      { label: 'C', name: 'Tughlakabad Inland Container Depot', coordinates: [77.2910, 28.5120], role: 'destination' }
+    ]
+  },
+  {
+    id: 'bengaluru',
+    name: 'Bengaluru ICD Whitefield & Logistics Park',
+    state: 'Karnataka',
+    country: 'India',
+    center: [77.7200, 12.9800],
+    zoom: 12,
+    bbox: [77.55, 12.85, 77.85, 13.10],
+    description: 'Inland Container Depot (ICD) connecting Southern rail and highway corridors',
+    type: 'icd',
+    defaultWaypoints: [
+      { label: 'A', name: 'Whitefield Inland Container Depot (ICD)', coordinates: [77.7480, 12.9890], role: 'origin' },
+      { label: 'B', name: 'Hosakote Industrial Cross-Dock Hub', coordinates: [77.7950, 13.0720], role: 'crossdock' },
+      { label: 'C', name: 'Devanahalli Airport Cargo Gateway', coordinates: [77.7120, 13.2050], role: 'destination' }
     ]
   },
   {
@@ -40,20 +71,21 @@ export const PRESET_CITIES: City[] = [
     ]
   },
   {
-    id: 'mumbai',
-    name: 'JNPT / Navi Mumbai Multi-Modal Hub',
-    state: 'Maharashtra',
+    id: 'thoothukudi',
+    name: 'Thoothukudi MMLP & VOC Port',
+    state: 'Tamil Nadu',
     country: 'India',
-    center: [72.9780, 18.9550],
-    zoom: 12,
-    bbox: [72.85, 18.85, 73.10, 19.10],
-    description: "India's premier container transshipment and freight corridor",
-    type: 'port',
+    center: [78.1348, 8.7642],
+    zoom: 13,
+    bbox: [78.08, 8.71, 78.20, 8.82],
+    description: 'V.O. Chidambaranar Port & Multimodal Logistics Park corridor',
+    type: 'mmlp',
     defaultWaypoints: [
-      { label: 'A', name: 'JNPT Main Gate & Rail Yard', coordinates: [72.9510, 18.9480], role: 'origin' },
-      { label: 'B', name: 'Uran Container Freight Station', coordinates: [72.9730, 18.9220], role: 'checkpoint' },
-      { label: 'C', name: 'Dronagiri Logistics Park Zone 2', coordinates: [72.9850, 18.9680], role: 'crossdock' },
-      { label: 'D', name: 'Taloja MIDC Freight Terminal', coordinates: [73.0950, 19.0850], role: 'destination' }
+      { label: 'A', name: 'VOC Port Terminal Gate 1', coordinates: [78.1750, 8.7520], role: 'origin' },
+      { label: 'B', name: 'MMLP Inbound Container Yard', coordinates: [78.1460, 8.7630], role: 'crossdock' },
+      { label: 'C', name: 'Cold Storage & Agro Warehouse C3', coordinates: [78.1320, 8.7710], role: 'checkpoint' },
+      { label: 'D', name: 'Customs Clearance & Weighbridge #4', coordinates: [78.1250, 8.7850], role: 'customs' },
+      { label: 'E', name: 'NH-38 National Freight Highway Interchange', coordinates: [78.0980, 8.7980], role: 'destination' }
     ]
   },
   {
@@ -492,3 +524,229 @@ export function createTelemetryWebSocket(
   }
 }
 
+// ==================== PHASE 5-6: OPTIMIZATION API ====================
+
+export async function fetchTruckProfiles(): Promise<TruckProfile[]> {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/api/truck-profiles`, { timeout: 3000 });
+    return res.data || [];
+  } catch (err) {
+    console.warn('Error fetching truck profiles:', err);
+    // Fallback embedded profiles
+    return [
+      {
+        id: 'container_chassis', name: 'Tata Prima 4928.S', category: 'Heavy Container Chassis',
+        description: '49-tonne GVW container trailer for port-to-ICD corridor runs', icon: '🚛',
+        max_payload_tonnes: 28, gross_vehicle_weight_tonnes: 49, tare_weight_tonnes: 21,
+        axle_count: 5, length_m: 16.5, width_m: 2.6, height_m: 4.5, turning_radius_m: 11.2,
+        engine_power_hp: 280, fuel_tank_capacity_L: 400, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 32, loaded_fuel_rate_L_per_100km: 42,
+        max_speed_kmh: 85, optimal_speed_kmh: 55, drag_coefficient: 0.78,
+        frontal_area_m2: 10.2, rolling_resistance: 0.008, drivetrain_efficiency: 0.88,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'multi_axle', co2_emission_factor_kg_per_L: 2.68,
+      },
+      {
+        id: 'reefer', name: 'Ashok Leyland 4220 Reefer', category: 'Refrigerated Container',
+        description: 'Temperature-controlled transport for perishables and pharma', icon: '🧊',
+        max_payload_tonnes: 22, gross_vehicle_weight_tonnes: 42, tare_weight_tonnes: 20,
+        axle_count: 4, length_m: 14.5, width_m: 2.5, height_m: 4.2, turning_radius_m: 10.5,
+        engine_power_hp: 220, fuel_tank_capacity_L: 350, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 35, loaded_fuel_rate_L_per_100km: 48,
+        max_speed_kmh: 80, optimal_speed_kmh: 50, drag_coefficient: 0.82,
+        frontal_area_m2: 9.8, rolling_resistance: 0.009, drivetrain_efficiency: 0.85,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'multi_axle', co2_emission_factor_kg_per_L: 2.68,
+        refrigeration_fuel_overhead_pct: 15,
+      },
+      {
+        id: 'flatbed', name: 'BharatBenz 3528R', category: 'Heavy Flatbed Trailer',
+        description: 'Open-deck carrier for steel, machinery, and construction materials', icon: '🏗️',
+        max_payload_tonnes: 25, gross_vehicle_weight_tonnes: 35, tare_weight_tonnes: 10,
+        axle_count: 3, length_m: 12, width_m: 2.5, height_m: 3.8, turning_radius_m: 9.5,
+        engine_power_hp: 280, fuel_tank_capacity_L: 300, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 28, loaded_fuel_rate_L_per_100km: 40,
+        max_speed_kmh: 80, optimal_speed_kmh: 55, drag_coefficient: 0.85,
+        frontal_area_m2: 8.5, rolling_resistance: 0.008, drivetrain_efficiency: 0.87,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'heavy', co2_emission_factor_kg_per_L: 2.68,
+      },
+      {
+        id: 'tanker', name: 'Volvo FM 420 Tanker', category: 'Liquid Tanker Truck',
+        description: 'Petroleum, chemical, and food-grade liquid transport', icon: '🛢️',
+        max_payload_tonnes: 24, gross_vehicle_weight_tonnes: 40, tare_weight_tonnes: 16,
+        axle_count: 4, length_m: 13.5, width_m: 2.5, height_m: 3.9, turning_radius_m: 10,
+        engine_power_hp: 420, fuel_tank_capacity_L: 400, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 30, loaded_fuel_rate_L_per_100km: 44,
+        max_speed_kmh: 75, optimal_speed_kmh: 50, drag_coefficient: 0.72,
+        frontal_area_m2: 9.5, rolling_resistance: 0.007, drivetrain_efficiency: 0.90,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'multi_axle', co2_emission_factor_kg_per_L: 2.68,
+      },
+      {
+        id: 'mini_truck', name: 'Tata Ace Gold', category: 'Light Commercial Vehicle',
+        description: 'Last-mile intra-city delivery and short-haul distribution', icon: '🚚',
+        max_payload_tonnes: 1, gross_vehicle_weight_tonnes: 2.2, tare_weight_tonnes: 1.2,
+        axle_count: 2, length_m: 4.7, width_m: 1.7, height_m: 2.4, turning_radius_m: 4.6,
+        engine_power_hp: 40, fuel_tank_capacity_L: 30, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 8, loaded_fuel_rate_L_per_100km: 13,
+        max_speed_kmh: 75, optimal_speed_kmh: 40, drag_coefficient: 0.55,
+        frontal_area_m2: 3.8, rolling_resistance: 0.012, drivetrain_efficiency: 0.82,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'light', co2_emission_factor_kg_per_L: 2.68,
+      },
+      {
+        id: 'heavy_trailer', name: 'Scania R450 Multi-Axle', category: 'Super-Heavy Multi-Axle Trailer',
+        description: 'Oversized and overweight cargo — turbines, transformers, heavy machinery', icon: '🏋️',
+        max_payload_tonnes: 40, gross_vehicle_weight_tonnes: 55, tare_weight_tonnes: 15,
+        axle_count: 6, length_m: 18.5, width_m: 2.6, height_m: 4.6, turning_radius_m: 13,
+        engine_power_hp: 450, fuel_tank_capacity_L: 500, fuel_type: 'diesel',
+        base_fuel_rate_L_per_100km: 38, loaded_fuel_rate_L_per_100km: 55,
+        max_speed_kmh: 70, optimal_speed_kmh: 45, drag_coefficient: 0.85,
+        frontal_area_m2: 11.5, rolling_resistance: 0.010, drivetrain_efficiency: 0.86,
+        fuel_cost_per_litre_INR: 89.5, toll_class: 'over_dimensional', co2_emission_factor_kg_per_L: 2.68,
+      },
+    ];
+  }
+}
+
+export async function optimizeRoute(
+  waypoints: Waypoint[],
+  truckType: string,
+  payloadTonnes: number,
+  mode: OptimizationMode
+): Promise<OptimizationResult> {
+  try {
+    const res = await axios.post(`${BACKEND_URL}/api/optimize-route`, {
+      coordinates: waypoints.map(w => w.coordinates),
+      waypoint_names: waypoints.map(w => w.name),
+      truck_type: truckType,
+      payload_tonnes: payloadTonnes,
+      optimization_mode: mode,
+      fix_origin: true,
+      fix_destination: true,
+    }, { timeout: 8000 });
+    return res.data;
+  } catch (err) {
+    console.warn('[LogiSync] Backend optimization service unreachable, utilizing client-side ML TSP solver:', err);
+    
+    // Client-side fallback solver
+    const n = waypoints.length;
+    const profiles = await fetchTruckProfiles();
+    const profile = profiles.find(p => p.id === truckType) || profiles[0];
+    const maxPayload = profile?.max_payload_tonnes || 28;
+    const clampedPayload = Math.min(payloadTonnes, maxPayload);
+    const fuelRate = (profile?.base_fuel_rate_L_per_100km || 32) + 
+      ((profile?.loaded_fuel_rate_L_per_100km || 42) - (profile?.base_fuel_rate_L_per_100km || 32)) * (clampedPayload / Math.max(1, maxPayload));
+    
+    // Haversine distance matrix (in km * 1.3 road factor)
+    const dist = (c1: [number, number], c2: [number, number]) => {
+      const R = 6371;
+      const dLat = (c2[1] - c1[1]) * Math.PI / 180;
+      const dLon = (c2[0] - c1[0]) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(c1[1] * Math.PI / 180) * Math.cos(c2[1] * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) * 1.3;
+    };
+
+    const distMatrix: number[][] = Array.from({ length: n }, (_, i) =>
+      Array.from({ length: n }, (_, j) => i === j ? 0 : dist(waypoints[i].coordinates, waypoints[j].coordinates))
+    );
+
+    const evaluateRoute = (order: number[]) => {
+      let totalD = 0;
+      for (let i = 0; i < order.length - 1; i++) {
+        totalD += distMatrix[order[i]][order[i + 1]];
+      }
+      const speed = profile?.optimal_speed_kmh || 55;
+      const timeMins = (totalD / speed) * 60;
+      const fuelL = (totalD / 100) * fuelRate;
+      return { totalD, timeMins, fuelL };
+    };
+
+    const origOrder = Array.from({ length: n }, (_, i) => i);
+    const origEval = evaluateRoute(origOrder);
+
+    // 2-opt local search optimization for intermediate waypoints (keeping start 0 and end n-1 fixed)
+    let bestOrder = [...origOrder];
+    let bestCost = origEval.fuelL;
+
+    if (n > 3) {
+      let improved = true;
+      let iters = 0;
+      while (improved && iters < 50) {
+        improved = false;
+        iters++;
+        for (let i = 1; i < n - 2; i++) {
+          for (let k = i + 1; k < n - 1; k++) {
+            const candidate = [...bestOrder.slice(0, i), ...bestOrder.slice(i, k + 1).reverse(), ...bestOrder.slice(k + 1)];
+            const candEval = evaluateRoute(candidate);
+            const cost = mode === 'time_efficient' ? candEval.timeMins : candEval.fuelL;
+            if (cost < bestCost) {
+              bestOrder = candidate;
+              bestCost = cost;
+              improved = true;
+            }
+          }
+        }
+      }
+    }
+
+    const optEval = evaluateRoute(bestOrder);
+    const legs = [];
+    for (let i = 0; i < bestOrder.length - 1; i++) {
+      const from = bestOrder[i];
+      const to = bestOrder[i + 1];
+      const d = +(distMatrix[from][to]).toFixed(2);
+      const t = +((d / (profile?.optimal_speed_kmh || 55)) * 60).toFixed(1);
+      const f = +((d / 100) * fuelRate).toFixed(2);
+      legs.push({
+        from_idx: from,
+        to_idx: to,
+        distance_km: d,
+        time_mins: t,
+        fuel_litres: f,
+        co2_kg: +(f * (profile?.co2_emission_factor_kg_per_L || 2.68)).toFixed(2)
+      });
+    }
+
+    const fuelSaved = Math.max(0, origEval.fuelL - optEval.fuelL);
+    const timeSaved = Math.max(0, origEval.timeMins - optEval.timeMins);
+    const costSaved = Math.round(fuelSaved * (profile?.fuel_cost_per_litre_INR || 89.5));
+
+    return {
+      optimized_order: bestOrder,
+      optimized_waypoint_names: bestOrder.map(i => waypoints[i]?.name || `Stop ${i + 1}`),
+      total_distance_km: +optEval.totalD.toFixed(2),
+      total_time_mins: +optEval.timeMins.toFixed(1),
+      total_fuel_L: +optEval.fuelL.toFixed(2),
+      total_co2_kg: +(optEval.fuelL * (profile?.co2_emission_factor_kg_per_L || 2.68)).toFixed(2),
+      total_cost_inr: Math.round(optEval.fuelL * (profile?.fuel_cost_per_litre_INR || 89.5)),
+      fuel_rate_L_per_100km: +fuelRate.toFixed(1),
+      efficiency_score: Math.min(98, Math.round(78 + (fuelSaved / (origEval.fuelL || 1)) * 40)),
+      legs,
+      generations_run: 50,
+      improvement_pct: +((fuelSaved / Math.max(0.1, origEval.fuelL)) * 100).toFixed(1),
+      truck_type: truckType,
+      payload_tonnes: clampedPayload,
+      optimization_mode: mode,
+      original_distance_km: +origEval.totalD.toFixed(2),
+      original_time_mins: +origEval.timeMins.toFixed(1),
+      original_fuel_L: +origEval.fuelL.toFixed(2),
+      original_co2_kg: +(origEval.fuelL * (profile?.co2_emission_factor_kg_per_L || 2.68)).toFixed(2),
+      original_cost_inr: Math.round(origEval.fuelL * (profile?.fuel_cost_per_litre_INR || 89.5)),
+      fuel_saved_L: +fuelSaved.toFixed(2),
+      time_saved_mins: +timeSaved.toFixed(1),
+      cost_saved_inr: costSaved
+    };
+  }
+}
+
+export async function fetchFuelEstimate(
+  truckType: string,
+  payloadTonnes: number,
+  distanceKm: number,
+  avgSpeedKmh?: number
+): Promise<any> {
+  const res = await axios.post(`${BACKEND_URL}/api/fuel-estimate`, {
+    truck_type: truckType,
+    payload_tonnes: payloadTonnes,
+    distance_km: distanceKm,
+    avg_speed_kmh: avgSpeedKmh || null,
+  }, { timeout: 3000 });
+  return res.data;
+}

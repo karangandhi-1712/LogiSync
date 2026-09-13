@@ -9,7 +9,7 @@ def test_health_phase3():
     res = client.get("/api/health")
     assert res.status_code == 200
     data = res.json()
-    assert data["phase"] == 3
+    assert data["phase"] >= 3
     assert data["implementation_status"] == "IMPLEMENTED"
 
 

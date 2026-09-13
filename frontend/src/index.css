@@ -2,15 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Theme Transition ===== */
+html {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* ===== Dark Mode Base (Default) ===== */
 @layer base {
-  body {
+  .dark body {
     @apply m-0 p-0 overflow-hidden bg-cyber-950 text-slate-100 font-sans select-none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .light body {
+    @apply m-0 p-0 overflow-hidden bg-surface-50 text-slate-800 font-sans select-none;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom Glassmorphism */
-.glass-panel {
+/* ===== DARK Glassmorphism ===== */
+.dark .glass-panel {
   background: rgba(11, 15, 23, 0.78);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -18,44 +29,102 @@
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 242, 254, 0.05);
 }
 
-.glass-panel-subtle {
+.dark .glass-panel-subtle {
   background: rgba(19, 27, 42, 0.65);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.glass-card-hover {
+.dark .glass-card-hover {
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.glass-card-hover:hover {
+.dark .glass-card-hover:hover {
   background: rgba(29, 39, 59, 0.75);
   border-color: rgba(0, 242, 254, 0.3);
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -5px rgba(0, 242, 254, 0.15);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
+/* ===== LIGHT Glassmorphism ===== */
+.light .glass-panel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  color: #1e293b;
+}
+
+.light .glass-panel-subtle {
+  background: rgba(241, 245, 249, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: #334155;
+}
+
+.light .glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.light .glass-card-hover:hover {
+  background: rgba(241, 245, 249, 0.9);
+  border-color: rgba(79, 70, 229, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.12);
+}
+
+/* Light mode text color overrides for panels */
+.light .glass-panel .text-slate-100,
+.light .glass-panel .text-white {
+  color: #1e293b;
+}
+.light .glass-panel .text-slate-400 {
+  color: #64748b;
+}
+.light .glass-panel .text-slate-300 {
+  color: #475569;
+}
+.light .glass-panel .text-slate-500 {
+  color: #64748b;
+}
+
+/* ===== Custom Scrollbar — DARK ===== */
+.dark ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
-::-webkit-scrollbar-track {
+.dark ::-webkit-scrollbar-track {
   background: rgba(11, 15, 23, 0.5);
 }
-::-webkit-scrollbar-thumb {
+.dark ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
+.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 242, 254, 0.4);
 }
 
-/* MapLibre Canvas overrides */
+/* ===== Custom Scrollbar — LIGHT ===== */
+.light ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.light ::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.8);
+}
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 9999px;
+}
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.4);
+}
+
+/* ===== MapLibre Canvas overrides ===== */
 .maplibregl-ctrl-attrib {
   display: none !important;
 }
 
-/* Custom HTML Markers */
+/* ===== Custom HTML Markers ===== */
 .custom-waypoint-marker {
   cursor: pointer;
   transform: translate(-50%, -100%);
@@ -66,7 +135,7 @@
   z-index: 50;
 }
 
-/* Radar pulse animation */
+/* ===== Radar Pulse Animation ===== */
 @keyframes pulse-ring {
   0% {
     transform: scale(0.95);
@@ -86,15 +155,100 @@
   animation: pulse-ring 2.4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
 
-/* Glowing text */
-.glow-cyan {
+/* ===== Glowing Text — DARK ===== */
+.dark .glow-cyan {
   text-shadow: 0 0 16px rgba(0, 242, 254, 0.6);
 }
-
-.glow-emerald {
+.dark .glow-emerald {
   text-shadow: 0 0 16px rgba(16, 185, 129, 0.6);
 }
-
-.glow-rose {
+.dark .glow-rose {
   text-shadow: 0 0 16px rgba(244, 63, 94, 0.6);
+}
+
+/* ===== Glowing Text — LIGHT ===== */
+.light .glow-cyan {
+  text-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+}
+.light .glow-emerald {
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+.light .glow-rose {
+  text-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+}
+
+/* ===== Light Mode — Accent Color Adjustments ===== */
+.light .text-cyan-300 {
+  color: #0891b2;
+}
+.light .text-cyan-400 {
+  color: #0e7490;
+}
+.light .text-emerald-400 {
+  color: #059669;
+}
+.light .text-amber-400 {
+  color: #d97706;
+}
+.light .border-cyan-500\/40 {
+  border-color: rgba(6, 182, 212, 0.4);
+}
+.light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+.light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* ===== Light Mode — Background Adjustments ===== */
+.light .bg-cyan-500\/20 {
+  background-color: rgba(6, 182, 212, 0.12);
+}
+.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.light .bg-black\/85 {
+  background-color: rgba(255, 255, 255, 0.92);
+}
+.light .bg-black\/90 {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* ===== Range Input Styling ===== */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #00f2fe;
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+}
+
+.light input[type="range"]::-webkit-slider-thumb {
+  background: #4f46e5;
+  box-shadow: 0 0 8px rgba(79, 70, 229, 0.4);
+}
+
+/* ===== Fuel Gauge Animation ===== */
+@keyframes fuel-drain {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* ===== Optimization Score Pulse ===== */
+@keyframes score-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-score-pulse {
+  animation: score-pulse 2s ease-in-out infinite;
 }
