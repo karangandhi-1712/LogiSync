@@ -1,53 +1,49 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type Theme = 'dark' | 'light';
+type Theme = 'light' | 'dark';
 
-interface ThemeContextType {
+interface ThemeContextValue {
   theme: Theme;
-  toggleTheme: () => void;
   isDark: boolean;
+  toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  toggleTheme: () => {},
-  isDark: true,
-});
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-export const useTheme = () => useContext(ThemeContext);
-
-const STORAGE_KEY = 'logisync-theme';
-
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved === 'light' || saved === 'dark') return saved;
-    } catch {}
-    return 'dark';
-  });
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
+    // Read from localStorage — default is light
+    const stored = localStorage.getItem('logisync-theme') as Theme | null;
+    if (stored === 'dark') {
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
     }
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
-  }, [theme]);
+  }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme(prev => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      if (next === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      localStorage.setItem('logisync-theme', next);
+      return next;
+    });
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>
+    <ThemeContext.Provider value={{ theme, isDark: theme === 'dark', toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-};
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext);
+  if (!ctx) throw new Error('useTheme must be used inside ThemeProvider');
+  return ctx;
+}

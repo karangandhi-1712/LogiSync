@@ -21,3 +21,5 @@ env/
 
 # Project Specific
 backend/data/
+*.db
+*.sqlite3

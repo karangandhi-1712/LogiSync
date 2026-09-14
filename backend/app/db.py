@@ -1,27 +1,27 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from .config import settings
-from .models import Base
+from sqlalchemy.orm import declarative_base, sessionmaker
+from app.config import get_settings
 
-engine = create_engine(settings.database_url, pool_pre_ping=True)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+settings = get_settings()
+
+# SQLite needs check_same_thread=False
+connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    connect_args=connect_args,
+    echo=settings.DEBUG
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
 
 
 def get_db():
+    """Dependency for obtaining a database session."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-
-
-def init_db():
-    """Create PostGIS extension + tables. Safe to call repeatedly."""
-    from sqlalchemy import text
-
-    with engine.begin() as conn:
-        try:
-            conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
-        except Exception:
-            pass  # plain postgres without postgis still works for Phase 1 demo
-    Base.metadata.create_all(bind=engine)

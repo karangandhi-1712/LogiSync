@@ -4,13 +4,34 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>LogiSync — AI Multimodal Logistics Digital Twin</title>
-    <meta name="description" content="Real-time AI logistics digital twin with dynamic multi-city routing, live traffic congestion tracking, roadblock detection, and fleet simulation." />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta name="description" content="LogiSync v2.0 — AI-Powered Port Logistics Command Center. Real-time gate slot allocation, fleet telematics, and predictive scheduling for VOC Port Thoothukudi." />
+    <meta name="theme-color" content="#0284c7" />
+    <title>LogiSync v2.0 — VOC Port Command Center</title>
+
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Polyfill global for AWS Cognito in browser -->
+    <script>
+      window.global = window;
+    </script>
+
+    <!-- Theme Init — Light is default, only add 'dark' class if explicitly set -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('logisync-theme');
+          if (stored === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+          // No else needed — light is the default (no class)
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-[#0b0f17] text-slate-100 font-sans selection:bg-cyan-500 selection:text-black">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
