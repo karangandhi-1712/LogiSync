@@ -40,8 +40,9 @@ async def get_current_user(
     Validates the bearer token against Amazon Cognito JWKS.
     In development mode or when Cognito is unconfigured, accepts mock dev tokens.
     """
-    # Development fallback
-    if not settings.COGNITO_USER_POOL_ID:
+    # Demo-first fallback: DEMO_MODE=true or placeholder/unset pool id.
+    # Optional real Cognito only when a real pool id is configured + DEMO_MODE=false.
+    if settings.is_demo_mode:
         # If token is provided, decode or grant demo user
         token = credentials.credentials if credentials else None
         if token and token.startswith("demo-"):

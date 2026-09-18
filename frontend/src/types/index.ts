@@ -71,7 +71,7 @@ export interface TrafficIncident {
 }
 
 // ─── Fleet / Trucks ────────────────────────────────────────────────────────
-export type TruckStatus = 'in_transit' | 'at_gate' | 'loading' | 'delayed' | 'idle' | 'outbound';
+export type TruckStatus = 'in_transit' | 'at_gate' | 'queued' | 'loading' | 'delayed' | 'idle' | 'outbound';
 export type TruckType   = 'container_chassis' | 'reefer' | 'flatbed' | 'tanker' | 'hazmat' | 'heavy_trailer';
 
 export interface Driver {
@@ -93,6 +93,7 @@ export interface Truck {
   vin: string;
   status: TruckStatus;
   cityId: string;
+  assigned_gate?: string;
   driver: Driver;
   latitude: number;
   longitude: number;
@@ -144,8 +145,17 @@ export interface Slot {
   driver?: Pick<Driver, 'name' | 'kyc_verified'>;
   cargo?: string;
   isAiTopPick?: boolean;
-  surgeWarning?: string; // 'HIGH QUEUE SPIKE — 8 Trucks Waiting'
+  surgeWarning?: string;
+
+  // ── Backend snake_case fields ───────────────────────────────────────────
+  gate_id?: string;
+  slot_time?: string;
+  truck_plate?: string;
+  driver_name?: string;
+  cargo_type?: string;
+  dwell_estimate_min?: number;
 }
+
 
 // ─── Analytics / KPIs ─────────────────────────────────────────────────────
 export interface KPIData {

@@ -1,6 +1,7 @@
 import math
 from typing import Dict, Any, List, Tuple
 from app.services.google_maps import google_maps_service
+from app.ports import DEFAULT_PORT_ID, PORTS, is_valid_port, port_hotspots
 
 
 class LiveRerouterService:
@@ -10,25 +11,14 @@ class LiveRerouterService:
     evaluates live road congestion, and computes bypass routes.
     """
 
-    # Congestion hotspot geofences in Thoothukudi
-    HOTSPOTS = [
-        {
-            "name": "VOC Port Main Gate Bottleneck",
-            "lat": 8.7520,
-            "lng": 78.1830,
-            "radius_km": 1.5,
-            "delay_minutes": 25,
-            "alternate_route": "Harbour Bypass Rd -> Green Gate 4"
-        },
-        {
-            "name": "Madurai Hwy - Spic Nagar Junction",
-            "lat": 8.8050,
-            "lng": 78.1250,
-            "radius_km": 1.2,
-            "delay_minutes": 18,
-            "alternate_route": "East Coast Expressway (NH 32) Corridor"
-        }
-    ]
+    # Legacy VOC hotspot geofences (kept for backwards compatibility).
+    HOTSPOTS = port_hotspots(DEFAULT_PORT_ID)
+
+    def hotspots_for(self, port_id: str = DEFAULT_PORT_ID) -> List[Dict[str, Any]]:
+        """Hotspot geofences for a port (defaults to VOC)."""
+        if not is_valid_port(port_id):
+            port_id = DEFAULT_PORT_ID
+        return port_hotspots(port_id)
 
     def _haversine_km(self, lat1: float, lng1: float, lat2: float, lng2: float) -> float:
         """Calculate great circle distance in km between two lat/lng coordinates."""
@@ -44,13 +34,16 @@ class LiveRerouterService:
         truck_id: str,
         current_lat: float,
         current_lng: float,
-        destination: str = "VOC Port"
+        destination: str = "VOC Port",
+        port_id: str = DEFAULT_PORT_ID,
     ) -> Dict[str, Any]:
         """
         Evaluates whether a truck is approaching an active congestion bottleneck.
         If triggered, generates an AI reroute instruction.
         """
-        for spot in self.HOTSPOTS:
+        if destination == "VOC Port" and port_id != DEFAULT_PORT_ID:
+            destination = PORTS[port_id]["short"]
+        for spot in self.hotspots_for(port_id):
             dist = self._haversine_km(current_lat, current_lng, spot["lat"], spot["lng"])
             if dist <= spot["radius_km"]:
                 return {

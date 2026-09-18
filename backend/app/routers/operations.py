@@ -4,8 +4,9 @@ from typing import List
 from app.db import get_db
 from app.models.container import ContainerModel
 from app.models.shipment import ShipmentModel
+from app.dependencies import get_current_user
 
-router = APIRouter(prefix="/operations", tags=["Container & Shipment Operations"])
+router = APIRouter(prefix="/operations", tags=["Container & Shipment Operations"], dependencies=[Depends(get_current_user)])
 
 
 @router.get("/containers")

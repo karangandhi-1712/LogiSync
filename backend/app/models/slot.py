@@ -7,6 +7,7 @@ class SlotModel(Base):
     __tablename__ = "slots"
 
     id = Column(String(32), primary_key=True, index=True)
+    port_id = Column(String(32), default="voc", index=True)
     gate_id = Column(String(32), nullable=False, index=True)
     slot_time = Column(String(32), nullable=False)  # e.g., "14:15"
     date = Column(String(16), nullable=False)       # e.g., "2026-09-15"
