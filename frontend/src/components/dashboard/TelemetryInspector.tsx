@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, Gauge, Navigation, Fuel, Snowflake,
   MapPin, Route, Star, Clock, Phone, Zap
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { DriverCallModal } from '../common/DriverCallModal';
 import type { Truck } from '../../types';
 
 interface TelemetryInspectorProps {
@@ -14,6 +16,7 @@ interface TelemetryInspectorProps {
 }
 
 export function TelemetryInspector({ isOpen, onClose, onTriggerReroute, selectedTruck }: TelemetryInspectorProps) {
+  const [isCalling, setIsCalling] = useState(false);
   const t = {
     id: selectedTruck?.id || 'TRK-8821',
     plate: selectedTruck?.plate || 'TN-04-E-8821',
@@ -49,12 +52,12 @@ export function TelemetryInspector({ isOpen, onClose, onTriggerReroute, selected
       eta: selectedTruck?.mission?.etaTime || '14:15',
       etaStatus: (selectedTruck?.mission?.etaStatus?.toUpperCase() || 'ON TIME'),
     },
-    gnssSnr: 99.84,
   };
 
 
   return (
-    <AnimatePresence>
+    <>
+      <AnimatePresence>
       {isOpen && (
         <motion.aside
           initial={{ x: 400, opacity: 0 }}
@@ -108,9 +111,12 @@ export function TelemetryInspector({ isOpen, onClose, onTriggerReroute, selected
                   Duty Log: {t.driver.dutyHrs}h {t.driver.dutyMins}m
                 </p>
               </div>
-              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold
+              <button
+                onClick={() => setIsCalling(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold
                 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300
-                border border-emerald-400/30 hover:bg-emerald-500/25 neu-button transition-all">
+                border border-emerald-400/30 hover:bg-emerald-500/25 neu-button transition-all"
+              >
                 <Phone className="w-3 h-3 text-emerald-500" />
                 <span>Call</span>
               </button>
@@ -213,32 +219,7 @@ export function TelemetryInspector({ isOpen, onClose, onTriggerReroute, selected
               </div>
             </div>
 
-            {/* AI Route Optimizer Alert */}
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-400/30 neu-flat-sm">
-              <div className="flex items-start gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-black text-amber-800 dark:text-amber-300 mb-1">
-                    AI Dynamic Route Optimizer
-                  </p>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed mb-2">
-                    Gate 1 congestion bottleneck detected (+32m delay). Divert advised to <b>Gate 3 via Coastal Bypass</b>.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-                      ↓ Saved: 26 mins
-                    </span>
-                    <span className="text-[9px] text-slate-400 font-mono">
-                      GNSS SNR: {t.gnssSnr}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Reroute CTA Button with High-Energy Sheen */}
+            {/* Reroute CTA Button */}
             <motion.button
               onClick={onTriggerReroute}
               whileHover={{ scale: 1.01 }}
@@ -256,5 +237,15 @@ export function TelemetryInspector({ isOpen, onClose, onTriggerReroute, selected
         </motion.aside>
       )}
     </AnimatePresence>
+
+    <DriverCallModal
+      isOpen={isCalling}
+      onClose={() => setIsCalling(false)}
+      driverName={t.driver.name}
+      driverPhone={selectedTruck?.driver?.phone || '+91 98400 12345'}
+      driverRating={t.driver.rating}
+      vehiclePlate={t.plate}
+    />
+  </>
   );
 }

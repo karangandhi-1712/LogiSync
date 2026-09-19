@@ -3,6 +3,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { PortProvider } from './context/PortContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { TutorialProvider } from './context/TutorialContext';
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
@@ -20,8 +21,9 @@ export default function App() {
       <PortProvider>
       <AuthProvider>
         <ToastProvider>
-          <TutorialProvider>
-            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <NotificationProvider>
+            <TutorialProvider>
+              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <Routes>
                 {/* Public */}
                 <Route path="/login" element={<LoginPage />} />
@@ -44,6 +46,7 @@ export default function App() {
             </BrowserRouter>
             <TutorialOverlay />
           </TutorialProvider>
+          </NotificationProvider>
         </ToastProvider>
       </AuthProvider>
       </PortProvider>

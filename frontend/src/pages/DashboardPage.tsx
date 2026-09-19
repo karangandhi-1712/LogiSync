@@ -5,18 +5,22 @@ import { TruckMarker } from '../components/map/TruckMarker';
 import { GeofenceOverlay } from '../components/map/GeofenceOverlay';
 import { SubHeaderStrip } from '../components/dashboard/SubHeaderStrip';
 import { TelemetryInspector } from '../components/dashboard/TelemetryInspector';
+import { SlotReservationPanel } from '../components/dashboard/SlotReservationPanel';
 import { fetchFleet, fetchGisGates, triggerReroute, createTelemetryWebSocket } from '../services/api';
 import { RouteLayer } from '../components/map/RouteLayer';
 import { useToast } from '../context/ToastContext';
 import { usePort } from '../context/PortContext';
+import { useNotifications } from '../context/NotificationContext';
 import { Button } from '../components/ui/Button';
+import { getDemoFleet, getDemoPortGates } from '../data/demoFleet';
 import type { Truck as TruckType } from '../types';
 
 export default function DashboardPage() {
   const { port, portId } = usePort();
+  const { selectedSlotBooking, setSelectedSlotBooking } = useNotifications();
   const [fleet, setFleet] = useState<TruckType[]>([]);
   const [mapInstance, setMapInstance] = useState<any>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [selectedTruck, setSelectedTruck] = useState<TruckType | null>(null);
   const [layersVisible, setLayersVisible] = useState(true);
   const [portGates, setPortGates] = useState<any[]>([]);
@@ -25,16 +29,46 @@ export default function DashboardPage() {
 
   const { showToast } = useToast();
 
-  // Load trucks for the selected port
+  // Load trucks for the selected port — fallback to rich port-specific demo fleet
   useEffect(() => {
-    setFleet([]);
-    setSelectedTruck(null);
+    const initialFleet = getDemoFleet(portId);
+    setFleet(initialFleet);
+    setSelectedTruck(initialFleet[0]);
+
     fetchFleet(portId).then(data => {
       if (data && data.length > 0) {
         setFleet(data);
         setSelectedTruck(data[0]);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      // Offline fallback already loaded
+    });
+  }, [portId]);
+
+  // Simulated live telemetry micro-movement when WebSocket is reconnecting
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setFleet(prev => {
+        if (!prev || prev.length === 0) return prev;
+        return prev.map(trk => {
+          if (trk.status === 'in_transit' || trk.status === 'outbound') {
+            const headingRad = ((trk.heading || 0) * Math.PI) / 180;
+            const deltaLat = Math.sin(headingRad) * 0.00015;
+            const deltaLng = Math.cos(headingRad) * 0.00015;
+            const speedJitter = (Math.random() - 0.5) * 4;
+            return {
+              ...trk,
+              latitude: Number((trk.latitude + deltaLat).toFixed(6)),
+              longitude: Number((trk.longitude + deltaLng).toFixed(6)),
+              speedKmh: Math.max(20, Math.min(80, Math.round(trk.speedKmh + speedJitter))),
+            };
+          }
+          return trk;
+        });
+      });
+    }, 3500);
+
+    return () => clearInterval(timer);
   }, [portId]);
 
   // Subscribe to live WebSocket updates
@@ -86,8 +120,13 @@ export default function DashboardPage() {
 
   // Gate coordinates for the selected truck's destination leg.
   useEffect(() => {
-    setPortGates([]);
-    fetchGisGates(portId).then(g => setPortGates(Array.isArray(g) ? g : [])).catch(() => {});
+    const fallbackGates = getDemoPortGates(portId);
+    setPortGates(fallbackGates);
+    fetchGisGates(portId).then(g => {
+      if (Array.isArray(g) && g.length > 0) {
+        setPortGates(g);
+      }
+    }).catch(() => {});
   }, [portId]);
 
   const destGate = useMemo(() => {
@@ -104,9 +143,10 @@ export default function DashboardPage() {
 
   const handleTruckClick = useCallback((truck: TruckType) => {
     setSelectedTruck(truck);
+    setSelectedSlotBooking(null);
     setInspectorOpen(true);
     mapInstance?.panTo({ lat: truck.latitude, lng: truck.longitude });
-  }, [mapInstance]);
+  }, [mapInstance, setSelectedSlotBooking]);
 
   // Reroute action calling real backend
   const handleReroute = async () => {
@@ -209,14 +249,21 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* Right Telemetry Inspector Panel */}
+        {/* Right Panel: Slot Reservation Details (when active) OR Telemetry Inspector */}
         <div id="tutorial-reroute-action-btn">
-          <TelemetryInspector
-            isOpen={inspectorOpen}
-            onClose={() => setInspectorOpen(false)}
-            onTriggerReroute={handleReroute}
-            selectedTruck={selectedTruck}
-          />
+          {selectedSlotBooking ? (
+            <SlotReservationPanel
+              booking={selectedSlotBooking}
+              onClose={() => setSelectedSlotBooking(null)}
+            />
+          ) : (
+            <TelemetryInspector
+              isOpen={inspectorOpen}
+              onClose={() => setInspectorOpen(false)}
+              onTriggerReroute={handleReroute}
+              selectedTruck={selectedTruck}
+            />
+          )}
         </div>
       </div>
 

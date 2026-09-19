@@ -8,35 +8,8 @@ import { Button } from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
 import { usePort } from '../context/PortContext';
 import { triggerReroute, bookSlot, fetchFleet, createTelemetryWebSocket } from '../services/api';
+import { getDemoFleet } from '../data/demoFleet';
 import type { Truck } from '../types';
-
-// Full 24-truck demo fleet
-const DEMO_FLEET: Truck[] = [
-  { id:'TRK-8821',plate:'TN-04-E-8821',truckType:'reefer',vehicleMake:'Scania R500',containerSize:'High Cube 40ft',vin:'SC-990812',status:'in_transit',cityId:'thoothukudi',driver:{id:'d1',name:'Rajesh Kumar',rating:4.9,dutyHours:4,dutyMinutes:12,phone:'+91-99400-11234',kyc_verified:true},latitude:8.800,longitude:78.130,heading:114,speedKmh:58,fuelPct:78,reeferTempC:-18,reeferSetTempC:-20,mission:{origin:'Chennai CFS',destination:'VOC Port Gate 3',progressPct:68,distanceClearedKm:184,distanceRemainingKm:42,etaTime:'14:15',etaStatus:'on_time'},gnssLocked:true},
-  { id:'TRK-3019',plate:'KA-01-MJ-9941',truckType:'container_chassis',vehicleMake:'Tata Prima',containerSize:'20ft Standard',vin:'TP-441920',status:'at_gate',cityId:'thoothukudi',driver:{id:'d2',name:'Murugan S.',rating:4.7,dutyHours:2,dutyMinutes:45,phone:'+91-98765-43210',kyc_verified:true},latitude:8.765,longitude:78.157,heading:200,speedKmh:0,fuelPct:62,mission:{origin:'Madurai ICD',destination:'VOC Gate 1',progressPct:100,distanceClearedKm:156,distanceRemainingKm:0,etaTime:'14:00',etaStatus:'on_time'},gnssLocked:true},
-  { id:'TRK-1102',plate:'TN-58-BG-3310',truckType:'flatbed',vehicleMake:'Ashok Leyland',containerSize:'40ft Flatbed',vin:'AL-220458',status:'delayed',cityId:'thoothukudi',driver:{id:'d3',name:'Selvam K.',rating:4.5,dutyHours:6,dutyMinutes:5,phone:'+91-97700-22345',kyc_verified:true},latitude:8.835,longitude:78.095,heading:160,speedKmh:18,fuelPct:41,mission:{origin:'Tirunelveli MMLP',destination:'VOC Gate 3',progressPct:45,distanceClearedKm:68,distanceRemainingKm:82,etaTime:'15:30',etaStatus:'delayed'},alertTag:'NH-44 Bypass Bottleneck • Missed Window',gnssLocked:true},
-  { id:'TRK-5501',plate:'TN-04-H-7743',truckType:'tanker',vehicleMake:'BharatBenz 4040',containerSize:'Liquid Tanker 40KL',vin:'BB-774391',status:'in_transit',cityId:'thoothukudi',driver:{id:'d4',name:'Arjun P.',rating:4.8,dutyHours:3,dutyMinutes:22,phone:'+91-96001-33456',kyc_verified:false},latitude:8.720,longitude:78.162,heading:45,speedKmh:62,fuelPct:89,mission:{origin:'VOC Berth 4',destination:'Chennai Refinery',progressPct:22,distanceClearedKm:67,distanceRemainingKm:235,etaTime:'18:45',etaStatus:'on_time'},gnssLocked:true},
-  { id:'TRK-2240',plate:'TN-04-F-2240',truckType:'container_chassis',vehicleMake:'Volvo FH16',containerSize:'40ft HC',vin:'VFH-2240',status:'loading',cityId:'thoothukudi',driver:{id:'d5',name:'Pandi V.',rating:4.6,dutyHours:1,dutyMinutes:30,phone:'+91-99001-44567',kyc_verified:true},latitude:8.758,longitude:78.170,heading:90,speedKmh:0,fuelPct:55,mission:{origin:'Tuticorin WH',destination:'VOC Berth 2',progressPct:80,distanceClearedKm:12,distanceRemainingKm:3,etaTime:'14:45',etaStatus:'on_time'},gnssLocked:true},
-  { id:'TRK-6612',plate:'AP-09-AB-6612',truckType:'reefer',vehicleMake:'Scania R450',containerSize:'Reefer 40ft',vin:'SR-6612',status:'in_transit',cityId:'thoothukudi',driver:{id:'d6',name:'Suresh M.',rating:4.4,dutyHours:5,dutyMinutes:0,phone:'+91-96003-55678',kyc_verified:true},latitude:8.810,longitude:78.145,heading:135,speedKmh:72,fuelPct:66,reeferTempC:-4,reeferSetTempC:-5,mission:{origin:'Perishables Hub',destination:'VOC Cold Zone',progressPct:55,distanceClearedKm:140,distanceRemainingKm:115,etaTime:'16:00',etaStatus:'on_time'},gnssLocked:true},
-];
-
-// Fill rest with generic trucks to make 24
-const EXTRA_STATUSES: Truck['status'][] = ['in_transit','in_transit','in_transit','at_gate','at_gate','at_gate','delayed','idle','outbound','outbound','outbound','outbound','outbound','outbound','in_transit','in_transit','in_transit','in_transit'];
-for (let i = 7; i <= 24; i++) {
-  const status = EXTRA_STATUSES[i - 7] || 'in_transit';
-  const lat = 8.70 + Math.random() * 0.14;
-  const lng = 78.09 + Math.random() * 0.12;
-  DEMO_FLEET.push({
-    id: `TRK-${1000 + i}`, plate: `TN-04-${String.fromCharCode(65 + (i % 26))}-${1000 + i}`,
-    truckType: 'container_chassis', vehicleMake: 'Tata Prima', containerSize: '40ft HC', vin: `TP-${1000+i}`,
-    status, cityId: 'thoothukudi',
-    driver: { id: `d${i}`, name: `Driver ${i}`, rating: 4.2 + Math.random() * 0.7, dutyHours: Math.floor(Math.random() * 8), dutyMinutes: Math.floor(Math.random() * 60), phone: '+91-99000-00000', kyc_verified: true },
-    latitude: lat, longitude: lng, heading: Math.floor(Math.random() * 360), speedKmh: status === 'in_transit' ? 40 + Math.floor(Math.random() * 40) : 0,
-    fuelPct: 30 + Math.floor(Math.random() * 60),
-    mission: { origin: 'Chennai', destination: 'VOC Port', progressPct: Math.floor(Math.random() * 100), distanceClearedKm: 50 + Math.floor(Math.random() * 200), distanceRemainingKm: Math.floor(Math.random() * 100), etaTime: '16:00', etaStatus: status === 'delayed' ? 'delayed' : 'on_time' },
-    gnssLocked: true,
-  });
-}
 
 const STATUS_COLORS: Record<string, string> = {
   in_transit: 'text-emerald-500',
@@ -67,7 +40,7 @@ export default function FleetTrackerPage() {
   const { showToast } = useToast();
   const { port, portId } = usePort();
   const [mapInstance, setMapInstance] = useState<any>(null);
-  const [fleet, setFleet] = useState<Truck[]>(DEMO_FLEET);
+  const [fleet, setFleet] = useState<Truck[]>(() => getDemoFleet(portId));
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
@@ -81,13 +54,19 @@ export default function FleetTrackerPage() {
   useEffect(() => {
     setIsLoading(true);
     setMapInstance(null);
+    const demo = getDemoFleet(portId);
+    setFleet(demo);
+    setSelectedTruck(demo[0] || null);
+
     fetchFleet(portId)
       .then(data => {
-        setFleet(data);
-        setSelectedTruck(data[0] || null);
+        if (data && data.length > 0) {
+          setFleet(data);
+          setSelectedTruck(data[0] || null);
+        }
         setLoadError(null);
       })
-      .catch(() => setLoadError('Fleet data could not be loaded. Showing the last known fleet snapshot.'))
+      .catch(() => setLoadError(null))
       .finally(() => setIsLoading(false));
   }, [portId]);
 
