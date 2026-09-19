@@ -8,5 +8,9 @@ export const cognitoConfig = {
   clientId:     import.meta.env.VITE_COGNITO_CLIENT_ID    || '',
 };
 
+function isPlaceholder(value: string): boolean {
+  return !value || value.startsWith('YOUR_') || /^([A-Za-z0-9])\1+$/.test(value);
+}
+
 export const isDemoMode =
-  !cognitoConfig.userPoolId || !cognitoConfig.clientId;
+  isPlaceholder(cognitoConfig.userPoolId) || isPlaceholder(cognitoConfig.clientId);

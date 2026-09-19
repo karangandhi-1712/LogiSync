@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Truck, Lock, Mail, Eye, EyeOff, Shield, Zap, Building2 } from 'lucide-react';
+import { Truck, Lock, Mail, Eye, EyeOff, Shield, Zap, Building2, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { clsx } from 'clsx';
 
@@ -37,48 +37,65 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0a0f1e] overflow-hidden relative">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-canvas)] overflow-hidden relative p-4">
 
-      {/* Grid background */}
-      <div className="absolute inset-0 bg-grid-light dark:bg-grid-dark bg-grid pointer-events-none" />
+      {/* Extraordinary Shining Aurora Mesh Background */}
+      <div className="aurora-canvas">
+        <div className="aurora-orb orb-1" />
+        <div className="aurora-orb orb-2" />
+        <div className="aurora-orb orb-3" />
+      </div>
 
-      {/* Ambient glow orbs */}
-      <div className="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-sky-300/20 dark:bg-cyan-500/10 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-blue-300/20 dark:bg-blue-600/10 blur-3xl pointer-events-none" />
+      {/* Floating Sparkle Particles / Ambient Glow Layers */}
+      <div className="absolute top-1/4 left-1/5 w-72 h-72 rounded-full bg-cyan-400/20 dark:bg-cyan-400/15 blur-3xl pointer-events-none animate-pulse-slow" />
+      <div className="absolute bottom-1/4 right-1/5 w-80 h-80 rounded-full bg-purple-500/20 dark:bg-violet-600/15 blur-3xl pointer-events-none animate-pulse-slow" />
 
       <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-[440px] mx-4"
+        transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        className="relative z-10 w-full max-w-[460px]"
       >
-        <div className="rounded-3xl bg-white dark:bg-[rgba(15,23,42,0.85)] border border-slate-200 dark:border-[rgba(100,130,200,0.15)] shadow-[0_4px_40px_-4px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(6,182,212,0.1)] backdrop-blur-2xl p-8">
+        {/* Liquid Glass Monolith Card */}
+        <div className="rounded-[2.5rem] liquid-glass-elevated border border-white/70 dark:border-white/15 p-8 md:p-9 shadow-2xl backdrop-blur-3xl overflow-hidden relative">
 
-          {/* Logo & Title */}
-          <div className="text-center mb-7">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 dark:from-cyan-400 dark:to-blue-500 shadow-glow-sky dark:shadow-glow-cyan mb-4">
-              <Truck className="w-7 h-7 text-white" />
+          {/* Top Specular Glare Accent */}
+          <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-white/80 dark:via-cyan-400/60 to-transparent pointer-events-none" />
+
+          {/* Logo & Brand Header */}
+          <div className="text-center mb-8">
+            <div className="relative inline-block mb-4">
+              <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-600 blur-md opacity-70 animate-pulse-slow" />
+              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-400 via-sky-500 to-indigo-600 flex items-center justify-center shadow-xl">
+                <Truck className="w-8 h-8 text-white drop-shadow-md" />
+              </div>
             </div>
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">LogiSync</h1>
-              <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-sky-100 text-sky-600 dark:bg-cyan-500/20 dark:text-cyan-400 border border-sky-200 dark:border-cyan-500/30">
+
+            <div className="flex items-center justify-center gap-2 mb-1.5">
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white chroma-text">
+                LogiSync
+              </h1>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-400/30">
+                <Sparkles className="w-2.5 h-2.5 text-cyan-500" />
                 v2.0 PRO
               </span>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">AI-Powered Port Logistics Command Center</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              Autonomous AI Port Terminal Command Console
+            </p>
           </div>
 
-          {/* Role Switcher */}
-          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800/60 p-1 mb-6">
+          {/* Neumorphic Segmented Role Switcher */}
+          <div id="tutorial-login-roles" className="flex rounded-2xl bg-slate-200/50 dark:bg-slate-900/60 p-1.5 mb-6 neu-inset">
             {(['Port Admin', 'Fleet Mgr', 'Dispatcher'] as RoleTab[]).map(r => (
-              <button
+              <button id="tutorial-login-password-toggle"
                 key={r}
                 onClick={() => setActiveRole(r)}
                 className={clsx(
-                  'flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200',
+                  'flex-1 py-2 text-xs font-bold rounded-xl transition-all duration-200',
                   activeRole === r
-                    ? 'bg-white dark:bg-slate-700 text-sky-600 dark:text-cyan-400 shadow-sm'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                    ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-cyan-400 shadow-md scale-100 border border-white/60 dark:border-white/10'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                 )}
               >
                 {r}
@@ -86,92 +103,95 @@ export default function LoginPage() {
             ))}
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Terminal ID / Security Email"
-                required
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/60
-                  border border-slate-200 dark:border-slate-700
-                  text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
-                  text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 dark:focus:ring-cyan-500
-                  focus:border-transparent transition-all"
-              />
+            {/* Email Field with Inset Well */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
+                Security Identifier / Email
+              </label>
+              <div className="relative rounded-2xl bg-white/50 dark:bg-slate-900/60 border border-white/80 dark:border-white/10 neu-inset overflow-hidden transition-all focus-within:ring-2 focus-within:ring-cyan-400">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Terminal ID / Security Email"
+                  required
+                  className="w-full pl-10 pr-4 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none"
+                />
+              </div>
             </div>
 
-            {/* Password */}
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type={showPw ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="Security Passcode / Token"
-                className="w-full pl-10 pr-10 py-3 rounded-xl bg-slate-50 dark:bg-slate-800/60
-                  border border-slate-200 dark:border-slate-700
-                  text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
-                  text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 dark:focus:ring-cyan-500
-                  focus:border-transparent transition-all"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(p => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              >
-                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+            {/* Password Field with Inset Well */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5 ml-1">
+                Passcode / Access Token
+              </label>
+              <div className="relative rounded-2xl bg-white/50 dark:bg-slate-900/60 border border-white/80 dark:border-white/10 neu-inset overflow-hidden transition-all focus-within:ring-2 focus-within:ring-cyan-400">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-500 dark:text-cyan-400" />
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Security Passcode / Token"
+                  className="w-full pl-10 pr-11 py-3 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-xs font-medium focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(p => !p)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
 
-            {/* Remember / Reset */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+            {/* Remember Device & Reset */}
+            <div className="flex items-center justify-between pt-1">
+              <label id="tutorial-login-remember" className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={e => setRemember(e.target.checked)}
-                  className="w-4 h-4 rounded accent-sky-500 dark:accent-cyan-500"
+                  className="w-4 h-4 rounded-md accent-cyan-500"
                 />
-                <span className="text-xs text-slate-500 dark:text-slate-400">Remember device</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Remember terminal</span>
               </label>
-              <button type="button" className="text-xs text-sky-500 dark:text-cyan-400 hover:underline">
-                Reset token?
+              <button type="button" className="text-xs font-semibold text-sky-600 dark:text-cyan-400 hover:underline">
+                Reset Token?
               </button>
             </div>
 
-            {/* Error */}
+            {/* Error Message */}
             {error && (
-              <div className="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 text-sm text-red-600 dark:text-red-400">
+              <div className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-xs font-bold text-red-600 dark:text-red-400 shadow-sm">
                 {error}
               </div>
             )}
 
-            {/* Login CTA */}
+            {/* Submit Button (Tactile 3D Luminous CTA) */}
             <motion.button
               type="submit"
               disabled={isLoading}
               whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full py-3 rounded-xl font-bold text-sm text-white
-                bg-gradient-to-r from-sky-500 to-blue-600 dark:from-cyan-500 dark:to-blue-500
-                hover:from-sky-600 hover:to-blue-700 dark:hover:from-cyan-600 dark:hover:to-blue-600
-                shadow-glow-sky dark:shadow-glow-cyan
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-3.5 rounded-2xl font-black text-xs uppercase tracking-wider text-white
+                bg-gradient-to-r from-sky-500 via-cyan-500 to-indigo-600
+                hover:from-sky-600 hover:via-cyan-600 hover:to-indigo-700
+                shadow-[0_4px_20px_rgba(6,182,212,0.4)] hover:shadow-[0_6px_25px_rgba(6,182,212,0.6)]
                 disabled:opacity-60 disabled:cursor-not-allowed
-                transition-all duration-200 flex items-center justify-center gap-2"
+                transition-all duration-200 flex items-center justify-center gap-2 border border-white/20"
             >
               {isLoading ? (
                 <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
               ) : (
                 <>
                   <Building2 className="w-4 h-4" />
-                  Sign In to Command Center →
+                  Sign In to Terminal Console →
                 </>
               )}
             </motion.button>
@@ -179,31 +199,35 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700/60" />
-            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">OR</span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700/60" />
+            <div className="flex-1 h-px bg-slate-300/60 dark:bg-slate-700/60" />
+            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
+              FAST ACCESS
+            </span>
+            <div className="flex-1 h-px bg-slate-300/60 dark:bg-slate-700/60" />
           </div>
 
-          {/* Demo Login */}
+          {/* Instant Bypass Demo Button (Tactile Neu-Glass Action) */}
           <motion.button
+            id="tutorial-login-demo-btn"
             onClick={handleDemo}
             whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-3 rounded-xl font-bold text-sm
-              border-2 border-sky-300 dark:border-cyan-500/50
-              text-sky-600 dark:text-cyan-400
-              hover:bg-sky-50 dark:hover:bg-cyan-500/10
-              transition-all duration-200 flex items-center justify-center gap-2"
+            whileTap={{ scale: 0.98 }}
+            className="w-full py-3.5 rounded-2xl font-bold text-xs
+              bg-white/60 dark:bg-slate-900/60
+              border border-cyan-400/40 dark:border-cyan-400/30
+              text-cyan-700 dark:text-cyan-300
+              hover:bg-cyan-500/10 hover:border-cyan-400
+              neu-flat-sm transition-all duration-200 flex items-center justify-center gap-2 shadow-sm"
           >
-            <Zap className="w-4 h-4" />
-            ⚡ Launch Demo Session [INSTANT BYPASS]
+            <Zap className="w-4 h-4 text-cyan-500 animate-pulse" />
+            <span>Launch Demo Session [INSTANT BYPASS]</span>
           </motion.button>
 
-          {/* Security Footer */}
+          {/* Security Footer Badge */}
           <div className="flex items-center justify-center gap-2 mt-6">
-            <Shield className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 text-center">
-              Secured by AWS Cognito • AES-256 Encrypted • SOC2 Type II
+            <Shield className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">
+              AWS Cognito Verified • AES-256 GCM • SOC2 Type II Certified
             </span>
           </div>
         </div>

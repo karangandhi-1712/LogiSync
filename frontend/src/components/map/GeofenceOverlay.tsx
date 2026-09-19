@@ -1,37 +1,40 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import L from 'leaflet';
 import { useTheme } from '../../context/ThemeContext';
+import { fetchGisLayers, fetchGisGates } from '../../services/api';
+import { isMapAlive } from './GoogleMapCanvas';
 
-// VOC Port geofence boundary coordinates
-const VOC_GEOFENCE: google.maps.LatLngLiteral[] = [
-  { lat: 8.780, lng: 78.155 },
-  { lat: 8.780, lng: 78.195 },
-  { lat: 8.745, lng: 78.200 },
-  { lat: 8.738, lng: 78.190 },
-  { lat: 8.735, lng: 78.165 },
-  { lat: 8.745, lng: 78.150 },
+// Legacy VOC fallback shapes (used while the per-port GIS payload loads,
+// and permanently if the backend is unreachable).
+const VOC_GEOFENCE: [number, number][] = [
+  [8.780, 78.155],
+  [8.780, 78.195],
+  [8.745, 78.200],
+  [8.738, 78.190],
+  [8.735, 78.165],
+  [8.745, 78.150],
 ];
 
-// Terminal operational zones
-const TERMINAL_ZONES = [
+const TERMINAL_ZONES: { id: string; label: string; coords: [number, number][]; color: string }[] = [
   {
     id: 'cold_storage_alpha',
     label: 'Cold Storage Alpha',
     coords: [
-      { lat: 8.768, lng: 78.165 },
-      { lat: 8.768, lng: 78.172 },
-      { lat: 8.763, lng: 78.172 },
-      { lat: 8.763, lng: 78.165 },
+      [8.768, 78.165],
+      [8.768, 78.172],
+      [8.763, 78.172],
+      [8.763, 78.165],
     ],
-    color: '#06b6d4',
+    color: '#00f5d4',
   },
   {
     id: 'cy_block_b',
     label: 'CY-Block B',
     coords: [
-      { lat: 8.758, lng: 78.170 },
-      { lat: 8.758, lng: 78.180 },
-      { lat: 8.752, lng: 78.180 },
-      { lat: 8.752, lng: 78.170 },
+      [8.758, 78.170],
+      [8.758, 78.180],
+      [8.752, 78.180],
+      [8.752, 78.170],
     ],
     color: '#10b981',
   },
@@ -39,10 +42,10 @@ const TERMINAL_ZONES = [
     id: 'hazmat_yard',
     label: 'HazMat Yard 2',
     coords: [
-      { lat: 8.772, lng: 78.178 },
-      { lat: 8.772, lng: 78.184 },
-      { lat: 8.768, lng: 78.184 },
-      { lat: 8.768, lng: 78.178 },
+      [8.772, 78.178],
+      [8.772, 78.184],
+      [8.768, 78.184],
+      [8.768, 78.178],
     ],
     color: '#ef4444',
   },
@@ -50,121 +53,187 @@ const TERMINAL_ZONES = [
     id: 'wh_east_berth',
     label: 'WH-East Berth 4',
     coords: [
-      { lat: 8.762, lng: 78.185 },
-      { lat: 8.762, lng: 78.193 },
-      { lat: 8.756, lng: 78.193 },
-      { lat: 8.756, lng: 78.185 },
+      [8.762, 78.185],
+      [8.762, 78.193],
+      [8.756, 78.193],
+      [8.756, 78.185],
     ],
     color: '#f59e0b',
   },
 ];
 
-// Gate positions
-const GATES = [
+const FALLBACK_GATES = [
   { id: 'G-01', label: 'Gate 1', lat: 8.765, lng: 78.157, queue: 8, status: 'HOLD' },
   { id: 'G-02', label: 'Gate 2', lat: 8.758, lng: 78.160, queue: 6, status: 'NORMAL' },
   { id: 'G-03', label: 'Gate 3', lat: 8.752, lng: 78.163, queue: 2, status: 'FAST-PASS' },
   { id: 'G-04', label: 'Gate 4', lat: 8.746, lng: 78.166, queue: 9, status: 'MODERATE' },
 ];
 
-interface GeofenceOverlayProps {
-  map: google.maps.Map | null;
+const ZONE_COLORS = ['#00f5d4', '#10b981', '#ef4444', '#f59e0b'];
+
+function gateColor(status: string): string {
+  const s = (status || '').toUpperCase();
+  if (s.includes('HOLD') || s.includes('SEVERE') || s.includes('CONGEST')) return '#ef4444';
+  if (s.includes('FAST') || s.includes('OPTIMAL') || s.includes('LOW')) return '#10b981';
+  if (s.includes('MODERATE')) return '#f59e0b';
+  return '#00f5d4';
 }
 
-export function GeofenceOverlay({ map }: GeofenceOverlayProps) {
+interface GeofenceOverlayProps {
+  map: any;
+  portId?: string;
+  portName?: string;
+}
+
+export function GeofenceOverlay({ map, portId = 'voc', portName = 'VOC Port' }: GeofenceOverlayProps) {
   const { isDark } = useTheme();
+  const [layers, setLayers] = useState<any>(null);
+  const [gates, setGates] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!map || typeof google === 'undefined') return;
-
-    const overlays: (google.maps.Polygon | google.maps.Marker | google.maps.InfoWindow)[] = [];
-
-    // VOC Port outer boundary
-    const boundary = new google.maps.Polygon({
-      paths: VOC_GEOFENCE,
-      strokeColor: isDark ? '#06b6d4' : '#0284c7',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: isDark ? '#06b6d4' : '#0284c7',
-      fillOpacity: 0.04,
-      map,
-    });
-    overlays.push(boundary);
-
-    // Terminal zones
-    for (const zone of TERMINAL_ZONES) {
-      const poly = new google.maps.Polygon({
-        paths: zone.coords,
-        strokeColor: zone.color,
-        strokeOpacity: 0.7,
-        strokeWeight: 1.5,
-        fillColor: zone.color,
-        fillOpacity: 0.18,
-        map,
+    let cancelled = false;
+    setLayers(null);
+    setGates([]);
+    Promise.all([fetchGisLayers(portId).catch(() => null), fetchGisGates(portId).catch(() => [])])
+      .then(([l, g]) => {
+        if (cancelled) return;
+        if (l) setLayers(l);
+        if (Array.isArray(g) && g.length > 0) setGates(g);
       });
+    return () => { cancelled = true; };
+  }, [portId]);
 
-      // Zone label
-      const center = zone.coords.reduce(
-        (acc, c) => ({ lat: acc.lat + c.lat / zone.coords.length, lng: acc.lng + c.lng / zone.coords.length }),
-        { lat: 0, lng: 0 }
-      );
-      const label = new google.maps.Marker({
-        position: center,
-        map,
-        icon: { url: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', scaledSize: new google.maps.Size(0, 0) },
-        label: { text: zone.label, color: zone.color, fontSize: '10px', fontWeight: '700' },
-        zIndex: 10,
-      });
+  useEffect(() => {
+    if (!map || !isMapAlive(map)) return;
 
-      overlays.push(poly, label);
+    let layerGroup: L.LayerGroup;
+    try {
+      layerGroup = L.layerGroup().addTo(map);
+    } catch {
+      return;
+    }
+    const boundaryColor = isDark ? '#00f5d4' : '#0284c7';
+
+    if (layers && Array.isArray(layers.features)) {
+      // Live per-port GeoJSON from backend.
+      let zoneIdx = 0;
+      for (const f of layers.features) {
+        const geom = f.geometry || {};
+        const props = f.properties || {};
+        if (geom.type === 'Polygon' && Array.isArray(geom.coordinates?.[0])) {
+          const ring: [number, number][] = geom.coordinates[0].map((pt: number[]) => [pt[1], pt[0]]);
+          const isBoundary = props.type === 'boundary';
+          const color = isBoundary ? boundaryColor : ZONE_COLORS[zoneIdx % ZONE_COLORS.length];
+          if (!isBoundary) zoneIdx++;
+          const poly = L.polygon(ring, {
+            color,
+            weight: isBoundary ? 2 : 1.5,
+            opacity: 0.9,
+            dashArray: isBoundary ? '6, 6' : undefined,
+            fillColor: color,
+            fillOpacity: isBoundary ? 0.05 : 0.18,
+          }).addTo(layerGroup);
+          poly.bindTooltip(`<b>${props.name || 'Zone'}</b>`, {
+            sticky: isBoundary,
+            direction: isBoundary ? 'top' : 'center',
+            className: 'liquid-map-tooltip',
+          });
+        } else if (geom.type === 'Point' && Array.isArray(geom.coordinates)) {
+          const [lng, lat] = geom.coordinates;
+          const c = gateColor('');
+          L.circleMarker([lat, lng], {
+            radius: 8, color: '#ffffff', weight: 2, fillColor: c, fillOpacity: 0.95,
+          }).addTo(layerGroup).bindTooltip(`<b>${props.name || 'Gate'}</b>`, { className: 'liquid-map-tooltip' });
+        }
+      }
+    } else {
+      // Static VOC fallback (only correct for voc; replaced once live data arrives).
+      const boundary = L.polygon(VOC_GEOFENCE, {
+        color: boundaryColor,
+        weight: 2,
+        opacity: 0.85,
+        dashArray: '6, 6',
+        fillColor: boundaryColor,
+        fillOpacity: 0.05,
+      }).addTo(layerGroup);
+      boundary.bindTooltip(`${portName} Main Maritime Geofence`, { sticky: true, className: 'liquid-map-tooltip' });
+
+      for (const zone of TERMINAL_ZONES) {
+        const poly = L.polygon(zone.coords, {
+          color: zone.color,
+          weight: 1.5,
+          opacity: 0.9,
+          fillColor: zone.color,
+          fillOpacity: 0.18,
+        }).addTo(layerGroup);
+        poly.bindTooltip(`<b>${zone.label}</b>`, {
+          permanent: false,
+          direction: 'center',
+          className: 'liquid-map-tooltip',
+        });
+      }
     }
 
-    // Gate markers with pulsing rings
-    for (const gate of GATES) {
-      const gateColor =
-        gate.status === 'HOLD'      ? '#ef4444' :
-        gate.status === 'FAST-PASS' ? '#10b981' :
-        gate.status === 'MODERATE'  ? '#f59e0b' : '#06b6d4';
+    // Gate points (live per-port list, or VOC fallback).
+    const gateList = gates.length > 0
+      ? gates.map((g: any, i: number) => ({
+          id: g.id || `G-0${i + 1}`,
+          label: g.name || g.gate_id || `Gate ${i + 1}`,
+          lat: g.lat ?? g.coordinates?.[1],
+          lng: g.lng ?? g.coordinates?.[0],
+          queue: g.queue_count ?? g.queue ?? 0,
+          status: g.status || 'NORMAL',
+        })).filter(g => g.lat != null && g.lng != null)
+      : FALLBACK_GATES;
 
-      const marker = new google.maps.Marker({
-        position: { lat: gate.lat, lng: gate.lng },
-        map,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 10,
-          fillColor: gateColor,
-          fillOpacity: 0.9,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-        },
-        title: `${gate.label}: ${gate.queue} trucks [${gate.status}]`,
-        zIndex: 200,
-      });
+    for (const gate of gateList) {
+      const gc = gateColor(gate.status);
+      const circle = L.circleMarker([gate.lat, gate.lng], {
+        radius: 8,
+        color: '#ffffff',
+        weight: 2,
+        fillColor: gc,
+        fillOpacity: 0.95,
+      }).addTo(layerGroup);
 
-      const iw = new google.maps.InfoWindow({
-        content: `
-          <div style="font-family: Inter, sans-serif; padding: 8px 4px; min-width: 140px;">
-            <div style="font-weight: 700; font-size: 12px; color: ${gateColor}; margin-bottom: 4px;">${gate.id} — ${gate.label}</div>
-            <div style="font-size: 11px; color: #475569;"><b>${gate.queue}</b> trucks in queue</div>
-            <div style="font-size: 10px; color: ${gateColor}; font-weight: 600; margin-top: 2px; text-transform: uppercase;">${gate.status}</div>
+      const popupContent = `
+        <div style="
+          font-family: 'Inter', sans-serif;
+          padding: 8px 4px;
+          min-width: 140px;
+        ">
+          <div style="font-weight: 800; font-size: 13px; color: ${gc}; margin-bottom: 3px;">
+            ${gate.id} — ${gate.label}
           </div>
-        `,
-      });
+          <div style="font-size: 11px; color: #334155; margin-bottom: 4px;">
+            <b>${gate.queue}</b> trucks in queue
+          </div>
+          <div style="
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            color: ${gc};
+            background: ${gc}18;
+            border: 1px solid ${gc}40;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+          ">
+            ${gate.status}
+          </div>
+        </div>
+      `;
 
-      marker.addListener('click', () => iw.open(map, marker));
-      overlays.push(marker, iw);
+      circle.bindPopup(popupContent, {
+        className: 'liquid-map-popup',
+        closeButton: false,
+      });
     }
 
     return () => {
-      overlays.forEach(o => {
-        if (o instanceof google.maps.Polygon || o instanceof google.maps.Marker) {
-          o.setMap(null);
-        } else {
-          (o as google.maps.InfoWindow).close();
-        }
-      });
+      layerGroup.remove();
     };
-  }, [map, isDark]);
+  }, [map, isDark, layers, gates, portName]);
 
   return null;
 }

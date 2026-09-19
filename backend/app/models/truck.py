@@ -7,6 +7,7 @@ class TruckModel(Base):
     __tablename__ = "trucks"
 
     id = Column(String(32), primary_key=True, index=True)
+    port_id = Column(String(32), default="voc", index=True)
     plate = Column(String(32), nullable=False)
     vin = Column(String(64), nullable=True)
     status = Column(String(32), default="in_transit")  # in_transit, queued, at_gate, loading, completed, delayed

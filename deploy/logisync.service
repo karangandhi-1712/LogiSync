@@ -1,6 +1,7 @@
 [Unit]
 Description=LogiSync v2.0 - VOC Port Command Center FastAPI Server
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=simple
@@ -8,6 +9,10 @@ User=logisync
 Group=logisync
 WorkingDirectory=/opt/logisync/backend
 EnvironmentFile=/opt/logisync/.env
+Environment=PYTHONUNBUFFERED=1
+# NOTE: --workers 4 requires Postgres (see DATABASE_URL in .env).
+# With SQLite (dev default) use --workers 1: SQLite + multi-worker +
+# the telemetry broadcast writer WILL hit "database is locked".
 ExecStart=/opt/logisync/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 4 --proxy-headers --forwarded-allow-ips='*'
 Restart=always
 RestartSec=5s

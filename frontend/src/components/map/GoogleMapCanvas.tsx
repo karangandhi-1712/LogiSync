@@ -1,43 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
-import { MapPin, Layers } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import L from 'leaflet';
+import { Plus, Minus, Navigation } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import type { MapMode } from '../../types';
 import { clsx } from 'clsx';
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+// Geoapify key comes from env only (root .env via envDir). No hardcoded fallback:
+// a leaked key in the bundle cannot be rotated without a rebuild.
+const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
+if (!GEOAPIFY_API_KEY && typeof console !== 'undefined') {
+  console.warn('[LogiSync] VITE_GEOAPIFY_API_KEY is not set — map tiles will fail to load.');
+}
 
-// VOC Port Thoothukudi center
+// VOC Port Thoothukudi center coordinates
 const VOC_PORT_CENTER = { lat: 8.7642, lng: 78.1348 };
-
-// Dark map style for Google Maps
-const DARK_MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { elementType: 'geometry', stylers: [{ color: '#051424' }] },
-  { elementType: 'labels.text.stroke', stylers: [{ color: '#051424' }] },
-  { elementType: 'labels.text.fill', stylers: [{ color: '#8d9aac' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0a1c30' }] },
-  { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
-  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#0d1c2d' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#243447' }] },
-  { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#162030' }] },
-  { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#0d1c2d' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0a1e12' }] },
-  { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#1e3a5f' }] },
-  { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#162030' }] },
-];
-
-const LIGHT_MAP_STYLE: google.maps.MapTypeStyle[] = [
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#cce5ff' }] },
-  { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#d4f0d4' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ saturation: -60 }] },
-];
 
 interface GoogleMapCanvasProps {
   center?: { lat: number; lng: number };
   zoom?: number;
   children?: React.ReactNode;
-  onMapReady?: (map: google.maps.Map) => void;
+  onMapReady?: (map: any) => void;
   className?: string;
 }
 
@@ -47,130 +29,194 @@ export function GoogleMapCanvas({
   onMapReady,
   className,
 }: GoogleMapCanvasProps) {
-  const mapRef      = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<google.maps.Map | null>(null);
-  const { isDark }  = useTheme();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstance = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const { isDark } = useTheme();
   const [mapMode, setMapMode] = useState<MapMode>('roadmap');
-  const [loaded, setLoaded]   = useState(false);
-  const [noKey, setNoKey]     = useState(false);
 
-  // Load Google Maps API
-  useEffect(() => {
-    if (!GOOGLE_MAPS_API_KEY || GOOGLE_MAPS_API_KEY === 'YOUR_GOOGLE_MAPS_API_KEY') {
-      setNoKey(true);
-      return;
+  // Determine Geoapify Tile URL based on mode & theme
+  const getTileUrl = useCallback((mode: MapMode, dark: boolean): { url: string; maxZoom: number } => {
+    if (mode === 'satellite' || mode === 'hybrid') {
+      return {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        maxZoom: 19,
+      };
     }
-    const loader = new Loader({
-      apiKey: GOOGLE_MAPS_API_KEY,
-      version: 'weekly',
-      libraries: ['places', 'geometry'],
-    });
-    loader.load().then(() => setLoaded(true)).catch(() => setNoKey(true));
+    if (dark) {
+      return {
+        url: `https://maps.geoapify.com/v1/tile/dark-matter-purple-roads/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
+        maxZoom: 20,
+      };
+    }
+    return {
+      url: `https://maps.geoapify.com/v1/tile/osm-bright-smooth/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
+      maxZoom: 20,
+    };
   }, []);
 
-  // Initialize map
+  // Initialize Leaflet Map
   useEffect(() => {
-    if (!loaded || !mapRef.current) return;
-    if (mapInstance.current) return; // already initialized
+    if (!mapContainerRef.current || mapInstance.current) return;
 
-    const map = new google.maps.Map(mapRef.current, {
-      center,
+    const map = L.map(mapContainerRef.current, {
+      center: [center.lat, center.lng],
       zoom,
-      mapTypeId: mapMode,
-      styles: isDark ? DARK_MAP_STYLE : LIGHT_MAP_STYLE,
-      disableDefaultUI: true,
       zoomControl: false,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      gestureHandling: 'greedy',
+      attributionControl: false,
+      fadeAnimation: true,
+      zoomAnimation: true,
     });
 
+    // Provide Google Maps panTo compatibility adapter so existing page code works seamlessly
+    const origPanTo = map.panTo.bind(map);
+    (map as any).panTo = (target: any, options?: any) => {
+      if (target && typeof target === 'object') {
+        if ('lat' in target && 'lng' in target) {
+          return origPanTo([target.lat, target.lng], options);
+        }
+      }
+      return origPanTo(target, options);
+    };
+
+    const initialTiles = getTileUrl(mapMode, isDark);
+    const tileLayer = L.tileLayer(initialTiles.url, {
+      maxZoom: initialTiles.maxZoom,
+      subdomains: ['a', 'b', 'c'],
+    }).addTo(map);
+
+    tileLayerRef.current = tileLayer;
     mapInstance.current = map;
+
     onMapReady?.(map);
-  }, [loaded]); // eslint-disable-line
 
-  // React to theme changes
-  useEffect(() => {
-    if (!mapInstance.current) return;
-    mapInstance.current.setOptions({
-      styles: isDark ? DARK_MAP_STYLE : LIGHT_MAP_STYLE,
-    });
-  }, [isDark]);
+    return () => {
+      map.remove();
+      mapInstance.current = null;
+    };
+  }, []); // eslint-disable-line
 
-  // React to map type changes
+  // Recenter when the requested center/zoom changes (e.g. port switch).
+  // User pans in between are left alone until props actually change.
+  const centerLat = center.lat;
+  const centerLng = center.lng;
   useEffect(() => {
-    if (!mapInstance.current) return;
-    mapInstance.current.setMapTypeId(mapMode);
-    if (mapMode !== 'roadmap' && mapMode !== 'terrain') {
-      mapInstance.current.setOptions({ styles: [] });
-    } else {
-      mapInstance.current.setOptions({ styles: isDark ? DARK_MAP_STYLE : LIGHT_MAP_STYLE });
-    }
-  }, [mapMode, isDark]);
+    mapInstance.current?.setView([centerLat, centerLng], zoom);
+  }, [centerLat, centerLng, zoom]);
+
+  // Update tile layer on theme or mode switch
+  useEffect(() => {
+    if (!mapInstance.current || !tileLayerRef.current) return;
+
+    const { url, maxZoom } = getTileUrl(mapMode, isDark);
+    mapInstance.current.removeLayer(tileLayerRef.current);
+
+    const newTileLayer = L.tileLayer(url, {
+      maxZoom,
+      subdomains: ['a', 'b', 'c'],
+    }).addTo(mapInstance.current);
+
+    tileLayerRef.current = newTileLayer;
+  }, [isDark, mapMode, getTileUrl]);
+
+  // Zoom controls
+  const handleZoomIn = () => mapInstance.current?.zoomIn();
+  const handleZoomOut = () => mapInstance.current?.zoomOut();
+  const handleRecenter = () => mapInstance.current?.setView([center.lat, center.lng], zoom);
 
   const MAP_MODES: { id: MapMode; label: string }[] = [
-    { id: 'roadmap',  label: 'Road' },
-    { id: 'satellite',label: 'Satellite' },
-    { id: 'hybrid',   label: 'Hybrid' },
-    { id: 'terrain',  label: 'Terrain' },
+    { id: 'roadmap',   label: isDark ? 'Cyber Dark' : 'Bright Map' },
+    { id: 'satellite', label: 'Satellite' },
   ];
 
   return (
-    <div className={clsx('relative w-full h-full overflow-hidden', className)}>
-      {/* Map Container */}
-      <div ref={mapRef} className="absolute inset-0" />
+    <div className={clsx('relative w-full h-full overflow-hidden select-none', className)}>
+      {/* Leaflet Map Div */}
+      <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
-      {/* No-Key Placeholder */}
-      {noKey && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center
-          bg-slate-100 dark:bg-navy-800 gap-4 text-center px-8"
-        >
-          <div className="w-14 h-14 rounded-2xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-            <MapPin className="w-7 h-7 text-slate-400 dark:text-slate-500" />
-          </div>
-          <div>
-            <p className="font-bold text-slate-700 dark:text-slate-200 mb-1">Google Maps API Key Required</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xs">
-              Add <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded text-xs">VITE_GOOGLE_MAPS_API_KEY</code> to your <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded text-xs">.env</code> file to enable the live map.
-            </p>
-          </div>
-          {/* Preview Port Location */}
-          <div className="px-4 py-2 rounded-xl bg-sky-50 dark:bg-cyan-500/10 border border-sky-200 dark:border-cyan-500/30">
-            <p className="text-xs font-mono text-sky-600 dark:text-cyan-400">
-              VOC Port Thoothukudi — 8.7642°N, 78.1348°E
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Map Type Switcher (top-right) */}
-      {loaded && !noKey && (
-        <div className="absolute top-3 right-3 z-10 flex items-center gap-1 p-1 rounded-xl
-          bg-white/90 dark:bg-slate-900/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700"
-        >
-          {MAP_MODES.map(m => (
-            <button
-              key={m.id}
-              onClick={() => setMapMode(m.id)}
-              className={clsx(
-                'px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all duration-200',
-                mapMode === m.id
-                  ? 'bg-sky-500 dark:bg-cyan-500 text-white'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              )}
-            >
-              {m.label}
-            </button>
-          ))}
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
-          <button className="p-1 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
-            <Layers className="w-4 h-4" />
+      {/* Map Mode Switcher — minimal white control */}
+      <div
+        role="group"
+        aria-label="Map style"
+        className="absolute top-4 right-4 z-10 flex items-center gap-1 p-1 rounded-2xl bg-white/95 dark:bg-[#101828]/95 border border-[#E8E8E5] dark:border-white/10 backdrop-blur-xl"
+        style={{ boxShadow: 'var(--shadow-2)' }}
+      >
+        {MAP_MODES.map(m => (
+          <button
+            key={m.id}
+            aria-pressed={mapMode === m.id}
+            onClick={() => setMapMode(m.id)}
+            className={clsx(
+              'px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all duration-150 active:scale-[0.98]',
+              mapMode === m.id
+                ? 'bg-[#1D1D1F] dark:bg-white text-white dark:text-[#1D1D1F]'
+                : 'text-[#6B7280] dark:text-slate-300 hover:text-[#1D1D1F] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/10'
+            )}
+          >
+            {m.label}
           </button>
-        </div>
-      )}
+        ))}
+
+        <div className="w-px h-5 bg-[#E8E8E5] dark:bg-white/10 mx-0.5" />
+
+        <button
+          onClick={handleRecenter}
+          title="Recenter on selected port"
+          aria-label="Recenter on selected port"
+          className="p-1.5 rounded-xl text-[#6B7280] hover:text-[#1D4ED8] hover:bg-black/[0.04] dark:hover:bg-white/10 transition-all active:scale-[0.95]"
+        >
+          <Navigation className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Zoom Controls — minimal white */}
+      <div className="absolute bottom-20 right-5 z-10 flex flex-col gap-1.5">
+        <button
+          onClick={handleZoomIn}
+          title="Zoom In"
+          aria-label="Zoom in"
+          className="w-9 h-9 rounded-xl bg-white/95 dark:bg-[#101828]/95 border border-[#E8E8E5] dark:border-white/10 flex items-center justify-center text-[#3A3A3C] dark:text-slate-200 transition-all hover:-translate-y-px active:scale-[0.95] active:translate-y-0"
+          style={{ boxShadow: 'var(--shadow-2)' }}
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+        <button
+          onClick={handleZoomOut}
+          title="Zoom Out"
+          aria-label="Zoom out"
+          className="w-9 h-9 rounded-xl bg-white/95 dark:bg-[#101828]/95 border border-[#E8E8E5] dark:border-white/10 flex items-center justify-center text-[#3A3A3C] dark:text-slate-200 transition-all hover:-translate-y-px active:scale-[0.95] active:translate-y-0"
+          style={{ boxShadow: 'var(--shadow-2)' }}
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Powered by Geoapify Watermark Badge */}
+      <div className="absolute bottom-1 right-2 z-10 px-2 py-0.5 rounded-md bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border border-white/40 dark:border-white/10 text-[9px] text-slate-500 dark:text-slate-400 font-medium">
+        Tiles by <span className="font-bold text-cyan-600 dark:text-cyan-400">Geoapify</span> & Leaflet
+      </div>
     </div>
   );
+}
+
+/**
+ * True when the Leaflet map instance is still attached to the DOM.
+ * Guards overlay/marker effects against the port-switch remount window, where
+ * an async fetch can resolve after map.remove() destroyed the panes (which
+ * otherwise crashes inside Leaflet with "cannot read appendChild").
+ */
+export function isMapAlive(map: any): boolean {
+  try {
+    if (!map || typeof map.getPane !== 'function') return false;
+    if ((map as any)._loaded === false) return false;
+    const pane = (map as L.Map).getPane('overlayPane');
+    if (!pane || !(pane as HTMLElement).isConnected) return false;
+    const container = (map as L.Map).getContainer?.();
+    if (container && !container.isConnected) return false;
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export type { GoogleMapCanvasProps };

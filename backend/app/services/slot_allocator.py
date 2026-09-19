@@ -3,20 +3,23 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 from app.db import SessionLocal
 from app.models.slot import SlotModel
+from app.ports import DEFAULT_PORT_ID, PORTS
 
 
 class AISlotAllocator:
     """
-    AI-Based Dynamic Slot Allocation Engine for VOC Port Gates.
+    AI-Based Dynamic Slot Allocation Engine for port terminal gates.
     Minimizes truck turnaround time, eliminates physical queuing, and smooths peak arrivals.
     """
 
+    # Legacy VOC gate list (kept for backwards compatibility).
     GATES = ["Gate 1 (Bulk)", "Gate 2 (General)", "Gate 3 (Container/Reefer)", "Gate 4 (Express Rail)"]
 
-    def __init__(self):
-        pass
+    def gates_for(self, port_id: str = DEFAULT_PORT_ID) -> List[str]:
+        """Gate names for a port (defaults to VOC)."""
+        return PORTS.get(port_id, PORTS[DEFAULT_PORT_ID])["gates"]
 
-    def calculate_gate_congestion_score(self, gate_id: str) -> Dict[str, Any]:
+    def calculate_gate_congestion_score(self, gate_id: str, port_id: str = DEFAULT_PORT_ID) -> Dict[str, Any]:
         """
         Calculates real-time congestion score (0-100) based on booked slots,
         active queue length, and dwell time.
@@ -25,11 +28,13 @@ class AISlotAllocator:
         try:
             today_str = datetime.utcnow().strftime("%Y-%m-%d")
             total_slots = db.query(SlotModel).filter(
+                SlotModel.port_id == port_id,
                 SlotModel.gate_id == gate_id,
                 SlotModel.date == today_str
             ).count()
 
             booked_slots = db.query(SlotModel).filter(
+                SlotModel.port_id == port_id,
                 SlotModel.gate_id == gate_id,
                 SlotModel.date == today_str,
                 SlotModel.status == "booked"
@@ -56,11 +61,11 @@ class AISlotAllocator:
         finally:
             db.close()
 
-    def get_all_gate_status(self) -> List[Dict[str, Any]]:
-        """Returns live status of all 4 VOC port terminal gates."""
+    def get_all_gate_status(self, port_id: str = DEFAULT_PORT_ID) -> List[Dict[str, Any]]:
+        """Returns live status of all 4 terminal gates for a port."""
         results = []
-        for g in self.GATES:
-            results.append(self.calculate_gate_congestion_score(g))
+        for g in self.gates_for(port_id):
+            results.append(self.calculate_gate_congestion_score(g, port_id))
         return results
 
     def suggest_optimal_slot(
@@ -68,7 +73,8 @@ class AISlotAllocator:
         gate_id: str,
         preferred_time: str,
         date_str: str,
-        cargo_type: str = "Container"
+        cargo_type: str = "Container",
+        port_id: str = DEFAULT_PORT_ID,
     ) -> Dict[str, Any]:
         """
         AI Dynamic Slot Recommendation:
@@ -79,6 +85,7 @@ class AISlotAllocator:
         try:
             # Query existing slots around preferred time
             slots = db.query(SlotModel).filter(
+                SlotModel.port_id == port_id,
                 SlotModel.gate_id == gate_id,
                 SlotModel.date == date_str
             ).all()

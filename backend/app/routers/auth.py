@@ -40,7 +40,36 @@ def login(req: LoginRequest):
     return res
 
 
+@router.post("/refresh")
+def refresh_token(req: RefreshRequest):
+    """Refreshes expired or near-expiry access tokens."""
+    if not cognito_service.client:
+        return {
+            "access_token": "demo-jwt-access-token-vocport-refreshed",
+            "id_token": "demo-jwt-id-token-refreshed",
+            "expires_in": 3600,
+            "token_type": "Bearer"
+        }
+
+    try:
+        resp = cognito_service.client.initiate_auth(
+            ClientId=cognito_service.client_id,
+            AuthFlow="REFRESH_TOKEN_AUTH",
+            AuthParameters={"REFRESH_TOKEN": req.refresh_token}
+        )
+        auth_res = resp["AuthenticationResult"]
+        return {
+            "access_token": auth_res["AccessToken"],
+            "id_token": auth_res["IdToken"],
+            "expires_in": auth_res["ExpiresIn"],
+            "token_type": auth_res["TokenType"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=f"Token refresh failed: {str(e)}")
+
+
 @router.get("/me")
 def get_me(current_user: Dict[str, Any] = Depends(get_current_user)):
     """Returns claims and roles of the authenticated session."""
     return current_user
+
