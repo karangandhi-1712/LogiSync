@@ -1,147 +1,136 @@
-// ─── NotificationContext.tsx — Global Terminal Alerts & Slot Booking Feed ──────
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { BookingRecord } from '../data/portServiceData';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { useMarketplaceEvent } from './MarketplaceContext';
+import type { DeliverySchedule } from '../types';
+
+export type NotificationType = 'broadcast' | 'claimed' | 'stop' | 'urgent' | 'system';
 
 export interface TerminalNotification {
   id: string;
-  type: 'slot' | 'reroute' | 'congestion' | 'system';
+  type: NotificationType;
   title: string;
   body: string;
-  timestamp: string;
+  timestamp: number;
   read: boolean;
-  bookingDetails?: BookingRecord;
 }
 
-interface NotificationContextType {
+interface NotificationContextValue {
   notifications: TerminalNotification[];
   unreadCount: number;
-  addNotification: (item: {
-    type: TerminalNotification['type'];
-    title: string;
-    body: string;
-    bookingDetails?: BookingRecord;
-  }) => void;
+  addNotification: (n: { type: NotificationType; title: string; body: string }) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
-  selectedSlotBooking: BookingRecord | null;
-  setSelectedSlotBooking: (booking: BookingRecord | null) => void;
+  clearAll: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType | null>(null);
+const NotificationContext = createContext<NotificationContextValue | null>(null);
 
-const INITIAL_NOTIFICATIONS: TerminalNotification[] = [
-  {
-    id: 'notif-slot-demo-1',
-    type: 'slot',
-    title: 'Gate Slot Reservation Confirmed',
-    body: 'Abhinav · TN-02-F-9987 · Gate 4 · General Purpose · 11:30 – 12:00 on 2026-09-18',
-    timestamp: 'Just now',
-    read: false,
-    bookingDetails: {
-      id: 'b-demo-inmaa-0101',
-      tokenNumber: 'LGS-INMAA-260918-0101',
-      portId: 'chennai',
-      service: 'general',
-      serviceLabel: 'General Cargo',
-      gate: 'Gate 4 · General Purpose',
-      date: '2026-09-18',
-      timeWindow: '11:30 – 12:00',
-      vehicleNumber: 'TN-02-F-9987',
-      vehicleType: 'trailer',
-      driverName: 'Abhinav',
-      driverPhone: '+91 98400 12345',
-      driverLicenseOk: true,
-      destination: 'Vellore Institute of Technology - Chennai, Vandalur - Mambakkam - Kelambakkam Road',
-      status: 'upcoming',
-      tier: 'standard',
-      tierFee: 0,
-      cargoType: 'General Cargo',
-    },
-  },
-  {
-    id: 'notif-init-1',
-    type: 'congestion',
-    title: 'Gate 2 Bulk Quay Surge Warning',
-    body: 'Approach queue on Madurai–Tuticorin Hwy exceeds 18 trucks. Diversion advisory active.',
-    timestamp: '10 mins ago',
-    read: false,
-  },
-  {
-    id: 'notif-init-2',
-    type: 'system',
-    title: 'RFID Fast-Pass Scanner Calibrated',
-    body: 'Lane 4 smart optical OCR & RFID toll scanners online with 99.98% telemetry accuracy.',
-    timestamp: '25 mins ago',
-    read: true,
-  },
-  {
-    id: 'notif-init-3',
-    type: 'reroute',
-    title: 'Vessel Berthing Sequence Updated',
-    body: 'Container vessel MSC Alessia cleared for Berth 3. Inbound container slots expedited.',
-    timestamp: '1 hour ago',
-    read: true,
-  },
-];
+const MAX = 60;
 
+/**
+ * In-app activity feed, fed by the marketplace event socket rather than a
+ * hard-coded list. Kept client-side deliberately: these are transient
+ * operational pings, not durable records - the audit trail lives in
+ * `status_update_log` on the server.
+ */
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [notifications, setNotifications] = useState<TerminalNotification[]>(INITIAL_NOTIFICATIONS);
-  const [selectedSlotBooking, setSelectedSlotBooking] = useState<BookingRecord | null>(null);
+  const [notifications, setNotifications] = useState<TerminalNotification[]>([]);
+  const idRef = useRef(0);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const addNotification = useCallback(
+    ({ type, title, body }: { type: NotificationType; title: string; body: string }) => {
+      idRef.current += 1;
+      const item: TerminalNotification = {
+        id: `n-${Date.now()}-${idRef.current}`,
+        type,
+        title,
+        body,
+        timestamp: Date.now(),
+        read: false,
+      };
+      setNotifications((prev) => [item, ...prev].slice(0, MAX));
+    },
+    [],
+  );
 
-  const addNotification = ({
-    type,
-    title,
-    body,
-    bookingDetails,
-  }: {
-    type: TerminalNotification['type'];
-    title: string;
-    body: string;
-    bookingDetails?: BookingRecord;
-  }) => {
-    const newNotif: TerminalNotification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      type,
-      title,
-      body,
-      timestamp: 'Just now',
-      read: false,
-      bookingDetails,
+  const markRead = useCallback((id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  }, []);
+
+  const markAllRead = useCallback(() => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  }, []);
+
+  const clearAll = useCallback(() => setNotifications([]), []);
+
+  // Mirror the socket events into the bell feed.
+  useMarketplaceEvent('schedule:broadcast', (d: DeliverySchedule) => {
+    addNotification({
+      type: 'broadcast',
+      title: `New batch - ${d?.area_label ?? 'unknown area'}`,
+      body: `${d?.stop_count ?? 0} stops · departs ${d?.departure_window_start}–${d?.departure_window_end}`,
+    });
+  });
+
+  useMarketplaceEvent('schedule:claimed', (d) => {
+    addNotification({
+      type: 'claimed',
+      title: 'Batch claimed',
+      body: `${d?.schedule?.area_label ?? 'A batch'} is no longer open for claiming.`,
+    });
+  });
+
+  useMarketplaceEvent('schedule:stop_added', (d) => {
+    addNotification({
+      type: 'stop',
+      title: 'Stop added to a batch',
+      body: d?.request?.delivery_address ?? 'A new delivery joined a running batch.',
+    });
+  });
+
+  useMarketplaceEvent('delivery:status_changed', (d) => {
+    addNotification({
+      type: 'stop',
+      title: `Stop ${d?.request?.stop_sequence ?? '?'} - ${String(d?.request?.status ?? '').replace('_', ' ')}`,
+      body: d?.request?.delivery_address ?? '',
+    });
+  });
+
+  // Clear stale pings on sign-out so the next session starts clean.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'logisync_token' && !e.newValue) setNotifications([]);
     };
-    setNotifications(prev => [newNotif, ...prev]);
-  };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
 
-  const markRead = (id: string) => {
-    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
-  };
-
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount: notifications.filter((n) => !n.read).length,
+      addNotification,
+      markRead,
+      markAllRead,
+      clearAll,
+    }),
+    [notifications, addNotification, markRead, markAllRead, clearAll],
+  );
 
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        addNotification,
-        markRead,
-        markAllRead,
-        selectedSlotBooking,
-        setSelectedSlotBooking,
-      }}
-    >
-      {children}
-    </NotificationContext.Provider>
+    <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>
   );
 }
 
 export function useNotifications() {
   const ctx = useContext(NotificationContext);
-  if (!ctx) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
-  }
+  if (!ctx) throw new Error('useNotifications must be used inside NotificationProvider');
   return ctx;
 }

@@ -4,7 +4,7 @@
 
 /* ─── CSS Custom Properties (Theme Variables & Liquid Neu-Glass System) ────── */
 :root {
-  /* Light Theme — calm neutral command-center canvas */
+  /* Light Theme - calm neutral command-center canvas */
   --bg-canvas:          #F7F7F5;
   --bg-surface:         rgba(255, 255, 255, 0.72);
   --bg-surface-opaque:  #ffffff;
@@ -39,7 +39,7 @@
 }
 
 .dark {
-  /* Dark Theme — Cosmic Midnight Space & Cyber Neon */
+  /* Dark Theme - Cosmic Midnight Space & Cyber Neon */
   --bg-canvas:          #050814;
   --bg-surface:         rgba(10, 16, 32, 0.72);
   --bg-surface-opaque:  #0a1024;
@@ -79,7 +79,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 body {
@@ -224,77 +224,64 @@ body {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
-/* ─── Role Select Page — Light Glass + Dark Glass ─────────────────────────── */
+/* ─── Role Select Page - Light Glass + Dark Glass ─────────────────────────── */
 .rs-light {
-  background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 30%, #ecfdf5 60%, #f8fafc 100%);
+  background: #f8fafc;
   color: #0f172a;
 }
 
 .rs-dark {
-  background: radial-gradient(ellipse at 50% 0%, #0c1a2e 0%, #070d1a 50%, #030712 100%);
+  background: #0f172a;
   color: #f0f9ff;
 }
 
-/* Light glass card — bright glassmorphism with subtle color wash */
+/* Product presentation rules: restrained surfaces, rectangular controls, no ambient motion. */
+.aurora-canvas {
+  display: none;
+}
+
+button {
+  border-radius: 0.5rem !important;
+}
+
+button[class*="bg-gradient"] {
+  background-image: none !important;
+  background-color: #0369a1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Light glass card - bright glassmorphism with subtle color wash */
 .rs-light .rs-role-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  box-shadow:
-    0 8px 32px -4px rgba(100, 120, 180, 0.08),
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -0.5px 1px 0 rgba(200, 210, 240, 0.15);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .rs-light .rs-role-card:hover {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow:
-    0 16px 48px -6px rgba(100, 120, 200, 0.15),
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9);
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.10);
 }
 
-/* Dark glass card — deep blue glass */
+/* Dark glass card - deep blue glass */
 .rs-dark .rs-role-card {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(14, 165, 233, 0.05) 100%);
-  backdrop-filter: blur(40px) saturate(220%);
-  -webkit-backdrop-filter: blur(40px) saturate(220%);
-  box-shadow:
-    0 16px 50px -10px rgba(0, 0, 0, 0.45),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+  background: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .rs-dark .rs-role-card:hover {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(14, 165, 233, 0.08) 100%);
-  box-shadow:
-    0 20px 60px -8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  background: #1e293b;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
-/* Review cards */
-.rs-light .rs-review-card {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.rs-dark .rs-review-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-/* Stat cards */
-.rs-light .rs-stat-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.rs-dark .rs-stat-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
 
 /* Legacy ocean classes (kept for other pages that may use them) */
 .ocean-canvas {
@@ -766,62 +753,10 @@ svg, path, circle, rect, polyline, line, polygon {
   }
 }
 
-/* ─── Slot Booking Redesign — Additional Styles ───────────────────────────── */
-
-/* AI Top Pick shimmer badge */
-@keyframes shimmer-glow {
-  0%   { box-shadow: 0 0 6px rgba(251,191,36,0.5); }
-  50%  { box-shadow: 0 0 14px rgba(251,191,36,0.85), 0 0 24px rgba(251,191,36,0.35); }
-  100% { box-shadow: 0 0 6px rgba(251,191,36,0.5); }
-}
-.shimmer-ai {
-  animation: shimmer-glow 2s ease-in-out infinite;
-}
-
-/* Step guide vertical connector */
-.step-connector {
-  position: absolute;
-  left: 19px;
-  top: 20px;
-  bottom: 20px;
-  width: 1px;
-  background: linear-gradient(to bottom, rgba(6,182,212,0.35), rgba(16,185,129,0.25));
-}
-
-/* e-Pass print support */
-@media print {
-  body > *:not(#epass-print-root),
-  body > * > *:not(#epass-print-root),
-  header, nav, aside, footer,
-  [data-radix-popper-content-wrapper] {
-    display: none !important;
-  }
-
-  #epass-print-root {
-    display: block !important;
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    max-width: 480px;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
-
-/* Time slot grid */
-.slot-time-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.375rem;
-}
-
-/* Port selector bar anchor icon size fix */
+/* Half-pixel icon sizing used by the brand marks in TopBar/RoleSelect. */
 .w-4\.5 { width: 1.125rem; }
 .h-4\.5 { height: 1.125rem; }
 
-/* No scrollbar utility (used in DateScrubber) */
+/* Hide scrollbars on horizontal chip rails (DateScrubber, tier rows). */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

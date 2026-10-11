@@ -1,6 +1,340 @@
-// ─── All TypeScript Interfaces for LogiSync v2.0 ─────────────────────────
+// ─── Marketplace types ─────────────────────────────────────────────────────────
+// Wire vocabulary for the broadcast / claim / batch delivery mechanic.
+// Mirrors backend/app/constants.py and app/serializers.py.
 
-export type UserRole = 'port_admin' | 'fleet_manager' | 'dispatcher' | 'driver' | 'analyst';
+export type UserRole = 'port_admin' | 'fleet_manager' | 'driver' | 'consumer';
+export type AvailabilityStatus = 'available' | 'busy' | 'offline';
+
+export type PriorityTier = 'standard' | 'express' | 'urgent';
+
+export type DeliveryStatus =
+  | 'pending'
+  | 'batched'
+  | 'assigned'
+  | 'picked_up'
+  | 'en_route'
+  | 'delivered'
+  | 'failed'
+  | 'cancelled';
+
+export type ScheduleStatus =
+  | 'broadcasting'
+  | 'claimed'
+  | 'locked'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled';
+
+/** Legal per-stop transitions the driver can drive. Mirrors REQUEST_TRANSITIONS. */
+export const DELIVERY_TRANSITIONS: Record<DeliveryStatus, DeliveryStatus[]> = {
+  pending: ['batched', 'cancelled'],
+  batched: ['assigned', 'cancelled'],
+  assigned: ['picked_up', 'cancelled'],
+  picked_up: ['en_route', 'cancelled'],
+  en_route: ['delivered', 'failed', 'cancelled'],
+  delivered: [],
+  failed: [],
+  cancelled: [],
+};
+
+/** Consumer-facing stepper labels, in order. Mirrors REQUEST_STEPPER. */
+export const DELIVERY_STEPPER: { status: DeliveryStatus; label: string }[] = [
+  { status: 'pending', label: 'Pending' },
+  { status: 'batched', label: 'Batched' },
+  { status: 'assigned', label: 'Driver Assigned' },
+  { status: 'picked_up', label: 'Picked Up' },
+  { status: 'en_route', label: 'Out for Delivery' },
+  { status: 'delivered', label: 'Delivered' },
+];
+
+export interface PortSummary {
+  id: string;
+  code: string | null;
+  name: string;
+  short: string | null;
+  city: string | null;
+  state: string | null;
+  lat: number;
+  lng: number;
+  zoom: number | null;
+  corridor: string | null;
+}
+
+// ─── Map primitives ───────────────────────────────────────────────────────────
+
+export type MapMode = 'roadmap' | 'satellite' | 'hybrid';
+export type TruckStatus =
+  | 'in_transit'
+  | 'at_gate'
+  | 'queued'
+  | 'loading'
+  | 'delayed'
+  | 'idle'
+  | 'outbound';
+
+/**
+ * Vehicle marker shape. The marketplace only ever renders the driver's own
+ * vehicle, but the marker tooltip is reused from the fleet tracker and expects
+ * the full descriptive set - all optional so a driver-only vehicle still fits.
+ */
+export interface Truck {
+  id?: string;
+  plate?: string;
+  truckType?: string;
+  vehicleMake?: string;
+  status: TruckStatus;
+  speedKmh?: number;
+  heading?: number;
+  fuelPct?: number;
+  latitude?: number;
+  longitude?: number;
+  assigned_gate?: string;
+  driver?: { name?: string; rating?: number; dutyHours?: number; phone?: string };
+  mission?: {
+    origin?: string;
+    destination?: string;
+    progressPct?: number;
+    etaTime?: string;
+  };
+}
+
+export interface Consumer {
+  id: string;
+  name: string;
+  mobile_number: string;
+}
+
+export interface Driver {
+  id: string;
+  full_name: string;
+  role: string;
+  vehicle_number: string | null;
+  vehicle_type: string | null;
+  mobile_number: string | null;
+  photo_url: string | null;
+  availability_status: AvailabilityStatus | null;
+}
+
+export interface DeliveryRequest {
+  id: string;
+  token_number: string;
+  consumer_id: string;
+  created_by: 'consumer' | 'fleet_manager';
+  created_by_user_id: string | null;
+  pickup_port_id: string;
+  pickup_port?: { id: string; name: string; short: string | null };
+  delivery_address: string;
+  delivery_lat: number;
+  delivery_lng: number;
+  package_type: string | null;
+  package_weight: number | null;
+  special_handling: string | null;
+  priority_tier: PriorityTier;
+  tier_fee: number;
+  requested_window_start: string | null;
+  requested_window_end: string | null;
+  status: DeliveryStatus;
+  failure_reason: string | null;
+  schedule_id: string | null;
+  stop_sequence: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface OptimizedRoute {
+  order: string[];
+  polyline: [number, number][];
+  legs: {
+    from_request_id: string | null;
+    to_request_id: string;
+    distance_m: number | null;
+    duration_s: number | null;
+    simulated: boolean;
+  }[];
+  total_distance_km: number;
+  total_duration_s: number;
+  /** True when Geoapify was unreachable and geometry is a straight connector. */
+  simulated: boolean;
+}
+
+export interface DeliverySchedule {
+  id: string;
+  fleet_manager_id: string;
+  port_id: string;
+  port?: { id: string; name: string; short: string | null; lat: number; lng: number };
+  area_label: string;
+  area_center_lat: number;
+  area_center_lng: number;
+  radius_km: number;
+  departure_window_start: string;
+  departure_window_end: string;
+  max_batch_size: number;
+  status: ScheduleStatus;
+  claimed_by_driver_id: string | null;
+  claimed_at: string | null;
+  locked_at: string | null;
+  departed_at: string | null;
+  completed_at: string | null;
+  estimated_earnings: number;
+  final_earnings: number | null;
+  stop_count: number | null;
+  driver: Driver | null;
+  driver_lat: number | null;
+  driver_lng: number | null;
+  driver_heading: number | null;
+  driver_updated_at: string | null;
+  optimized_route?: OptimizedRoute | null;
+  stops?: DeliveryRequest[];
+  created_at: string | null;
+}
+
+export interface ConsumerRequestIn {
+  name: string;
+  mobile: string;
+  pickup_port_id: string;
+  delivery_address: string;
+  delivery_lat?: number;
+  delivery_lng?: number;
+  package_type?: string | null;
+  package_weight?: number | null;
+  special_handling?: string | null;
+  priority_tier?: PriorityTier;
+  requested_window_start?: string | null;
+  requested_window_end?: string | null;
+}
+
+export interface ConsumerSubmission {
+  token_number: string;
+  track_url: string;
+  status: DeliveryStatus;
+  priority_tier: PriorityTier;
+  tier_fee: number;
+  pickup_port_id: string;
+  delivery_lat: number;
+  delivery_lng: number;
+  /** "geoapify" when the address was really resolved, "fallback" when approximated. */
+  geocode_source: string;
+  created_at: string | null;
+}
+
+export interface TrackingPayload {
+  token_number: string;
+  status: DeliveryStatus;
+  priority_tier: PriorityTier;
+  tier_fee: number;
+  delivery_address: string;
+  delivery_lat: number;
+  delivery_lng: number;
+  requested_window_start: string | null;
+  requested_window_end: string | null;
+  package_type: string | null;
+  special_handling: string | null;
+  stop_sequence: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+  failure_reason: string | null;
+  pickup_port?: { id: string; name: string; short: string | null; lat: number; lng: number };
+  schedule?: {
+    id: string;
+    area_label: string;
+    status: ScheduleStatus;
+    departure_window_start: string;
+    departure_window_end: string;
+    driver_lat: number | null;
+    driver_lng: number | null;
+    driver_updated_at: string | null;
+    driver?: { name: string; vehicle_number: string | null };
+    route?: { polyline: [number, number][]; simulated: boolean };
+  };
+  /** True while the stop is still cancellable by the customer from their account. */
+  is_cancellable?: boolean;
+}
+
+// ─── Customer account ────────────────────────────────────────────────────────
+
+/** One row on the signed-in customer's "My Deliveries" list. */
+export interface ConsumerOrder extends DeliveryRequest {
+  /** Assigned / picked up / en route - the stop has a driver and is moving. */
+  is_live: boolean;
+  is_cancellable: boolean;
+}
+
+/** The signed-in customer's own identity, used to pre-fill the booking form. */
+export interface ConsumerAccount {
+  user_id: string;
+  full_name: string;
+  email: string;
+  mobile_number: string;
+  photo_url: string | null;
+  customer_since: string | null;
+  consumer: { id: string; name: string; mobile_number: string; created_at: string | null } | null;
+}
+
+export interface ConsumerOrderHistoryEntry {
+  id: string;
+  old_status: string | null;
+  new_status: string;
+  reason: string | null;
+  timestamp: string | null;
+}
+
+export interface PendingQueue {
+  requests: DeliveryRequest[];
+  /** Urgent requests with no open batch - drive the FM's immediate-schedule prompt. */
+  urgent_without_batch: DeliveryRequest[];
+}
+
+export interface MarketplaceKpis {
+  port_id: string | null;
+  period: string;
+  total_requests: number;
+  requests_per_day: number;
+  total_schedules: number;
+  active_batches: number;
+  completed_schedules: number;
+  cancelled_schedules: number;
+  avg_time_to_claim_min: number;
+  avg_batch_fill_pct: number;
+  on_time_rate_by_tier: Record<string, {
+    delivered: number;
+    on_time: number;
+    on_time_pct: number;
+  }> & { overall_pct: number };
+  on_time_rate_overall: number;
+  drivers_total: number;
+  drivers_active: number;
+  drivers_available_now: number;
+  driver_utilisation_pct: number;
+  delivered: number;
+  failed: number;
+  cancelled: number;
+  pending: number;
+}
+
+export interface VolumeSeries {
+  period: string;
+  port_id: string | null;
+  dates: string[];
+  submitted: number[];
+  delivered: number[];
+  cancelled: number[];
+  failed: number[];
+}
+
+export interface AreaStat {
+  area_label: string;
+  port_id: string;
+  center_lat: number;
+  center_lng: number;
+  radius_km: number;
+  schedules: number;
+  completed: number;
+  stop_total: number;
+  avg_stops: number;
+  earnings_total: number;
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export interface AuthUser {
   sub: string;
@@ -9,220 +343,44 @@ export interface AuthUser {
   role: UserRole;
   groups: string[];
   assigned_port_id?: string | null;
-  must_change_password?: boolean;
-  vehicle_type?: string | null;
+  availability_status?: AvailabilityStatus;
   vehicle_number?: string | null;
+  vehicle_type?: string | null;
   mobile_number?: string | null;
+  photo_url?: string | null;
+  must_change_password?: boolean;
 }
 
-export type DispatcherVehicleType = 'trailer' | 'container_truck' | 'reefer_truck' | 'flatbed' | 'tanker';
+// ─── Events ───────────────────────────────────────────────────────────────────
 
-// ─── City / Hub ────────────────────────────────────────────────────────────
-export interface City {
-  id: string;
-  name: string;
-  state: string;
-  country: string;
-  center: [number, number]; // [lng, lat]
-  zoom: number;
-  bbox?: [number, number, number, number];
-  description: string;
-  type: 'mmlp' | 'port' | 'icd' | 'metro' | 'custom';
-  defaultWaypoints?: Omit<Waypoint, 'id'>[];
+export type MarketplaceEventType =
+  | 'connection:ready'
+  | 'schedule:broadcast'
+  | 'schedule:claimed'
+  | 'schedule:stop_added'
+  | 'schedule:locked'
+  | 'schedule:driver_position'
+  | 'delivery:status_changed'
+  | 'driver:position:ack'
+  | 'pong'
+  | 'error';
+
+export interface MarketplaceEvent {
+  type: MarketplaceEventType;
+  data: any;
 }
 
-// ─── Waypoints / Routing ───────────────────────────────────────────────────
-export interface Waypoint {
-  id: string;
-  label: string;        // 'A', 'B', 'C' …
-  name: string;
-  coordinates: [number, number]; // [lng, lat]
-  address?: string;
-  role?: 'origin' | 'checkpoint' | 'crossdock' | 'customs' | 'destination';
+export type SocketState = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+
+export interface TierOption {
+  id: PriorityTier;
+  label: string;
+  fee: number;
+  desc: string;
 }
 
-export interface RouteResult {
-  coordinates: [number, number][];
-  totalDistanceKm: number;
-  totalDurationMins: number;
-  trafficDelayMins: number;
-  legs: RouteLeg[];
-  status: 'optimal' | 'rerouted' | 'blocked' | 'calculating';
-}
-
-export interface RouteLeg {
-  distance: number;
-  duration: number;
-  summary: string;
-  steps: RouteStep[];
-}
-
-export interface RouteStep {
-  instruction: string;
-  distance: number;
-  duration: number;
-  name: string;
-}
-
-// ─── Traffic / Incidents ───────────────────────────────────────────────────
-export interface TrafficIncident {
-  id: string;
-  title: string;
-  type: 'roadblock' | 'construction' | 'congestion' | 'accident' | 'hazard';
-  severity: 'low' | 'moderate' | 'critical';
-  coordinates: [number, number];
-  roadName?: string;
-  description: string;
-  delayMins: number;
-  isBlockingRoute?: boolean;
-}
-
-// ─── Fleet / Trucks ────────────────────────────────────────────────────────
-export type TruckStatus = 'in_transit' | 'at_gate' | 'queued' | 'loading' | 'delayed' | 'idle' | 'outbound';
-export type TruckType   = 'container_chassis' | 'reefer' | 'flatbed' | 'tanker' | 'hazmat' | 'heavy_trailer';
-
-export interface Driver {
-  id: string;
-  name: string;
-  rating: number;
-  dutyHours: number;
-  dutyMinutes: number;
-  phone: string;
-  kyc_verified: boolean;
-}
-
-export interface Truck {
-  id: string;            // e.g. 'TRK-8821'
-  plate: string;         // e.g. 'TN-04-E-8821'
-  truckType: TruckType;
-  vehicleMake: string;   // e.g. 'Scania R500'
-  containerSize: string; // e.g. 'High Cube 40ft'
-  vin: string;
-  status: TruckStatus;
-  cityId: string;
-  assigned_gate?: string;
-  driver: Driver;
-  latitude: number;
-  longitude: number;
-  heading: number;       // degrees 0-360
-  speedKmh: number;
-  fuelPct: number;
-  reeferTempC?: number;
-  reeferSetTempC?: number;
-  mission: {
-    origin: string;
-    destination: string;
-    progressPct: number;
-    distanceClearedKm: number;
-    distanceRemainingKm: number;
-    etaTime: string;       // e.g. '14:15'
-    etaStatus: 'on_time' | 'delayed' | 'early';
-  };
-  bookedSlot?: {
-    gateId: string;
-    slotTime: string;
-  };
-  alertTag?: string;     // e.g. 'NH-44 Bypass Bottleneck • Missed Window'
-  gnssLocked: boolean;
-}
-
-// ─── Gate Slots ────────────────────────────────────────────────────────────
-export type SlotStatus = 'available' | 'booked' | 'active' | 'congested' | 'completed';
-export type SlotTier   = 'standard' | 'express' | 'critical';
-export type GateStatus = 'optimal' | 'normal' | 'moderate' | 'congested';
-
-export interface Gate {
-  id: string;       // 'G-01' … 'G-04'
-  name: string;     // 'Main Entry', 'Container Term' …
-  status: GateStatus;
-  queueCount: number;
-  waitMinutes: number;
-  avgDwellMinutes: number;
-}
-
-export interface Slot {
-  id: string;
-  gateId: string;
-  date: string;          // 'YYYY-MM-DD'
-  startTime: string;     // 'HH:mm'
-  endTime: string;       // 'HH:mm'
-  status: SlotStatus;
-  tier: SlotTier;
-  truck?: Pick<Truck, 'id' | 'plate' | 'truckType' | 'containerSize'>;
-  driver?: Pick<Driver, 'name' | 'kyc_verified'>;
-  cargo?: string;
-  isAiTopPick?: boolean;
-  surgeWarning?: string;
-
-  // ── Backend snake_case fields ───────────────────────────────────────────
-  gate_id?: string;
-  slot_time?: string;
-  truck_plate?: string;
-  driver_name?: string;
-  cargo_type?: string;
-  dwell_estimate_min?: number;
-}
-
-
-// ─── Analytics / KPIs ─────────────────────────────────────────────────────
-export interface KPIData {
-  avgQueueWaitMin: number;
-  queueWaitTrend: number;        // % change vs last period
-  gateUtilizationPct: number;
-  throughputTrucksPerHr: number;
-  maxThroughputTrucksPerHr: number;
-  reroutesToday: number;
-  timeSavedHrs: number;
-  fuelSavedINR: number;
-  co2MitigatedKg: number;
-  slotAdherencePct: number;
-  slotsTotal: number;
-  slotsAdherent: number;
-}
-
-export interface HeatmapCell {
-  gate: string;
-  hour: string;
-  score: number;   // 0–100
-}
-
-export interface ChartDataPoint {
-  time: string;
-  value: number;
-  predicted?: number;
-}
-
-// ─── GIS Layers ────────────────────────────────────────────────────────────
-export interface GisFeature {
-  id: string;
-  type: 'warehouse' | 'yard' | 'gate' | 'road' | 'boundary';
-  name: string;
-  geometry: {
-    type: string;
-    coordinates: unknown;
-  };
-  properties: Record<string, unknown>;
-}
-
-// ─── Telemetry ─────────────────────────────────────────────────────────────
-export interface TelemetryStats {
-  connectedClients: number;
-  totalPackets: number;
-  activeTrucks: number;
-  gnssLocked: number;
-  latencyMs: number;
-  uptimePct: number;
-}
-
-// ─── Notifications ─────────────────────────────────────────────────────────
-export interface Notification {
-  id: string;
-  type: 'reroute' | 'congestion' | 'slot' | 'delay' | 'system';
-  title: string;
-  body: string;
-  timestamp: string;
-  read: boolean;
-}
-
-// ─── Map Types ─────────────────────────────────────────────────────────────
-export type MapMode = 'roadmap' | 'satellite' | 'hybrid' | 'terrain';
+export const TIER_OPTIONS: TierOption[] = [
+  { id: 'standard', label: 'Standard', fee: 0, desc: 'Best-effort batching' },
+  { id: 'express', label: 'Express', fee: 500, desc: 'Next broadcasting batch' },
+  { id: 'urgent', label: 'Urgent', fee: 1000, desc: 'Immediate single-stop run' },
+];

@@ -26,7 +26,7 @@ function statusOf(status: string) {
   return STATUS_STYLE[status] || STATUS_STYLE.outbound;
 }
 
-// Small white cargo glyph for cold-chain / liquid / hazmat trucks only —
+// Small white cargo glyph for cold-chain / liquid / hazmat trucks only -
 // operationally meaningful types stay identifiable, everything else is clean.
 function typeGlyph(truckType: string): string {
   switch (truckType) {
@@ -45,10 +45,13 @@ function typeGlyph(truckType: string): string {
   }
 }
 
-function createTruckDivIcon(truck: { truckType: string; status: string }, selected: boolean): L.DivIcon {
+function createTruckDivIcon(
+  truck: { truckType?: string; status: string },
+  selected: boolean = false,
+): L.DivIcon {
   const st = statusOf(truck.status);
 
-  // Markers stay upright — GPS heading is shown in the tooltip + inspector,
+  // Markers stay upright - GPS heading is shown in the tooltip + inspector,
   // never baked into the marker angle.
   const html = `
     <div class="ls-marker ${st.cls}${selected ? ' sel' : ''}" style="color: ${st.color};">
@@ -128,7 +131,7 @@ export function TruckMarker({ map, truck, selected = false, onClick }: TruckMark
       markerRef.current.setIcon(createTruckDivIcon(truck, selected));
       markerRef.current.setZIndexOffset(selected ? 1200 : truck.status === 'delayed' ? 1000 : 500);
     } catch {
-      // Map was torn down mid-update (port switch) — marker cleans up on unmount.
+      // Map was torn down mid-update (port switch) - marker cleans up on unmount.
     }
   }, [map, selected, truck.latitude, truck.longitude, truck.status, truck.speedKmh]);
 

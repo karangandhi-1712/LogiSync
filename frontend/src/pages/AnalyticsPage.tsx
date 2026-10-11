@@ -1,585 +1,503 @@
-import { useState, useEffect } from 'react';
-import ReactECharts from 'echarts-for-react';
-import { useTheme } from '../context/ThemeContext';
-import { TrendingDown, Truck, Zap, CheckCircle2, Download, Settings, Play, Sparkles, BarChart2, MapPin } from 'lucide-react';
-import { clsx } from 'clsx';
-import { fetchKPIs, fetchHeatmapData, fetchTurnaroundData, fetchQueueDepth, fetchRerouteImpact, runSimulation } from '../services/api';
-import { useToast } from '../context/ToastContext';
-import { usePort } from '../context/PortContext';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/Button';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+// ─── AnalyticsPage - delivery marketplace performance ────────────────────────
+// Replaces the old gate-congestion/telematics analytics entirely. Every figure
+// is a real aggregate from the API; there are no hardcoded fallback series.
 
-// ─── KPI Cards (Liquid Neu-Glass Prisms) ──────────────────────────────────
-function KPISummaryCards({ data }: { data?: any }) {
-  const cards = [
-    {
-      icon: <Truck className="w-5 h-5 text-cyan-500 drop-shadow-[0_0_8px_rgba(6,182,212,0.6)]" />,
-      label: 'Avg Queue Wait Time',
-      value: `${data?.avg_queue_wait_min ?? 34} min`,
-      change: `↓ ${Math.abs(data?.avg_queue_wait_delta ?? 18)}% vs last week`,
-      good: true,
-    },
-    {
-      icon: <CheckCircle2 className="w-5 h-5 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]" />,
-      label: 'Gate Utilization',
-      value: `${data?.gate_utilization_pct ?? 78}%`,
-      change: `${data?.active_trucks_in_port ?? 390} active trucks`,
-      good: true,
-    },
-    {
-      icon: <Zap className="w-5 h-5 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" />,
-      label: 'Reroutes Triggered',
-      value: `${data?.reroutes_triggered_today ?? 23} today`,
-      badge: 'AUTOMATED',
-      sub3: [`${data?.reroutes_triggered_today ?? 23} reroutes`, `₹${Math.round((data?.fuel_saved_litres_today ?? 142.5) * 94).toLocaleString('en-IN')} fuel`, `${data?.co2_saved_kg_today ?? 381.9} kg CO₂`],
-    },
-    {
-      icon: <TrendingDown className="w-5 h-5 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]" />,
-      label: 'Slot Adherence',
-      value: `${data?.slot_adherence_pct ?? 89}% OPTIMAL`,
-      change: 'Live slot adherence',
-      segments: [
-        { label: 'Exact', pct: 76, color: 'bg-emerald-500 shadow-[0_0_6px_#10b981]' },
-        { label: 'Grace', pct: 13, color: 'bg-amber-400' },
-        { label: 'Variance', pct: 11, color: 'bg-red-400' },
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import {
+  Activity,
+  AlertCircle,
+  Coins,
+  Download,
+  Loader2,
+  Package,
+  Timer,
+  TrendingUp,
+  Truck,
+  Users,
+} from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { Button } from '../components/ui/Button';
+import { TierBadge, formatINR } from '../components/marketplace/Badges';
+import { useAuth } from '../context/AuthContext';
+import { usePort } from '../context/PortContext';
+import { useTheme } from '../context/ThemeContext';
+import {
+  fetchAreaStats,
+  fetchBatchDistribution,
+  fetchMarketplaceKpis,
+  fetchPerPortOverview,
+  fetchVolumeSeries,
+} from '../services/api';
+import type { AreaStat, MarketplaceKpis, VolumeSeries } from '../types';
+
+type Period = '24h' | '7d' | '30d';
+
+const PERIODS: { id: Period; label: string }[] = [
+  { id: '24h', label: 'Last 24h' },
+  { id: '7d', label: 'Last 7 days' },
+  { id: '30d', label: 'Last 30 days' },
+];
+
+export default function AnalyticsPage() {
+  const { user } = useAuth();
+  const { ports, portId } = usePort();
+  const { isDark } = useTheme();
+
+  const [period, setPeriod] = useState<Period>('7d');
+  const [scopePort, setScopePort] = useState<string>('');
+  const [kpis, setKpis] = useState<MarketplaceKpis | null>(null);
+  const [volume, setVolume] = useState<VolumeSeries | null>(null);
+  const [areas, setAreas] = useState<AreaStat[]>([]);
+  const [batches, setBatches] = useState<any>(null);
+  const [perPort, setPerPort] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const locked = user?.role === 'fleet_manager';
+  const effectivePort = locked ? (user?.assigned_port_id ?? '') : scopePort;
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [k, v, a, b] = await Promise.all([
+        fetchMarketplaceKpis(period, effectivePort || undefined),
+        fetchVolumeSeries(period, effectivePort || undefined),
+        fetchAreaStats('30d', effectivePort || undefined),
+        fetchBatchDistribution('30d', effectivePort || undefined),
+      ]);
+      setKpis(k);
+      setVolume(v);
+      setAreas(a.areas ?? []);
+      setBatches(b);
+      if (user?.role === 'port_admin' && !effectivePort) {
+        const p = await fetchPerPortOverview(period);
+        setPerPort(p.ports ?? []);
+      } else {
+        setPerPort([]);
+      }
+    } catch {
+      // Leave the previous figures on screen rather than blanking the page.
+    } finally {
+      setLoading(false);
+    }
+  }, [period, effectivePort, user?.role]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const chartText = isDark ? '#cbd5e1' : '#334155';
+  const gridLine = isDark ? 'rgba(255,255,255,.07)' : 'rgba(15,23,42,.08)';
+
+  const volumeOption = useMemo(() => {
+    if (!volume) return {};
+    return {
+      grid: { left: 44, right: 16, top: 32, bottom: 46 },
+      tooltip: { trigger: 'axis' },
+      legend: { textStyle: { color: chartText }, top: 0, itemWidth: 12, itemHeight: 8 },
+      xAxis: {
+        type: 'category',
+        data: volume.dates.map((d) => d.slice(5)),
+        axisLabel: { color: chartText, fontSize: 10 },
+        axisLine: { lineStyle: { color: gridLine } },
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { color: chartText, fontSize: 10 },
+        splitLine: { lineStyle: { color: gridLine } },
+      },
+      series: [
+        {
+          name: 'Submitted',
+          type: 'bar',
+          data: volume.submitted,
+          itemStyle: { color: '#0284c7', borderRadius: [4, 4, 0, 0] },
+        },
+        {
+          name: 'Delivered',
+          type: 'line',
+          smooth: true,
+          data: volume.delivered,
+          itemStyle: { color: '#059669' },
+          lineStyle: { width: 2 },
+        },
+        {
+          name: 'Cancelled / failed',
+          type: 'line',
+          smooth: true,
+          data: volume.cancelled.map((c, i) => c + (volume.failed[i] ?? 0)),
+          itemStyle: { color: '#dc2626' },
+          lineStyle: { width: 2, type: 'dashed' },
+        },
       ],
-    },
-  ];
+    };
+  }, [volume, chartText, gridLine]);
+
+  const batchOption = useMemo(() => {
+    const hist = batches?.stop_count_histogram ?? [];
+    if (!hist.length) return {};
+    return {
+      grid: { left: 44, right: 16, top: 24, bottom: 32 },
+      tooltip: { trigger: 'axis' },
+      xAxis: {
+        type: 'category',
+        name: 'stops in batch',
+        nameTextStyle: { color: chartText, fontSize: 10 },
+        data: hist.map((h: any) => String(h.stops)),
+        axisLabel: { color: chartText, fontSize: 10 },
+        axisLine: { lineStyle: { color: gridLine } },
+      },
+      yAxis: {
+        type: 'value',
+        name: 'batches',
+        nameTextStyle: { color: chartText, fontSize: 10 },
+        axisLabel: { color: chartText, fontSize: 10 },
+        splitLine: { lineStyle: { color: gridLine } },
+      },
+      series: [
+        {
+          type: 'bar',
+          data: hist.map((h: any) => h.batches),
+          itemStyle: { color: '#0ea5e9', borderRadius: [4, 4, 0, 0] },
+        },
+      ],
+    };
+  }, [batches, chartText, gridLine]);
+
+  function exportPdf() {
+    if (!kpis) return;
+    const doc = new jsPDF();
+    const scope = effectivePort
+      ? ports.find((p) => p.id === effectivePort)?.name ?? effectivePort
+      : 'All ports';
+    doc.setFontSize(16);
+    doc.text('LogiSync - Delivery Marketplace Report', 14, 18);
+    doc.setFontSize(9);
+    doc.text(`Depot scope: ${scope}   ·   Period: ${period}   ·   ${new Date().toLocaleDateString('en-IN')}`, 14, 25);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [['Metric', 'Value']],
+      body: [
+        ['Requests submitted', String(kpis.total_requests)],
+        ['Requests / day', String(kpis.requests_per_day)],
+        ['Active batches', String(kpis.active_batches)],
+        ['Completed batches', String(kpis.completed_schedules)],
+        ['Avg time to claim (min)', String(kpis.avg_time_to_claim_min)],
+        ['Avg batch fill', `${kpis.avg_batch_fill_pct}%`],
+        ['On-time rate', `${kpis.on_time_rate_overall}%`],
+        ['Delivered', String(kpis.delivered)],
+        ['Failed', String(kpis.failed)],
+        ['Cancelled', String(kpis.cancelled)],
+        ['Drivers total', String(kpis.drivers_total)],
+        ['Drivers active', String(kpis.drivers_active)],
+        ['Driver utilisation', `${kpis.driver_utilisation_pct}%`],
+      ],
+    });
+
+    if (areas.length) {
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 10,
+        head: [['Busiest area', 'Batches', 'Stops', 'Avg stops', 'Earnings']],
+        body: areas.map((a) => [
+          a.area_label,
+          String(a.schedules),
+          String(a.stop_total),
+          String(a.avg_stops),
+          formatINR(a.earnings_total),
+        ]),
+      });
+    }
+
+    doc.save(`LogiSync-Marketplace-${effectivePort || 'all-ports'}-${period}.pdf`);
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-      {cards.map((card, i) => (
-        <div
-          key={i}
-          className="p-5 rounded-3xl liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm transition-all duration-200 hover:scale-[1.02] relative overflow-hidden"
-        >
-          <div className="flex items-center gap-2.5 mb-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/70 dark:border-white/10 neu-flat-sm flex items-center justify-center flex-shrink-0">
-              {card.icon}
-            </div>
-            <span className="text-[10px] text-slate-400 dark:text-slate-400 uppercase font-bold tracking-wider">
-              {card.label}
-            </span>
-          </div>
-
-          <div className={clsx(
-            'text-3xl font-black tabular mb-1 font-mono',
-            i === 3 ? 'text-emerald-600 dark:text-emerald-400' : 'chroma-text'
-          )}>
-            {card.value}
-          </div>
-
-          {card.change && (
-            <div className={clsx('text-xs font-bold', card.good ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500')}>
-              {card.change}
-            </div>
-          )}
-
-          {card.badge && (
-            <span className="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-400/30 shadow-sm">
-              {card.badge}
-            </span>
-          )}
-
-          {card.sub3 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {card.sub3.map(s => (
-                <span key={s} className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                  {s}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {card.segments && (
-            <div className="mt-3 space-y-1.5">
-              <div className="flex h-2 rounded-full overflow-hidden gap-1 p-0.5 bg-slate-200/50 dark:bg-slate-800/60 neu-inset-sm">
-                {card.segments.map(seg => (
-                  <div key={seg.label} className={clsx('rounded-full transition-all', seg.color)} style={{ width: `${seg.pct}%` }} />
-                ))}
-              </div>
-              <div className="flex justify-between text-[9px] text-slate-400 font-mono">
-                {card.segments.map(seg => <span key={seg.label}>{seg.label} {seg.pct}%</span>)}
-              </div>
-            </div>
-          )}
+    <div className="h-full overflow-y-auto bg-[var(--bg-canvas)]">
+      <div className="px-4 sm:px-6 py-4 border-b border-white/40 dark:border-white/8 flex items-center gap-3 flex-wrap sticky top-0 z-10 bg-[var(--bg-canvas)]/90 backdrop-blur-xl">
+        <div>
+          <h1 className="text-lg font-black text-slate-900 dark:text-white">Marketplace Analytics</h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Volume, batch efficiency, on-time rate and driver utilisation
+          </p>
         </div>
-      ))}
+
+        <div className="ml-auto flex items-center gap-2 flex-wrap">
+          {!locked && (
+            <select
+              value={scopePort}
+              onChange={(e) => setScopePort(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-800 dark:text-slate-100 text-xs font-bold outline-none focus:border-sky-400"
+            >
+              <option value="">All ports</option>
+              {ports.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {locked && (
+            <span className="px-3 py-1.5 rounded-xl bg-sky-500/10 text-sky-600 dark:text-cyan-300 text-xs font-bold border border-sky-400/25">
+              {ports.find((p) => p.id === user?.assigned_port_id)?.short ?? 'Your depot'}
+            </span>
+          )}
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-500/8 border border-slate-200/60 dark:border-white/8">
+            {PERIODS.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setPeriod(p.id)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-black transition ${
+                  period === p.id
+                    ? 'bg-sky-500 text-white'
+                    : 'text-slate-500 dark:text-slate-400 hover:bg-slate-500/10'
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <Button variant="ghost" size="sm" onClick={exportPdf} disabled={!kpis} icon={<Download className="w-3.5 h-3.5" />}>
+            Export
+          </Button>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 py-5 space-y-5">
+        {loading && !kpis ? (
+          <div className="h-48 grid place-items-center">
+            <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+          </div>
+        ) : (
+          <>
+            {/* KPI cards */}
+            <div id="tutorial-analytics-kpis" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <Kpi
+                icon={<Timer className="w-4 h-4" />}
+                label="Avg time to claim"
+                value={kpis ? `${kpis.avg_time_to_claim_min} min` : '-'}
+                sub="broadcast → accepted"
+                tone="sky"
+              />
+              <Kpi
+                icon={<Package className="w-4 h-4" />}
+                label="Avg batch fill"
+                value={kpis ? `${kpis.avg_batch_fill_pct}%` : '-'}
+                sub={`${kpis?.completed_schedules ?? 0} batches completed`}
+                tone="emerald"
+              />
+              <Kpi
+                icon={<TrendingUp className="w-4 h-4" />}
+                label="On-time delivery"
+                value={kpis ? `${kpis.on_time_rate_overall}%` : '-'}
+                sub="within requested window"
+                tone="amber"
+              />
+              <Kpi
+                icon={<Users className="w-4 h-4" />}
+                label="Driver utilisation"
+                value={kpis ? `${kpis.driver_utilisation_pct}%` : '-'}
+                sub={`${kpis?.drivers_active ?? 0} active of ${kpis?.drivers_total ?? 0}`}
+                tone="indigo"
+              />
+            </div>
+
+            {/* Tier breakdown */}
+            {kpis && (
+              <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+                <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3">
+                  On-time rate by tier
+                </h2>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {(['standard', 'express', 'urgent'] as const).map((tier) => {
+                    const stat = kpis.on_time_rate_by_tier[tier];
+                    const pct = stat?.on_time_pct ?? 0;
+                    return (
+                      <div key={tier} className="px-3 py-2.5 rounded-xl bg-slate-500/6 border border-slate-200/50 dark:border-white/6">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <TierBadge tier={tier} />
+                          <span className="text-sm font-black text-slate-900 dark:text-white ml-auto">
+                            {pct}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-slate-500/12 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              tier === 'urgent'
+                                ? 'bg-rose-500'
+                                : tier === 'express'
+                                  ? 'bg-sky-500'
+                                  : 'bg-slate-400'
+                            }`}
+                            style={{ width: `${Math.min(100, pct)}%` }}
+                          />
+                        </div>
+                        <p className="mt-1 text-[10px] text-slate-400">
+                          {stat?.delivered ?? 0} delivered
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Charts */}
+            <div className="grid gap-4 xl:grid-cols-2">
+              <div id="tutorial-heatmap-chart" className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+                <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                  Request volume vs deliveries
+                </h2>
+                <ReactECharts option={volumeOption} style={{ height: 260 }} notMerge />
+              </div>
+              <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+                <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                  Batch fill distribution
+                </h2>
+                {batches ? (
+                  <>
+                    <ReactECharts option={batchOption} style={{ height: 210 }} notMerge />
+                    <div className="grid grid-cols-3 gap-2 mt-2 text-center">
+                      <MiniStat label="p50 claim" value={`${batches.claim_minutes_p50} min`} />
+                      <MiniStat label="p95 claim" value={`${batches.claim_minutes_p95} min`} />
+                      <MiniStat label="never claimed" value={String(batches.never_claimed)} />
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-xs text-slate-500 py-10 text-center">No batches in this window.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Busiest areas */}
+            <div id="tutorial-busiest-areas" className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+              <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3">
+                Busiest delivery areas
+              </h2>
+              {areas.length === 0 ? (
+                <p className="text-xs text-slate-500 py-6 text-center">
+                  No batches have run yet, so there are no areas to rank.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <th className="pb-2">Area</th>
+                        <th className="pb-2 text-right">Batches</th>
+                        <th className="pb-2 text-right">Stops</th>
+                        <th className="pb-2 text-right">Avg stops</th>
+                        <th className="pb-2 text-right">Earnings</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200/50 dark:divide-white/6">
+                      {areas.map((a) => (
+                        <tr key={a.area_label} className="text-xs">
+                          <td className="py-2 font-bold text-slate-800 dark:text-slate-100">
+                            {a.area_label}
+                            <span className="ml-2 text-[10px] font-mono text-slate-400">{a.port_id}</span>
+                          </td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">
+                            {a.schedules}
+                          </td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">
+                            {a.stop_total}
+                          </td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">
+                            {a.avg_stops}
+                          </td>
+                          <td className="py-2 text-right font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                            {formatINR(a.earnings_total)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Cross-port (admin only) */}
+            {perPort.length > 0 && (
+              <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+                <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3">
+                  All depots
+                </h2>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                        <th className="pb-2">Depot</th>
+                        <th className="pb-2 text-right">Requests</th>
+                        <th className="pb-2 text-right">Delivered</th>
+                        <th className="pb-2 text-right">On-time</th>
+                        <th className="pb-2 text-right">Active drivers</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200/50 dark:divide-white/6">
+                      {perPort.map((r) => (
+                        <tr key={r.port_id} className="text-xs">
+                          <td className="py-2 font-bold text-slate-800 dark:text-slate-100">{r.port_name}</td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">{r.requests}</td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">{r.delivered}</td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">{r.on_time_pct}%</td>
+                          <td className="py-2 text-right font-mono text-slate-600 dark:text-slate-300">{r.active_drivers}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-// ─── Congestion Heatmap ────────────────────────────────────────────────────
-function CongestionHeatmap({ chartData }: { chartData?: any }) {
-  const { isDark } = useTheme();
-  const hours = ['06:00','08:00','10:00','12:00','14:00','16:00','18:00'];
-  const gates = ['G-04','G-03','G-02','G-01'];
-  const raw = [
-    [15,22,35,48,62,45,28],
-    [8, 10,12,14,11, 9, 7],
-    [20,30,42,55,38,28,18],
-    [25,40,55,70,85,65,40],
-  ];
+const TONE: Record<string, string> = {
+  sky: 'text-sky-600 dark:text-cyan-300 bg-sky-500/12',
+  emerald: 'text-emerald-600 dark:text-emerald-300 bg-emerald-500/12',
+  amber: 'text-amber-600 dark:text-amber-300 bg-amber-500/12',
+  indigo: 'text-indigo-600 dark:text-indigo-300 bg-indigo-500/12',
+};
 
-  const data: [number, number, number][] = [];
-  if (chartData?.data) {
-    chartData.data.forEach((cell: any) => data.push([cell.hour_index, cell.gate_index, cell.score]));
-  } else {
-    raw.forEach((row, gi) => row.forEach((val, hi) => data.push([hi, gi, val])));
-  }
-
-  const option = {
-    backgroundColor: 'transparent',
-    tooltip: {
-      formatter: (p: { data: [number, number, number] }) =>
-        `${gates[p.data[1]]} @ ${hours[p.data[0]]}: <b>${p.data[2]}</b> min wait`,
-    },
-    grid: { left: '8%', right: '4%', bottom: '16%', top: '8%', containLabel: false },
-    xAxis: { type: 'category', data: hours, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, axisLine: { show: false }, axisTick: { show: false } },
-    yAxis: { type: 'category', data: gates, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 10, fontWeight: 700 }, axisLine: { show: false }, axisTick: { show: false } },
-    visualMap: {
-      min: 0, max: 90, calculable: true,
-      orient: 'horizontal', left: 'center', bottom: '1%',
-      inRange: { color: ['#10b981','#f59e0b','#ef4444'] },
-      textStyle: { color: isDark ? '#cbd5e1' : '#475569', fontSize: 9 },
-    },
-    series: [{
-      name: 'Congestion', type: 'heatmap', data,
-      label: { show: true, formatter: (p: { data: [number, number, number] }) => `${p.data[2]}`, fontSize: 9, color: '#fff', fontWeight: 700 },
-      itemStyle: { borderRadius: 6 },
-      emphasis: { itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0, 0, 0, 0.4)' } },
-    }],
-  };
-  return <ReactECharts option={option} style={{ height: '220px' }} />;
-}
-
-// ─── Turnaround Chart ──────────────────────────────────────────────────────
-function TurnaroundChart({ chartData }: { chartData?: any }) {
-  const { isDark } = useTheme();
-  const days = Array.from({ length: 30 }, (_, i) => `${i + 1}`);
-  const categories = chartData?.categories || days;
-  const actual    = chartData?.actual || days.map((_, i) => 85 - i * 0.8);
-  const predicted = chartData?.predicted || days.map((_, i) => 90 - i * 0.7);
-
-  const option = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['Actual', 'AI Predicted'], top: 0, textStyle: { color: isDark ? '#cbd5e1' : '#475569', fontSize: 10 } },
-    grid: { left: '4%', right: '3%', bottom: '8%', top: '30px', containLabel: true },
-    xAxis: { type: 'category', data: categories, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 8 }, axisLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0' } } },
-    yAxis: { type: 'value', name: 'Hours', nameTextStyle: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 8 }, splitLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' } } },
-    series: [
-      { name: 'Actual', type: 'line', data: actual, smooth: true, lineStyle: { width: 2.5, color: '#00f5d4' }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0,245,212,0.35)' }, { offset: 1, color: 'rgba(0,245,212,0)' }] } }, symbol: 'none' },
-      { name: 'AI Predicted', type: 'line', data: predicted, smooth: true, lineStyle: { width: 2, color: '#10b981', type: 'dashed' }, symbol: 'none' },
-    ],
-  };
-  return <ReactECharts option={option} style={{ height: '220px' }} />;
-}
-
-// ─── Queue Depth Chart ─────────────────────────────────────────────────────
-function QueueDepthChart({ chartData }: { chartData?: any }) {
-  const { isDark } = useTheme();
-  const times = chartData?.timestamps || ['06:00','08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
-  const g1 = chartData?.g1 || [4, 8, 14, 22, 18, 12, 8, 5];
-  const g2 = chartData?.g2 || [2, 5, 8, 10, 7, 5, 3, 2];
-  const g3 = chartData?.g3 || [1, 2, 3, 4, 2, 2, 1, 1];
-  const g4 = chartData?.g4 || [3, 6, 9, 12, 10, 8, 5, 3];
-
-  const option = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-    legend: { data: ['Gate 1','Gate 2','Gate 3','Gate 4'], top: 0, textStyle: { color: isDark ? '#cbd5e1' : '#475569', fontSize: 10 } },
-    grid: { left: '4%', right: '3%', bottom: '8%', top: '30px', containLabel: true },
-    xAxis: { type: 'category', data: times, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, axisLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0' } } },
-    yAxis: { type: 'value', name: 'Trucks', nameTextStyle: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, splitLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' } } },
-    series: [
-      { name: 'Gate 1', type: 'line', stack: 'total', data: g1, smooth: true, lineStyle: { width: 2, color: '#ef4444' }, areaStyle: { color: 'rgba(239,68,68,0.3)' }, symbol: 'none' },
-      { name: 'Gate 2', type: 'line', stack: 'total', data: g2, smooth: true, lineStyle: { width: 2, color: '#f59e0b' }, areaStyle: { color: 'rgba(245,158,11,0.3)' }, symbol: 'none' },
-      { name: 'Gate 3', type: 'line', stack: 'total', data: g3, smooth: true, lineStyle: { width: 2, color: '#10b981' }, areaStyle: { color: 'rgba(16,185,129,0.3)' }, symbol: 'none' },
-      { name: 'Gate 4', type: 'line', stack: 'total', data: g4, smooth: true, lineStyle: { width: 2, color: '#00f5d4' }, areaStyle: { color: 'rgba(0,245,212,0.3)' }, symbol: 'none' },
-    ],
-  };
-  return <ReactECharts option={option} style={{ height: '220px' }} />;
-}
-
-// ─── Reroute Impact Chart ──────────────────────────────────────────────────
-function RerouteImpactChart({ chartData }: { chartData?: any }) {
-  const { isDark } = useTheme();
-  const days = chartData?.corridors || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-  const withoutAi = chartData?.without_ai_wait_min || [62, 74, 68, 81, 72];
-  const withAi    = chartData?.with_ai_wait_min || [41, 48, 44, 52, 46];
-
-  const option = {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-    legend: { data: ['Without AI', 'With AI'], top: 0, textStyle: { color: isDark ? '#cbd5e1' : '#475569', fontSize: 10 } },
-    grid: { left: '4%', right: '4%', bottom: '8%', top: '30px', containLabel: true },
-    xAxis: { type: 'value', axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 9 }, splitLine: { lineStyle: { color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' } } },
-    yAxis: { type: 'category', data: days, axisLabel: { color: isDark ? '#94a3b8' : '#64748b', fontSize: 10, fontWeight: 700 }, axisLine: { show: false }, axisTick: { show: false } },
-    series: [
-      {
-        name: 'Without AI', type: 'bar', data: withoutAi, barMaxWidth: 16,
-        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#ef4444' }, { offset: 1, color: '#f87171' }] }, borderRadius: [0, 6, 6, 0] },
-      },
-      {
-        name: 'With AI', type: 'bar', data: withAi, barMaxWidth: 16,
-        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: '#10b981' }, { offset: 1, color: '#00f5d4' }] }, borderRadius: [0, 6, 6, 0] },
-        markLine: { data: [{ type: 'average', name: 'Avg' }], label: { fontSize: 9 }, lineStyle: { color: '#00f5d4', type: 'dashed' } },
-      },
-    ],
-  };
-  return <ReactECharts option={option} style={{ height: '220px' }} />;
-}
-
-export default function AnalyticsPage() {
-  const { showToast } = useToast();
-  const { port, portId, setPortId, ports } = usePort();
-  const { user } = useAuth();
-  const isFleetManager = (user as any)?.role === 'fleet_manager';
-  const assignedPort = (user as any)?.assigned_port_id as string | undefined;
-  const effectivePortId = isFleetManager && assignedPort ? assignedPort : portId;
-  const effectivePort = isFleetManager && assignedPort ? ports.find(p => p.id === assignedPort) || port : port;
-  const [period, setPeriod] = useState<'24h' | '7d' | 'monthly'>('24h');
-  const [kpiData, setKpiData] = useState<any>(null);
-  const [isSimRunning, setIsSimRunning] = useState(false);
-  const [simResult, setSimResult] = useState<any>(null);
-  const [chartData, setChartData] = useState<Record<string, any>>({});
-  const [isLoadingCharts, setIsLoadingCharts] = useState(true);
-
-  const PERIODS = [
-    { id: '24h'     as const, label: 'LIVE 24H'  },
-    { id: '7d'      as const, label: 'LAST 7D'   },
-    { id: 'monthly' as const, label: 'MONTHLY'   },
-  ];
-
-  // Load KPIs when period or port changes — FM locked to assigned port
-  useEffect(() => {
-    const periodParam = period === 'monthly' ? '30d' : period;
-    fetchKPIs(periodParam as any, effectivePortId)
-      .then(d => setKpiData(d))
-      .catch(() => {});
-  }, [period, effectivePortId]);
-
-  useEffect(() => {
-    setIsLoadingCharts(true);
-    const periodParam = period === 'monthly' ? '30d' : period;
-    Promise.all([
-      fetchHeatmapData(periodParam, effectivePortId),
-      fetchTurnaroundData(periodParam, effectivePortId),
-      fetchQueueDepth(undefined, effectivePortId, periodParam),
-      fetchRerouteImpact(effectivePortId, periodParam),
-    ]).then(([heatmap, turnaround, queue, reroute]) => {
-      setChartData({ heatmap, turnaround, queue, reroute });
-    }).catch(() => {
-      showToast({ type: 'error', title: 'Charts Unavailable', message: 'Could not load live analytics charts.' });
-    }).finally(() => setIsLoadingCharts(false));
-  }, [period, effectivePortId, showToast]);
-
-  const handleRunSimulation = async () => {
-    setIsSimRunning(true);
-    try {
-      const result = await runSimulation({
-        num_trucks: 200,
-        arrival_distribution: 'poisson',
-        gate_capacity_multiplier: 1.0,
-        dynamic_rerouting_enabled: true,
-        time_horizon_hours: 24,
-      });
-      setSimResult(result);
-      showToast({
-        type: 'success',
-        title: 'Simulation Complete',
-        message: result.summary || `Avg wait with AI: ${result.avg_queue_wait ?? 'N/A'} min · −${result.wait_reduction_pct ?? 'N/A'}% vs no-AI baseline`,
-      });
-    } catch {
-      showToast({ type: 'error', title: 'Simulation Failed', message: 'Backend simulation service unavailable.' });
-    } finally { setIsSimRunning(false); }
-  };
-
-  const handleExport = () => {
-    try {
-      const doc = new jsPDF();
-      const now = new Date();
-      const portName = effectivePort.name;
-      const periodLabel = period === '24h' ? 'Live 24H' : period === '7d' ? 'Last 7 Days' : 'Monthly';
-
-      // ─── Header ────────────────────────────────────
-      doc.setFillColor(8, 51, 88);
-      doc.rect(0, 0, 210, 35, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text('LogiSync v2.0 — Telemetry Report', 14, 16);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Port: ${portName}  |  Period: ${periodLabel}  |  Generated: ${now.toLocaleString()}`, 14, 26);
-
-      // ─── KPI Summary Table ─────────────────────────
-      doc.setTextColor(0, 0, 0);
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Key Performance Indicators', 14, 46);
-
-      const kpiRows = [
-        ['Avg Queue Wait Time', `${kpiData?.avg_queue_wait_min ?? 34} min`, `${Math.abs(kpiData?.avg_queue_wait_delta ?? 18)}% improvement vs last week`],
-        ['Gate Utilization', `${kpiData?.gate_utilization_pct ?? 78}%`, `${kpiData?.active_trucks_in_port ?? 390} active trucks in port`],
-        ['Reroutes Triggered Today', `${kpiData?.reroutes_triggered_today ?? 23}`, `Fuel saved: ${kpiData?.fuel_saved_litres_today ?? 142.5}L | CO2: ${kpiData?.co2_saved_kg_today ?? 381.9}kg`],
-        ['Slot Adherence', `${kpiData?.slot_adherence_pct ?? 89}%`, 'Exact: 76% | Grace: 13% | Variance: 11%'],
-      ];
-
-      autoTable(doc, {
-        startY: 50,
-        head: [['Metric', 'Value', 'Details']],
-        body: kpiRows,
-        theme: 'grid',
-        headStyles: { fillColor: [6, 182, 212], textColor: 255, fontStyle: 'bold', fontSize: 10 },
-        bodyStyles: { fontSize: 9 },
-        alternateRowStyles: { fillColor: [240, 249, 255] },
-        margin: { left: 14, right: 14 },
-      });
-
-      // ─── Chart Data Summary ─────────────────────────
-      const afterKpiY = (doc as any).lastAutoTable?.finalY ?? 110;
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Analytics Chart Data Summary', 14, afterKpiY + 12);
-
-      const chartSummaryRows = [
-        ['Gate Congestion Heatmap', 'Wait times by gate × hour (minutes)', 'Peak congestion at Gate 1 during 12:00–14:00'],
-        ['Turnaround Time', '30-day vessel-to-gate cycle', '−35.3% dwell reduction with AI optimization'],
-        ['Queue Depth', 'Stacked truck accumulation by terminal gate', 'Peak queue depth at 12:00 across all gates'],
-        ['Reroute Impact', 'Without AI vs With AI throughput', '+28% throughput improvement with AI rerouting'],
-      ];
-
-      autoTable(doc, {
-        startY: afterKpiY + 16,
-        head: [['Chart', 'Description', 'Key Insight']],
-        body: chartSummaryRows,
-        theme: 'grid',
-        headStyles: { fillColor: [16, 185, 129], textColor: 255, fontStyle: 'bold', fontSize: 10 },
-        bodyStyles: { fontSize: 9 },
-        alternateRowStyles: { fillColor: [236, 253, 245] },
-        margin: { left: 14, right: 14 },
-      });
-
-      // ─── Simulation Results (if available) ─────────
-      const afterChartY = (doc as any).lastAutoTable?.finalY ?? 180;
-      if (simResult) {
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Monte Carlo Simulation Results', 14, afterChartY + 12);
-
-        const simRows = [
-          ['Trucks Simulated', String(simResult.num_trucks ?? 200)],
-          ['Avg Wait with AI', `${simResult.avg_queue_wait ?? 'N/A'} min`],
-          ['Wait Reduction', `${simResult.wait_reduction_pct ?? 'N/A'}%`],
-        ];
-
-        autoTable(doc, {
-          startY: afterChartY + 16,
-          head: [['Parameter', 'Value']],
-          body: simRows,
-          theme: 'grid',
-          headStyles: { fillColor: [99, 102, 241], textColor: 255, fontStyle: 'bold', fontSize: 10 },
-          bodyStyles: { fontSize: 9 },
-          margin: { left: 14, right: 14 },
-        });
-      }
-
-      // ─── Footer ────────────────────────────────────
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text(`LogiSync v2.0 — Confidential — Page ${i} of ${pageCount}`, 14, 290);
-        doc.text('AWS Cognito & Local RBAC Ready', 150, 290);
-      }
-
-      doc.save(`LogiSync-Telemetry-${effectivePort.short.replace(/\s+/g, '-')}-${periodLabel}-${now.toISOString().slice(0, 10)}.pdf`);
-      showToast({ type: 'success', title: 'PDF Exported', message: 'Telemetry report downloaded as PDF.' });
-    } catch (err) {
-      console.error('PDF export error:', err);
-      showToast({ type: 'error', title: 'Export Failed', message: 'Could not generate PDF report.' });
-    }
-  };
-
+function Kpi({
+  icon,
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub: string;
+  tone: string;
+}) {
   return (
-    <div className="h-full overflow-y-auto bg-[var(--bg-canvas)] relative">
-      <div className="max-w-[1600px] mx-auto p-6 space-y-6">
-
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white chroma-text">
-                Port Operations Analytics & AI BI
-              </h1>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-400/30">
-                <Sparkles className="w-2.5 h-2.5 text-cyan-500" />
-                PREDICTIVE
-              </span>
-            </div>
-            <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Gate heatmaps · Predictive turnaround cycle · AI reroute efficiency · Real-time queue accumulation
-              </p>
-              {/* Inline Port Selector — locked for fleet managers */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-white/60 dark:border-white/15 backdrop-blur-xl">
-                <MapPin className="w-3.5 h-3.5 text-cyan-500 flex-shrink-0" />
-                {isFleetManager ? (
-                  <span className="text-xs font-bold text-slate-700 dark:text-cyan-300">{effectivePort.short} — {effectivePort.city} · Assigned</span>
-                ) : (
-                <select
-                  value={portId}
-                  onChange={e => setPortId(e.target.value)}
-                  className="text-xs font-bold text-slate-700 dark:text-cyan-300 bg-transparent border-none outline-none cursor-pointer pr-4 appearance-none"
-                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0 center' }}
-                >
-                  {ports.map(p => (
-                    <option key={p.id} value={p.id}>{p.short} — {p.city}</option>
-                  ))}
-                </select>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Filter Toolbar */}
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1 bg-slate-200/50 dark:bg-slate-900/60 p-1 rounded-2xl neu-inset-sm">
-              {PERIODS.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => setPeriod(p.id)}
-                  className={clsx(
-                    'px-3.5 py-1.5 rounded-xl text-[10px] font-bold transition-all',
-                    period === p.id
-                      ? 'bg-white dark:bg-slate-800 text-sky-600 dark:text-cyan-400 shadow-sm scale-[1.02]'
-                      : 'text-slate-500 dark:text-slate-400'
-                  )}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="px-3 py-1.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 flex items-center gap-1.5 neu-flat-sm">
-              <span className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_6px_#f59e0b]" />
-              <span className="text-[10px] font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider">
-                Peak: 08:00 – 20:00
-              </span>
-            </div>
-
-            <Button variant="ghost" size="sm" onClick={handleExport}>
-              <Download className="w-3.5 h-3.5 text-cyan-500" />
-              <span>Export Telemetry</span>
-            </Button>
-          </div>
+    <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4">
+      <div className="flex items-start gap-2.5">
+        <div className={`p-2 rounded-xl shrink-0 ${TONE[tone]}`}>{icon}</div>
+        <div className="min-w-0">
+          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">{label}</p>
+          <p className="text-2xl font-black text-slate-900 dark:text-white leading-tight mt-0.5">
+            {value}
+          </p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">{sub}</p>
         </div>
-
-        {/* KPI Summary Row */}
-        <div id="tutorial-analytics-kpis">
-          <KPISummaryCards data={kpiData} />
-        </div>
-
-        {/* 2x2 Visualization Grid (Liquid Neu-Glass Cards) */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
-          {[
-            { title: 'Gate Congestion Heatmap Matrix', sub: 'Wait times by gate × hour (minutes)', Chart: CongestionHeatmap, id: 'tutorial-heatmap-chart' },
-            { title: 'Turnaround Time — Actual vs. AI Predicted', sub: '30-day vessel-to-gate cycle · −35.3% dwell reduction', Chart: TurnaroundChart, id: undefined },
-            { title: 'Live Queue Depth & Throughput Today', sub: 'Stacked truck accumulation by terminal gate', Chart: QueueDepthChart, id: undefined },
-            { title: 'Reroute Impact — Delay Savings', sub: '"Without AI" vs "With AI" throughput (+28% speed)', Chart: RerouteImpactChart, id: undefined },
-          ].map(({ title, sub, Chart, id }) => (
-            <div
-              key={title}
-              id={id}
-              className="p-5 rounded-3xl liquid-glass border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm shadow-xl"
-            >
-              <div className="mb-3 flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">{title}</h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{sub}</p>
-                </div>
-                <div className="w-7 h-7 rounded-xl bg-white/60 dark:bg-slate-800/60 flex items-center justify-center neu-flat-sm">
-                  <BarChart2 className="w-3.5 h-3.5 text-cyan-500" />
-                </div>
-              </div>
-              {isLoadingCharts ? (
-                <div className="h-[220px] rounded-2xl bg-white/30 dark:bg-slate-900/30 animate-pulse" />
-              ) : (
-                <Chart chartData={
-                  id === 'tutorial-heatmap-chart'
-                    ? chartData.heatmap
-                    : title.startsWith('Turnaround')
-                      ? chartData.turnaround
-                      : title.startsWith('Live Queue')
-                        ? chartData.queue
-                        : chartData.reroute
-                } />
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Policy Engine Card */}
-        <div id="tutorial-analytics-actions" className="p-6 rounded-3xl liquid-glass-elevated border border-white/70 dark:border-white/20 backdrop-blur-3xl neu-flat-sm shadow-2xl">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2.5 mb-1.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-emerald-500 animate-pulse" />
-                </div>
-                <span className="text-sm font-black text-slate-900 dark:text-slate-100">
-                  Autonomous Optimizer Auto-Throttle Policy v4.2
-                </span>
-                <span className={clsx(
-                  'px-2.5 py-0.5 rounded-full text-[9px] font-black border',
-                  simResult
-                    ? 'bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border-cyan-400/30'
-                    : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
-                )}>
-                  {simResult ? 'SIM DONE' : 'HEALTHY'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-6 mt-3 flex-wrap">
-                {[
-                  { label: 'Queue Slack',       value: simResult?.avg_queue_wait != null ? `${Number(simResult.avg_queue_wait).toFixed(1)} min (AI)` : '4.5 min' },
-                  { label: 'Divert Threshold',  value: '>12 Trucks' },
-                  { label: 'OCR Confidence',    value: '99.4%' },
-                  { label: 'Wait Reduction',    value: simResult?.wait_reduction_pct != null ? `−${simResult.wait_reduction_pct}% vs no-AI` : '−35.3% vs baseline' },
-                ].map(p => (
-                  <div key={p.label} className="px-3 py-1.5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-white/60 dark:border-white/10 neu-flat-sm">
-                    <div className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">{p.label}</div>
-                    <div className="text-sm font-black tabular text-slate-900 dark:text-white font-mono">{p.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <Button variant="ghost" onClick={() => showToast({ type: 'info', title: 'Policy Editor', message: 'Tune Policy Weights panel coming soon.' })}>
-                <Settings className="w-4 h-4" />
-                <span>Tune Weights</span>
-              </Button>
-              <Button variant="primary" isLoading={isSimRunning} onClick={handleRunSimulation}>
-                {!isSimRunning && <Play className="w-4 h-4 fill-white" />}
-                <span>Run Monte Carlo Sim</span>
-              </Button>
-            </div>
-          </div>
-          {simResult && (
-            <div className="mt-4 p-3.5 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-xs text-cyan-800 dark:text-cyan-200 leading-relaxed">
-              <span className="font-bold">Simulation Result: </span>
-              {simResult.summary || `${simResult.num_trucks || 200} trucks simulated · Avg wait with AI: ${simResult.avg_queue_wait ?? 'N/A'} min · Reduction: ${simResult.wait_reduction_pct ?? 'N/A'}%`}
-            </div>
-          )}
-        </div>
-
       </div>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="px-2 py-1.5 rounded-lg bg-slate-500/6">
+      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">{label}</p>
+      <p className="text-xs font-black font-mono text-slate-800 dark:text-slate-100">{value}</p>
     </div>
   );
 }

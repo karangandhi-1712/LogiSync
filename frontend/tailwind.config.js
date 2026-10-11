@@ -44,10 +44,8 @@ export default {
         neon: {
           cyan: '#00f5d4',
           blue: '#00bbf9',
-          purple: '#9b5de5',
           pink: '#f15bb5',
           yellow: '#fee440',
-          violet: '#7928ca',
           emerald: '#10b981',
         },
       },
@@ -56,7 +54,6 @@ export default {
         'card-dark': '0 8px 32px rgba(6, 182, 212, 0.08)',
         'glow-cyan': '0 0 25px rgba(6, 182, 212, 0.45)',
         'glow-sky': '0 0 25px rgba(2, 132, 199, 0.4)',
-        'glow-violet': '0 0 25px rgba(121, 40, 202, 0.45)',
         'glow-amber': '0 0 25px rgba(245, 158, 11, 0.4)',
         'glow-emerald': '0 0 25px rgba(16, 185, 129, 0.45)',
         // Neumorphic & Liquid Glass shadows

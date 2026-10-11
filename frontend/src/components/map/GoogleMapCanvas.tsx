@@ -9,7 +9,7 @@ import { clsx } from 'clsx';
 // a leaked key in the bundle cannot be rotated without a rebuild.
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || '';
 if (!GEOAPIFY_API_KEY && typeof console !== 'undefined') {
-  console.warn('[LogiSync] VITE_GEOAPIFY_API_KEY is not set — map tiles will fail to load.');
+  console.warn('[LogiSync] VITE_GEOAPIFY_API_KEY is not set - map tiles will fail to load.');
 }
 
 // VOC Port Thoothukudi center coordinates
@@ -45,7 +45,7 @@ export function GoogleMapCanvas({
     }
     if (dark) {
       return {
-        url: `https://maps.geoapify.com/v1/tile/dark-matter-purple-roads/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
+        url: `https://maps.geoapify.com/v1/tile/dark-matter/{z}/{x}/{y}.png?apiKey=${GEOAPIFY_API_KEY}`,
         maxZoom: 20,
       };
     }
@@ -144,7 +144,7 @@ export function GoogleMapCanvas({
       {/* Leaflet Map Div */}
       <div ref={mapContainerRef} className="absolute inset-0 w-full h-full z-0" />
 
-      {/* Map Mode Switcher — minimal white control (kept below header dropdowns) */}
+      {/* Map Mode Switcher - minimal white control (kept below header dropdowns) */}
       <div
         role="group"
         aria-label="Map style"
@@ -179,7 +179,7 @@ export function GoogleMapCanvas({
         </button>
       </div>
 
-      {/* Zoom Controls — minimal white */}
+      {/* Zoom Controls - minimal white */}
       <div className="absolute bottom-20 right-5 z-10 flex flex-col gap-1.5">
         <button
           onClick={handleZoomIn}

@@ -1,39 +1,88 @@
-// ─── Port registry (mirrors backend/app/ports.py — keep in sync) ──────────
-// Static fallback so the selector + map work even if /api/ports is unreachable.
+// ─── Depot registry ───────────────────────────────────────────────────────────
+// The server owns the depot list (`/api/ports`, seeded from backend/app/ports.py).
+// This module holds the offline fallback and the small amount of derivation the
+// UI needs before the fetch resolves - no gates, no per-port congestion data,
+// both of which went away with the slot-booking flow.
+
+import type { PortSummary } from '../types';
 
 export interface PortInfo {
   id: string;
-  coast: 'West' | 'East';
   name: string;
   short: string;
-  locode: string;            // UN/LOCODE e.g. "INTUT"
+  code: string | null;
   city: string;
   state: string;
   lat: number;
   lng: number;
   zoom: number;
   corridor: string;
-  gates: string[];
-  congestionLevel: 'low' | 'moderate' | 'high'; // decorative, for modal dot
+  coast: 'West' | 'East';
 }
+
+/** East-coast states serve the consumer last-mile flow. */
+const EAST_STATES = new Set(['Tamil Nadu', 'Andhra Pradesh', 'Odisha', 'West Bengal']);
 
 export const DEFAULT_PORT_ID = 'voc';
 
-export const PORTS: PortInfo[] = [
-  { id: 'voc',       coast: 'East', name: 'V.O. Chidambaranar Port',              locode: 'INTUT', short: 'VOC Port',    city: 'Thoothukudi',  state: 'Tamil Nadu',      lat: 8.7642,  lng: 78.1348, zoom: 12, corridor: 'Madurai–Thoothukudi Hwy (NH 38)',  gates: ['Gate 1 (Bulk)', 'Gate 2 (General)', 'Gate 3 (Container/Reefer)', 'Gate 4 (Express Rail)'],         congestionLevel: 'moderate' },
-  { id: 'deendayal', coast: 'West', name: 'Deendayal Port (Kandla)',               locode: 'INKLA', short: 'Deendayal',  city: 'Kandla',       state: 'Gujarat',         lat: 23.0,    lng: 70.221,  zoom: 12, corridor: 'Kandla–Ahmedabad Hwy (NH 41)',       gates: ['Gate 1 (Dry Bulk)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (Liquid/Express)'],          congestionLevel: 'low'      },
-  { id: 'mumbai',    coast: 'West', name: 'Mumbai Port',                           locode: 'INBOM', short: 'Mumbai',     city: 'Mumbai',       state: 'Maharashtra',     lat: 18.918,  lng: 72.935,  zoom: 12, corridor: 'Eastern Freeway / Harbour Link',       gates: ['Gate 1 (Green Gate)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (Coastal/Express)'],      congestionLevel: 'high'     },
-  { id: 'jnpt',      coast: 'West', name: 'Jawaharlal Nehru Port (Nhava Sheva)',   locode: 'INNSA', short: 'JNPT',       city: 'Navi Mumbai',  state: 'Maharashtra',     lat: 18.945,  lng: 72.94,   zoom: 12, corridor: 'JNPT–Panvel Hwy (NH 348)',             gates: ['Gate 1 (Main Entry)', 'Gate 2 (General)', 'Gate 3 (Container/Reefer)', 'Gate 4 (Rail/Express)'],   congestionLevel: 'high'     },
-  { id: 'mormugao',  coast: 'West', name: 'Mormugao Port',                         locode: 'INMAR', short: 'Mormugao',   city: 'Vasco da Gama',state: 'Goa',             lat: 15.419,  lng: 73.8,    zoom: 12, corridor: 'Vasco–Panaji Hwy (NH 66)',              gates: ['Gate 1 (Iron Ore/Bulk)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (Coastal/Express)'],  congestionLevel: 'low'      },
-  { id: 'mangalore', coast: 'West', name: 'New Mangalore Port',                    locode: 'INMRM', short: 'N. Mangalore',city: 'Mangaluru',   state: 'Karnataka',       lat: 12.915,  lng: 74.796,  zoom: 12, corridor: 'Mangaluru–Bengaluru Hwy (NH 75)',       gates: ['Gate 1 (POL/Bulk)', 'Gate 2 (General)', 'Gate 3 (Container/Reefer)', 'Gate 4 (Rail/Express)'],    congestionLevel: 'moderate' },
-  { id: 'cochin',    coast: 'West', name: 'Cochin Port',                           locode: 'INCOK', short: 'Cochin',     city: 'Kochi',        state: 'Kerala',          lat: 9.967,   lng: 76.24,   zoom: 12, corridor: 'Kochi–Salem Hwy (NH 544)',              gates: ['Gate 1 (Main Entry)', 'Gate 2 (General)', 'Gate 3 (Container ICTT)', 'Gate 4 (Coastal/Express)'], congestionLevel: 'moderate' },
-  { id: 'haldia',    coast: 'East', name: 'Syama Prasad Mookerjee Port (Haldia)', locode: 'INHLD', short: 'Haldia',     city: 'Haldia',       state: 'West Bengal',     lat: 22.03,   lng: 88.065,  zoom: 12, corridor: 'Haldia–Kolkata Hwy (NH 116)',           gates: ['Gate 1 (Bulk)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (Rail/Express)'],               congestionLevel: 'low'      },
-  { id: 'paradip',   coast: 'East', name: 'Paradip Port',                          locode: 'INPAT', short: 'Paradip',    city: 'Paradip',      state: 'Odisha',          lat: 20.262,  lng: 86.682,  zoom: 12, corridor: 'Paradip–Cuttack Hwy (NH 53)',           gates: ['Gate 1 (Iron Ore/Bulk)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (POL/Express)'],     congestionLevel: 'moderate' },
-  { id: 'vizag',     coast: 'East', name: 'Visakhapatnam Port',                    locode: 'INVTZ', short: 'Vizag',      city: 'Visakhapatnam',state: 'Andhra Pradesh',  lat: 17.686,  lng: 83.283,  zoom: 12, corridor: 'Vizag–Raipur Hwy (NH 26)',              gates: ['Gate 1 (Ore/Bulk)', 'Gate 2 (General)', 'Gate 3 (Container)', 'Gate 4 (Rail/Express)'],          congestionLevel: 'high'     },
-  { id: 'chennai',   coast: 'East', name: 'Chennai Port',                          locode: 'INMAA', short: 'Chennai',    city: 'Chennai',      state: 'Tamil Nadu',      lat: 13.1,    lng: 80.293,  zoom: 12, corridor: 'Chennai–Bengaluru Hwy (NH 48)',         gates: ['Gate 2 (Bulk)', 'Gate 4 (General)', 'Gate 6 (Container)', 'Gate 7 (Coastal/Express)', 'Gate 10 (Rail/Express)'], congestionLevel: 'high' },
-  { id: 'ennore',    coast: 'East', name: 'Kamarajar Port (Ennore)',               locode: 'INENT', short: 'Ennore',     city: 'Ennore',       state: 'Tamil Nadu',      lat: 13.25,   lng: 80.32,   zoom: 12, corridor: 'Ennore–Chennai Port Corridor',          gates: ['Gate 1 (Coal/Bulk)', 'Gate 2 (General)', 'Gate 3 (Container/LNG)', 'Gate 4 (Rail/Express)'],   congestionLevel: 'low'      },
+export const FALLBACK_PORTS: PortSummary[] = [
+  { id: 'voc',       code: 'INMUN', name: 'V.O. Chidambaranar Port',             short: 'VOC Port',    city: 'Thoothukudi',    state: 'Tamil Nadu',     lat: 8.7642,  lng: 78.1348, zoom: 12, corridor: 'Madurai-Thoothukudi Hwy (NH 38)' },
+  { id: 'deendayal', code: 'INDEK', name: 'Deendayal Port (Kandla)',              short: 'Deendayal',   city: 'Kandla',         state: 'Gujarat',         lat: 23.0,    lng: 70.221,  zoom: 12, corridor: 'Kandla-Ahmedabad Hwy (NH 41)' },
+  { id: 'mumbai',    code: 'INBOM', name: 'Mumbai Port',                          short: 'Mumbai',      city: 'Mumbai',         state: 'Maharashtra',     lat: 18.917,  lng: 72.833,  zoom: 12, corridor: 'Eastern Freeway / Harbour Link' },
+  { id: 'jnpt',      code: 'INNSA', name: 'Jawaharlal Nehru Port (Nhava Sheva)',  short: 'JNPT',        city: 'Navi Mumbai',    state: 'Maharashtra',     lat: 18.945,  lng: 72.94,   zoom: 12, corridor: 'JNPT-Panvel Hwy (NH 348)' },
+  { id: 'mormugao',  code: 'INMVM', name: 'Mormugao Port',                        short: 'Mormugao',    city: 'Vasco da Gama',  state: 'Goa',             lat: 15.419,  lng: 73.8,    zoom: 12, corridor: 'Vasco-Panaji Hwy (NH 66)' },
+  { id: 'mangalore', code: 'INMIX', name: 'New Mangalore Port',                   short: 'N. Mangalore', city: 'Mangaluru',      state: 'Karnataka',       lat: 12.915,  lng: 74.796,  zoom: 12, corridor: 'Mangaluru-Bengaluru Hwy (NH 75)' },
+  { id: 'cochin',    code: 'INCOK', name: 'Cochin Port',                          short: 'Cochin',      city: 'Kochi',          state: 'Kerala',          lat: 9.967,   lng: 76.24,   zoom: 12, corridor: 'Kochi-Salem Hwy (NH 544)' },
+  { id: 'haldia',    code: 'INHAL', name: 'Syama Prasad Mookerjee Port (Haldia)', short: 'Haldia',      city: 'Haldia',         state: 'West Bengal',     lat: 22.03,   lng: 88.065,  zoom: 12, corridor: 'Haldia-Kolkata Hwy (NH 116)' },
+  { id: 'paradip',   code: 'INPNT', name: 'Paradip Port',                         short: 'Paradip',     city: 'Paradip',        state: 'Odisha',          lat: 20.262,  lng: 86.682,  zoom: 12, corridor: 'Paradip-Cuttack Hwy (NH 53)' },
+  { id: 'vizag',     code: 'INVTZ', name: 'Visakhapatnam Port',                   short: 'Vizag',       city: 'Visakhapatnam',  state: 'Andhra Pradesh',  lat: 17.686,  lng: 83.283,  zoom: 12, corridor: 'Vizag-Raipur Hwy (NH 26)' },
+  { id: 'chennai',   code: 'INMAA', name: 'Chennai Port',                         short: 'Chennai',     city: 'Chennai',        state: 'Tamil Nadu',     lat: 13.1,    lng: 80.293,  zoom: 12, corridor: 'Chennai-Bengaluru Hwy (NH 48)' },
+  { id: 'ennore',    code: 'INENR', name: 'Kamarajar Port (Ennore)',              short: 'Ennore',      city: 'Ennore',         state: 'Tamil Nadu',     lat: 13.25,   lng: 80.32,   zoom: 12, corridor: 'Ennore-Chennai Port Corridor' },
 ];
 
-export function getPort(portId: string): PortInfo {
-  return PORTS.find(p => p.id === portId) || PORTS[0];
+export function toPortInfo(p: PortSummary): PortInfo {
+  return {
+    id: p.id,
+    name: p.name,
+    short: p.short ?? p.name,
+    code: p.code,
+    city: p.city ?? '',
+    state: p.state ?? '',
+    lat: p.lat,
+    lng: p.lng,
+    zoom: p.zoom ?? 12,
+    corridor: p.corridor ?? '',
+    coast: EAST_STATES.has(p.state ?? '') ? 'East' : 'West',
+  };
+}
+
+export const FALLBACK_PORT_INFOS: PortInfo[] = FALLBACK_PORTS.map(toPortInfo);
+
+export function getPortFrom(list: PortInfo[], portId: string | null | undefined): PortInfo | null {
+  if (!portId) return null;
+  return list.find((p) => p.id === portId) ?? null;
+}
+
+export const getPort = (portId: string): PortInfo =>
+  FALLBACK_PORT_INFOS.find((p) => p.id === portId) ?? FALLBACK_PORT_INFOS[0];
+
+/** Great-circle distance in km - mirrors backend/app/ports.py haversine_km. */
+export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371.0088;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(Math.min(1, a)));
+}
+
+export function isWithinRadius(
+  center: { lat: number; lng: number },
+  lat: number,
+  lng: number,
+  radiusKm: number,
+): boolean {
+  return haversineKm(center.lat, center.lng, lat, lng) <= radiusKm;
 }

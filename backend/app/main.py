@@ -1,69 +1,118 @@
 import asyncio
+import logging
+import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from typing import Any, Dict, Optional
+
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import get_settings
-from app.db import Base, engine, ensure_port_columns, ensure_user_columns
-from app.seed import seed_database
+from app.db import Base, engine
 from app.middleware import (
+    LoggingMiddleware,
     SecurityHeadersMiddleware,
     limiter,
     rate_limit_exceeded_handler,
-    LoggingMiddleware
 )
 from app.routers import (
-    auth_router,
-    bookings_router,
-    admin_router,
-    maps_router,
-    slots_router,
-    fleet_router,
-    operations_router,
-    gis_router,
-    analytics_router,
-    settings_router,
-    notifications_router,
-    ports_router
+    admin,
+    analytics,
+    auth,
+    consumer,
+    deliveries,
+    maps,
+    ports,
+    schedules,
 )
+from app.routers import settings as settings_router
+from app.seed import seed_database
+from app.services.events import Connection, hub, set_loop
 
 settings = get_settings()
+logger = logging.getLogger("logisync.main")
+
+SWEEP_INTERVAL_SECONDS = 15
+
+
+async def _run_migrations() -> None:
+    """Apply Alembic revisions when configured, else fall back to create_all.
+
+    AUTO_MIGRATE keeps the dev SQLite loop one command long; production runs
+    `alembic upgrade head` as a deploy step and leaves this off.
+    """
+    if os.getenv("AUTO_MIGRATE", "true").lower() in ("1", "true", "yes"):
+        try:
+            from alembic import command
+            from alembic.config import Config
+
+            ini_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "alembic.ini")
+            if os.path.exists(ini_path):
+                cfg = Config(ini_path)
+                cfg.set_main_option("script_location", os.path.join(os.path.dirname(ini_path), "alembic"))
+                command.upgrade(cfg, "head")
+                logger.info("alembic upgrade head applied")
+                return
+        except Exception as exc:
+            logger.warning("alembic upgrade failed (%s); falling back to create_all", exc)
+    Base.metadata.create_all(bind=engine)
+
+
+async def _schedule_sweep() -> None:
+    """Housekeeping tick: lock claimed batches whose departure window has closed."""
+    from app.services.schedule_engine import sweep_schedules
+    from app.db import SessionLocal
+
+    while True:
+        try:
+            await asyncio.sleep(SWEEP_INTERVAL_SECONDS)
+            db = SessionLocal()
+            try:
+                changed = sweep_schedules(db)
+                for schedule_id in changed:
+                    from app.services.events import emit
+                    await emit("schedule:locked", {"schedule_id": schedule_id})
+            finally:
+                db.close()
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("schedule sweep failed: %s", exc)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables, migrate pre-multi-port DBs, seed initial data
-    import app.models.user  # noqa: F401 — register users table for create_all
-    import app.models.otp  # noqa: F401
-    import app.models.booking  # noqa: F401
-    Base.metadata.create_all(bind=engine)
-    ensure_port_columns()
-    ensure_user_columns()
+    import app.models  # noqa: F401  — registers every table on Base.metadata
+    set_loop(asyncio.get_running_loop())
+
+    await _run_migrations()
     seed_database()
-    task = asyncio.create_task(periodic_telemetry_broadcast())
+
+    sweep_task = asyncio.create_task(_schedule_sweep())
     yield
-    # Shutdown
-    task.cancel()
+    sweep_task.cancel()
     try:
-        await task
+        await sweep_task
     except asyncio.CancelledError:
         pass
 
 
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    description="AI-Powered Port Logistics Command Center for VOC Port Thoothukudi",
-    lifespan=lifespan
+    title="LogiSync — Port Delivery Marketplace API",
+    version="3.0.0",
+    description="Broadcast, claim & batch delivery marketplace for port depots.",
+    lifespan=lifespan,
 )
 
-# ─── Rate Limiter State ──────────────────────────────────────────────────────
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
-# ─── Security & Logging Middlewares ──────────────────────────────────────────
+
+# ── Middleware ───────────────────────────────────────────────────────────────
 app.add_middleware(SlowAPIMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(LoggingMiddleware)
@@ -77,225 +126,95 @@ app.add_middleware(
     allow_private_network=True,
 )
 
-# ─── Include API Routers ─────────────────────────────────────────────────────
-app.include_router(auth_router, prefix=settings.API_PREFIX)
-app.include_router(bookings_router, prefix=settings.API_PREFIX)
-app.include_router(admin_router, prefix=settings.API_PREFIX)
-app.include_router(maps_router, prefix=settings.API_PREFIX)
-app.include_router(slots_router, prefix=settings.API_PREFIX)
-app.include_router(fleet_router, prefix=settings.API_PREFIX)
-app.include_router(operations_router, prefix=settings.API_PREFIX)
-app.include_router(gis_router, prefix=settings.API_PREFIX)
-app.include_router(analytics_router, prefix=settings.API_PREFIX)
-app.include_router(settings_router, prefix=settings.API_PREFIX)
-app.include_router(notifications_router, prefix=settings.API_PREFIX)
-app.include_router(ports_router, prefix=settings.API_PREFIX)
+
+# ── Routers ──────────────────────────────────────────────────────────────────
+for r in (
+    auth.router,
+    admin.router,
+    ports.router,
+    consumer.router,
+    consumer.account_router,
+    consumer.track_router,
+    schedules.router,
+    schedules.drivers_router,
+    deliveries.router,
+    analytics.router,
+    settings_router.router,
+    maps.router,
+):
+    app.include_router(r, prefix=settings.API_PREFIX)
 
 
+# ── System ───────────────────────────────────────────────────────────────────
 
-# ─── Health Checks ───────────────────────────────────────────────────────────
 @app.get("/healthz", tags=["System"])
 def health_check():
     return {
         "status": "healthy",
-        "service": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "region": settings.AWS_REGION
+        "service": "LogiSync Delivery Marketplace API",
+        "version": app.version,
+        "region": settings.AWS_REGION,
     }
 
 
 @app.get("/", tags=["System"])
 def root():
-    return {
-        "message": "Welcome to LogiSync v2.0 - VOC Port Command Center API",
-        "docs": "/docs",
-        "health": "/healthz"
-    }
+    return {"message": "LogiSync — Port Delivery Marketplace API", "docs": "/docs", "health": "/healthz"}
 
 
-# ─── Real-Time Telemetry WebSocket ───────────────────────────────────────────
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: list[WebSocket] = []
+# ── Real-time: marketplace events ────────────────────────────────────────────
 
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
+@app.websocket("/ws/events")
+async def events_websocket(websocket: WebSocket):
+    """Authenticated marketplace event socket.
 
-    def disconnect(self, websocket: WebSocket):
-        if websocket in self.active_connections:
-            self.active_connections.remove(websocket)
-
-    async def broadcast(self, message: dict):
-        for connection in list(self.active_connections):
-            try:
-                await connection.send_json(message)
-            except Exception:
-                if connection in self.active_connections:
-                    self.active_connections.remove(connection)
-
-
-ws_manager = ConnectionManager()
-
-
-async def periodic_telemetry_broadcast():
-    """Background loop that emits typed updates (truck_update, stats) to connected UIs."""
-    import random
-    from app.db import SessionLocal
-    from app.models.truck import TruckModel
-    from app.ports import clamp_point
-
-    step = 0
-    while True:
-        await asyncio.sleep(3.5)
-        if not ws_manager.active_connections:
-            continue
-
-        step += 1
-        db = SessionLocal()
-        try:
-            trucks = db.query(TruckModel).all()
-            if trucks:
-                # Pick 1-2 random trucks to simulate movement
-                sampled = random.sample(trucks, min(2, len(trucks)))
-                for trk in sampled:
-                    if trk.status in ("in_transit", "queued"):
-                        # Subtle realistic coordinate jitter, clamped to the
-                        # truck's port bbox so simulated trucks never drift
-                        # into the sea over long uptimes.
-                        dlat = random.uniform(-0.0008, 0.0008)
-                        dlng = random.uniform(-0.0008, 0.0008)
-                        trk.lat, trk.lng = clamp_point(
-                            trk.port_id or "voc", trk.lat + dlat, trk.lng + dlng
-                        )
-                        trk.speed = round(max(0.0, trk.speed + random.uniform(-3, 3)), 1)
-                        trk.heading = (trk.heading + random.uniform(-10, 10)) % 360
-
-                        db.commit()
-
-                        # Broadcast typed 'truck_update'
-                        payload = {
-                            "id": trk.id,
-                            "plate": trk.plate,
-                            "latitude": trk.lat,
-                            "longitude": trk.lng,
-                            "speedKmh": trk.speed,
-                            "heading": trk.heading,
-                            "status": trk.status,
-                            "fuelPct": int(trk.fuel_level or 75),
-                            "reeferTempC": trk.reefer_temp
-                        }
-                        await ws_manager.broadcast({"type": "truck_update", "data": payload})
-
-            # Broadcast typed 'stats' every 3 cycles
-            if step % 3 == 0:
-                stats_payload = {
-                    "total_active_trucks": 24,
-                    "gnss_locked_count": 24,
-                    "avg_5g_latency_ms": round(random.uniform(3.8, 4.6), 1),
-                    "fleet_avg_speed_kmh": 46.8,
-                    "queue_depth": random.randint(18, 26),
-                    "active_missions": 22,
-                    "system_uptime_pct": 99.98
-                }
-                await ws_manager.broadcast({"type": "stats", "data": stats_payload})
-
-        except Exception as e:
-            import logging
-            logging.getLogger("logisync.telemetry").warning("telemetry broadcast failed: %s", e)
-        finally:
-            db.close()
-
-
-@app.websocket("/ws/telemetry")
-async def telemetry_websocket(websocket: WebSocket):
+    The JWT is read from ?token= at handshake time and the socket is registered
+    with that identity, which is what lets `schedule:broadcast` reach only
+    available drivers and `schedule:stop_added` reach only the claiming driver
+    and the owning fleet manager. Unauthenticated sockets are rejected.
     """
-    Live bidirectional WebSocket connection for driver telematics
-    and command center dispatch broadcasts.
-    """
-    await ws_manager.connect(websocket)
-    from app.db import SessionLocal
-    from app.models.truck import TruckModel
-    from app.services.rerouter import rerouter_service
+    from app.services.jwt_service import decode_token
 
-    def _to_float(value, default=0.0):
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return default
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=1008, reason="Missing token")
+        return
+    try:
+        claims = decode_token(token)
+    except Exception:
+        await websocket.close(code=1008, reason="Invalid token")
+        return
+
+    await websocket.accept()
+    conn = Connection(
+        websocket,
+        user_id=str(claims.get("sub")),
+        role=str(claims.get("role")),
+        assigned_port_id=claims.get("assigned_port_id"),
+    )
+    hub.add(conn)
+    await websocket.send_json({
+        "type": "connection:ready",
+        "data": {"user_id": conn.user_id, "role": conn.role},
+    })
 
     try:
         while True:
             try:
-                data = await websocket.receive_json()
+                message = await websocket.receive_json()
+            except WebSocketDisconnect:
+                break
             except Exception:
-                await websocket.send_json({"type": "error", "message": "Invalid JSON payload"})
-                continue
-            if not isinstance(data, dict):
-                await websocket.send_json({"type": "error", "message": "Payload must be a JSON object"})
-                continue
-            # If client sends live telemetry ping, persist and evaluate rerouting
-            truck_id = data.get("truckId") or data.get("truck_id") or data.get("id")
-            if truck_id and ("lat" in data or "latitude" in data):
-                lat = _to_float(data.get("lat", data.get("latitude")))
-                lng = _to_float(data.get("lng", data.get("longitude")))
-                speed = _to_float(data.get("speed", data.get("speedKmh")), 0.0)
-                heading = _to_float(data.get("heading"), 0.0)
-                fuel = data.get("fuel_level", data.get("fuelPct"))
-                reefer = data.get("reefer_temp", data.get("reeferTempC"))
-                if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
-                    await websocket.send_json({"type": "error", "message": "Invalid coordinates"})
-                    continue
-                speed = min(max(speed, 0.0), 200.0)
-                heading = heading % 360.0
-
-                db = SessionLocal()
+                # Invalid JSON (or a receive failure) is not recoverable by
+                # retrying immediately. Continuing here can spin forever on a
+                # closed socket after refresh/login changes and starve HTTP
+                # requests on the same event loop.
                 try:
-                    truck = db.query(TruckModel).filter(TruckModel.id == truck_id).first()
-                    if not truck:
-                        await websocket.send_json({"type": "error", "message": f"Unknown truck {truck_id}"})
-                        continue
-                    truck.lat = lat
-                    truck.lng = lng
-                    truck.speed = speed
-                    truck.heading = heading
-                    if fuel is not None:
-                        truck.fuel_level = _to_float(fuel, truck.fuel_level or 75.0)
-                    if reefer is not None:
-                        try:
-                            truck.reefer_temp = float(reefer)
-                        except (TypeError, ValueError):
-                            pass
-                    db.commit()
-
-                    # Run rerouter on WS path too (port-scoped hotspots)
-                    reroute_eval = rerouter_service.evaluate_truck_position(
-                        truck_id=truck_id,
-                        current_lat=lat,
-                        current_lng=lng,
-                        port_id=truck.port_id or "voc",
-                    )
-                    update_msg = {
-                        "type": "truck_update",
-                        "data": {
-                            "id": truck.id,
-                            "plate": truck.plate,
-                            "latitude": truck.lat,
-                            "longitude": truck.lng,
-                            "speedKmh": truck.speed,
-                            "heading": truck.heading,
-                            "status": truck.status,
-                            "fuelPct": int(truck.fuel_level or 75),
-                            "reeferTempC": truck.reefer_temp,
-                            "reroute": reroute_eval
-                        }
-                    }
-                    await ws_manager.broadcast(update_msg)
-                finally:
-                    db.close()
-            else:
-                # Unknown shapes are rejected (never rebroadcast: prevents spoofing)
-                await websocket.send_json({"type": "error", "message": "Unrecognized telemetry shape; expected truckId + lat/lng"})
+                    await websocket.close(code=1003, reason="Invalid JSON message")
+                except Exception:
+                    pass
+                break
+            await _handle_client_event(websocket, message)
     except WebSocketDisconnect:
         pass
     except Exception:
@@ -304,5 +223,76 @@ async def telemetry_websocket(websocket: WebSocket):
         except Exception:
             pass
     finally:
-        ws_manager.disconnect(websocket)
+        hub.remove(websocket)
 
+
+async def _handle_client_event(websocket: WebSocket, message: Any) -> None:
+    """Inbound socket messages. Only the driver's own position is accepted."""
+    if not isinstance(message, dict):
+        await websocket.send_json({"type": "error", "message": "Payload must be a JSON object"})
+        return
+
+    conn = hub._connections.get(websocket)
+    if conn is None:
+        return
+
+    kind = message.get("type")
+    data = message.get("data") or {}
+
+    if kind == "driver:position":
+        schedule_id = data.get("schedule_id")
+        lat, lng = data.get("latitude"), data.get("longitude")
+        if not schedule_id or lat is None or lng is None:
+            await websocket.send_json({"type": "error", "message": "schedule_id + lat/lng required"})
+            return
+        try:
+            lat, lng = float(lat), float(lng)
+        except (TypeError, ValueError):
+            await websocket.send_json({"type": "error", "message": "Invalid coordinates"})
+            return
+        if not (-90.0 <= lat <= 90.0 and -180.0 <= lng <= 180.0):
+            await websocket.send_json({"type": "error", "message": "Coordinates out of range"})
+            return
+
+        from datetime import datetime
+        from sqlalchemy import update
+        from app.db import SessionLocal
+        from app.models.delivery_schedule import DeliveryScheduleModel
+        from app.services.events import emit_driver_position
+
+        db = SessionLocal()
+        try:
+            # Scoped UPDATE: a driver may only move the batch they hold.
+            changed = db.execute(
+                update(DeliveryScheduleModel)
+                .where(
+                    DeliveryScheduleModel.id == schedule_id,
+                    DeliveryScheduleModel.claimed_by_driver_id == conn.user_id,
+                )
+                .values(
+                    driver_lat=lat, driver_lng=lng,
+                    driver_heading=data.get("heading"),
+                    driver_updated_at=datetime.utcnow(),
+                )
+                .execution_options(synchronize_session=False)
+            ).rowcount
+            db.commit()
+            if changed:
+                fm_id = db.query(DeliveryScheduleModel.fleet_manager_id).filter(
+                    DeliveryScheduleModel.id == schedule_id
+                ).scalar()
+                # Customers with a stop on this batch watch their own delivery's
+                # map live, so they ride the same position event as the depot.
+                from app.routers.consumer import consumer_user_ids_for_schedule
+                await emit_driver_position(schedule_id, lat, lng, data.get("heading"), fm_id,
+                                           consumer_user_ids_for_schedule(db, schedule_id))
+                await websocket.send_json({"type": "driver:position:ack", "data": {"schedule_id": schedule_id}})
+        finally:
+            db.close()
+    elif kind == "ping":
+        await websocket.send_json({"type": "pong", "data": {}})
+    else:
+        await websocket.send_json({
+            "type": "error",
+            "message": f"Unrecognized event type '{kind}'",
+        })

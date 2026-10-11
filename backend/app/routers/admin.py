@@ -3,12 +3,13 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.db import get_db
+from app.models.port import PortModel
 from app.models.user import UserModel
 from app.services.password import hash_password, validate_password_constraints
 from app.dependencies import require_role
 from app.ports import is_valid_port
 
-router = APIRouter(prefix="/admin", tags=["Admin: fleet managers"])
+router = APIRouter(prefix="/admin", tags=["Admin: users & fleet managers"])
 
 
 class CreateFMReq(BaseModel):
@@ -23,6 +24,12 @@ class CreateFMReq(BaseModel):
 def create_fleet_manager(req: CreateFMReq, db: Session = Depends(get_db)):
     if not is_valid_port(req.assigned_port_id):
         raise HTTPException(status_code=400, detail=f"Unknown port {req.assigned_port_id}")
+    # assigned_port_id is now a real FK, so the depot row must exist.
+    if not db.query(PortModel).filter(PortModel.id == req.assigned_port_id).first():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Depot {req.assigned_port_id} is not in the ports table. Run the seeder first.",
+        )
     errs = validate_password_constraints(req.temp_password)
     if errs:
         raise HTTPException(status_code=422, detail={"password_errors": errs})
@@ -47,6 +54,9 @@ def list_users(role: Optional[str] = None, port: Optional[str] = None, db: Sessi
         q = q.filter(UserModel.assigned_port_id == port)
     return [{"id": u.id, "role": u.role, "full_name": u.full_name, "email": u.email,
              "mobile_number": u.mobile_number, "assigned_port_id": u.assigned_port_id,
+             "availability_status": getattr(u, "availability_status", None),
+             "going_offline_at": (u.going_offline_at.isoformat()
+                                  if getattr(u, "going_offline_at", None) else None),
              "is_active": u.is_active} for u in q.limit(500).all()]
 
 

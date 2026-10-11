@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { fetchAdminUsers, createFleetManager, deactivateUser, activateUser, deleteUser } from '../services/api';
-import { PORTS } from '../data/ports';
+import { usePort } from '../context/PortContext';
 import { useToast } from '../context/ToastContext';
 import { X, UserPlus, ShieldOff, ShieldCheck, Trash2, Eye, User, Mail, Phone, MapPin, Clock, Shield } from 'lucide-react';
 
@@ -19,6 +19,7 @@ const fieldCls =
   'px-3.5 py-2.5 rounded-xl border border-white/70 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl neu-inset shadow-inner text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 transition-all [&>option]:text-slate-900';
 
 export default function AdminUsersPage() {
+  const { ports: PORTS } = usePort();
   const { showToast } = useToast();
   const [rows, setRows] = useState<UserRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +48,7 @@ export default function AdminUsersPage() {
     setCreating(true);
     try {
       const r = await createFleetManager(form);
-      showToast({ type: 'success', title: 'Fleet Manager Created', message: `${r.email} — temp password: ${r.temp_password}` });
+      showToast({ type: 'success', title: 'Fleet Manager Created', message: `${r.email} - temp password: ${r.temp_password}` });
       setForm({ full_name: '', email: '', mobile: '', temp_password: '', assigned_port_id: 'voc' });
       load();
     } catch (e: any) {
@@ -123,7 +124,7 @@ export default function AdminUsersPage() {
   }
 
   const getPortName = (portId: string | null) => {
-    if (!portId) return '—';
+    if (!portId) return '-';
     return PORTS.find(p => p.id === portId)?.name || portId;
   };
 
@@ -262,7 +263,7 @@ export default function AdminUsersPage() {
                   </span>
 
                   {/* Status */}
-                  <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border ${
+                  <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-md border ${
                     u.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -325,11 +326,11 @@ export default function AdminUsersPage() {
                   <button onClick={() => setDetailUser(u)} className="font-bold text-slate-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 hover:underline underline-offset-2 cursor-pointer">
                     {u.full_name}
                   </button>
-                  <span className="text-slate-400 uppercase font-bold text-[10px] px-2 py-0.5 rounded-full border border-slate-300/30 dark:border-white/10">
+                  <span className="text-slate-400 uppercase font-bold text-[10px] px-2 py-0.5 rounded-md border border-slate-300/30 dark:border-white/10">
                     {u.role}
                   </span>
                   <span className="text-slate-500 dark:text-slate-400">{u.email}</span>
-                  <span className={`ml-auto text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                  <span className={`ml-auto text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
                     u.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -363,7 +364,7 @@ export default function AdminUsersPage() {
                   <h3 className="text-lg font-black text-slate-900 dark:text-white">
                     {detailUser.full_name}
                   </h3>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
                     detailUser.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -385,9 +386,9 @@ export default function AdminUsersPage() {
               {[
                 { icon: Shield, label: 'Role', value: detailUser.role.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), color: 'text-indigo-500' },
                 { icon: Mail, label: 'Email', value: detailUser.email, color: 'text-cyan-500' },
-                { icon: Phone, label: 'Mobile', value: detailUser.mobile_number || '—', color: 'text-emerald-500' },
+                { icon: Phone, label: 'Mobile', value: detailUser.mobile_number || '-', color: 'text-emerald-500' },
                 { icon: MapPin, label: 'Assigned Port', value: getPortName(detailUser.assigned_port_id), color: 'text-amber-500' },
-                { icon: Clock, label: 'User ID', value: detailUser.id.slice(0, 8) + '...', color: 'text-violet-500' },
+                { icon: Clock, label: 'User ID', value: detailUser.id.slice(0, 8) + '...', color: 'text-sky-500' },
                 { icon: Eye, label: 'Status', value: detailUser.is_active ? 'Active' : 'Inactive', color: detailUser.is_active ? 'text-emerald-500' : 'text-red-500' },
               ].map(item => (
                 <div key={item.label} className="p-3 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/70 dark:border-white/10 neu-flat-sm backdrop-blur-xl">
