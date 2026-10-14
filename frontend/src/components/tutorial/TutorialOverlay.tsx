@@ -87,7 +87,7 @@ export function TutorialOverlay() {
               </div>
 
               <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 mb-6">
-                LogiSync unifies real-time fleet telematics, AI-driven gate slot optimization, and automated corridor rerouting across VOC Port Thoothukudi. How would you like to explore?
+                LogiSync connects consumer demand, port depots and drivers into one delivery marketplace. How would you like to explore?
               </p>
 
               <div className="space-y-2.5">
@@ -112,7 +112,7 @@ export function TutorialOverlay() {
                   className="w-full"
                   onClick={() => dismissWelcome('skip')}
                 >
-                  Skip — I'll explore on my own
+                  Skip - I'll explore on my own
                 </Button>
               </div>
             </motion.div>

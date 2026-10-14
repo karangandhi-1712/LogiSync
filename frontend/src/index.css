@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Custom Properties (Theme Variables & Liquid Neu-Glass System) ────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CSS Custom Properties (Theme Variables & Liquid Neu-Glass System) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 :root {
-  /* Light Theme — calm neutral command-center canvas */
+  /* Light Theme - calm neutral command-center canvas */
   --bg-canvas:          #F7F7F5;
   --bg-surface:         rgba(255, 255, 255, 0.72);
   --bg-surface-opaque:  #ffffff;
@@ -39,7 +39,7 @@
 }
 
 .dark {
-  /* Dark Theme — Cosmic Midnight Space & Cyber Neon */
+  /* Dark Theme - Cosmic Midnight Space & Cyber Neon */
   --bg-canvas:          #050814;
   --bg-surface:         rgba(10, 16, 32, 0.72);
   --bg-surface-opaque:  #0a1024;
@@ -73,13 +73,13 @@
   --scrollbar-thumb:    #1e3a5f;
 }
 
-/* ─── Base Styles ────────────────────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Base Styles Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
 }
 
 body {
@@ -99,7 +99,7 @@ body {
   position: relative;
 }
 
-/* ─── Dynamic Aurora Background Mesh ─────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Dynamic Aurora Background Mesh Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .aurora-canvas {
   position: fixed;
   inset: 0;
@@ -175,7 +175,7 @@ body {
   background: radial-gradient(circle, #f72585 0%, #3b82f6 50%, rgba(59, 130, 246, 0) 70%);
 }
 
-/* ─── Liquid Glassmorphism 2.0 Classes ───────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Liquid Glassmorphism 2.0 Classes Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .liquid-glass {
   background: var(--bg-surface);
   backdrop-filter: blur(28px) saturate(190%);
@@ -224,77 +224,64 @@ body {
   -webkit-backdrop-filter: blur(24px) saturate(180%);
 }
 
-/* ─── Role Select Page — Light Glass + Dark Glass ─────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Role Select Page - Light Glass + Dark Glass Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .rs-light {
-  background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 30%, #ecfdf5 60%, #f8fafc 100%);
+  background: #f8fafc;
   color: #0f172a;
 }
 
 .rs-dark {
-  background: radial-gradient(ellipse at 50% 0%, #0c1a2e 0%, #070d1a 50%, #030712 100%);
+  background: #0f172a;
   color: #f0f9ff;
 }
 
-/* Light glass card — bright glassmorphism with subtle color wash */
+/* Product presentation rules: restrained surfaces, rectangular controls, no ambient motion. */
+.aurora-canvas {
+  display: none;
+}
+
+button {
+  border-radius: 0.5rem !important;
+}
+
+button[class*="bg-gradient"] {
+  background-image: none !important;
+  background-color: #0369a1 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Light glass card - bright glassmorphism with subtle color wash */
 .rs-light .rs-role-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(32px) saturate(200%);
-  -webkit-backdrop-filter: blur(32px) saturate(200%);
-  box-shadow:
-    0 8px 32px -4px rgba(100, 120, 180, 0.08),
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -0.5px 1px 0 rgba(200, 210, 240, 0.15);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 .rs-light .rs-role-card:hover {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow:
-    0 16px 48px -6px rgba(100, 120, 200, 0.15),
-    inset 0 1.5px 1px 0 rgba(255, 255, 255, 0.9);
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.10);
 }
 
-/* Dark glass card — deep blue glass */
+/* Dark glass card - deep blue glass */
 .rs-dark .rs-role-card {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(14, 165, 233, 0.05) 100%);
-  backdrop-filter: blur(40px) saturate(220%);
-  -webkit-backdrop-filter: blur(40px) saturate(220%);
-  box-shadow:
-    0 16px 50px -10px rgba(0, 0, 0, 0.45),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+  background: #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .rs-dark .rs-role-card:hover {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(14, 165, 233, 0.08) 100%);
-  box-shadow:
-    0 20px 60px -8px rgba(0, 0, 0, 0.5),
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18);
+  background: #1e293b;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
-/* Review cards */
-.rs-light .rs-review-card {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.rs-dark .rs-review-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-/* Stat cards */
-.rs-light .rs-stat-card {
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
-
-.rs-dark .rs-stat-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-}
 
 /* Legacy ocean classes (kept for other pages that may use them) */
 .ocean-canvas {
@@ -340,7 +327,7 @@ body {
     inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
-/* ─── Neumorphic Touches & Tactile Depths ─────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Neumorphic Touches & Tactile Depths Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .neu-flat {
   box-shadow: var(--neu-flat);
 }
@@ -376,7 +363,7 @@ body {
   border: 1px solid var(--border-glass);
 }
 
-/* ─── Shining Bright Chromatic Gradients & Accents ───────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Shining Bright Chromatic Gradients & Accents Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .chroma-text {
   background: linear-gradient(135deg, #0284c7 0%, #6366f1 50%, #ec4899 100%);
   -webkit-background-clip: text;
@@ -411,7 +398,7 @@ body {
   background: linear-gradient(135deg, rgba(0, 245, 212, 0.7), rgba(0, 187, 249, 0.3), rgba(247, 37, 133, 0.7));
 }
 
-/* ─── Scrollbars ─────────────────────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Scrollbars Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -427,13 +414,13 @@ body {
   background: var(--accent);
 }
 
-/* ─── Tabular Numbers for Telemetry Data ─────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Tabular Numbers for Telemetry Data Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
-/* ─── Pulsing Status Indicators & Animations ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Pulsing Status Indicators & Animations Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 @keyframes pulse-ring {
   0%   { transform: scale(0.8); opacity: 1; }
   70%  { transform: scale(2.2); opacity: 0; }
@@ -469,7 +456,7 @@ body {
   transform-origin: center;
 }
 
-/* ─── Shimmer Loading Skeleton ───────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Shimmer Loading Skeleton Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 @keyframes shimmer {
   0%   { background-position: -1000px 0; }
   100% { background-position: 1000px 0; }
@@ -487,7 +474,7 @@ body {
   border-radius: 12px;
 }
 
-/* ─── Smooth Transitions ─────────────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Smooth Transitions Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 *, *::before, *::after {
   transition-property: background-color, border-color, color, box-shadow;
   transition-duration: 0.2s;
@@ -498,7 +485,7 @@ svg, path, circle, rect, polyline, line, polygon {
   transition: none;
 }
 
-/* ─── Map Container & Google Maps Infowindows ────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Map Container & Google Maps Infowindows Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .map-container {
   width: 100%;
   height: 100%;
@@ -523,7 +510,7 @@ svg, path, circle, rect, polyline, line, polygon {
   background: var(--bg-surface) !important;
 }
 
-/* ─── Status Badges with Neu-Glass Treatment ─────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Status Badges with Neu-Glass Treatment Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .badge-transit   { @apply bg-sky-500/15 text-sky-700 dark:text-sky-300 border border-sky-400/30; }
 .badge-gate      { @apply bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-400/30; }
 .badge-delayed   { @apply bg-red-500/15 text-red-700 dark:text-red-300 border border-red-400/30; }
@@ -532,7 +519,7 @@ svg, path, circle, rect, polyline, line, polygon {
 .badge-moderate  { @apply bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-400/30; }
 .badge-normal    { @apply bg-slate-500/15 text-slate-700 dark:text-slate-300 border border-slate-400/30; }
 
-/* ─── Sidebar Active Link ────────────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sidebar Active Link Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .nav-active {
   border-left: 3px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -540,7 +527,7 @@ svg, path, circle, rect, polyline, line, polygon {
   box-shadow: var(--neu-pressed-sm);
 }
 
-/* ─── Premium Command-Center Pass (calm neutrals, restrained accents) ─────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Premium Command-Center Pass (calm neutrals, restrained accents) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 :root {
   --bg-app:            #F7F7F5;
   --ink:                #1D1D1F;
@@ -568,7 +555,7 @@ svg, path, circle, rect, polyline, line, polygon {
   --ease-out:          cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ─── Fleet map markers (custom truck pins) ──────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Fleet map markers (custom truck pins) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .custom-truck-marker {
   background: transparent;
   border: none;
@@ -652,7 +639,7 @@ svg, path, circle, rect, polyline, line, polygon {
   filter: saturate(0.55);
 }
 
-/* ─── Premium truck tooltip card ─────────────────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Premium truck tooltip card Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 .leaflet-tooltip.truck-tip {
   background: #ffffff;
   color: #1D1D1F;
@@ -738,7 +725,7 @@ svg, path, circle, rect, polyline, line, polygon {
   color: #98A2B3;
 }
 
-/* ─── Accessibility: focus + reduced motion ──────────────────────────────── */
+/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Accessibility: focus + reduced motion Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
 :focus-visible {
   outline: 2px solid var(--accent-info);
   outline-offset: 2px;
@@ -766,62 +753,579 @@ svg, path, circle, rect, polyline, line, polygon {
   }
 }
 
-/* ─── Slot Booking Redesign — Additional Styles ───────────────────────────── */
-
-/* AI Top Pick shimmer badge */
-@keyframes shimmer-glow {
-  0%   { box-shadow: 0 0 6px rgba(251,191,36,0.5); }
-  50%  { box-shadow: 0 0 14px rgba(251,191,36,0.85), 0 0 24px rgba(251,191,36,0.35); }
-  100% { box-shadow: 0 0 6px rgba(251,191,36,0.5); }
-}
-.shimmer-ai {
-  animation: shimmer-glow 2s ease-in-out infinite;
-}
-
-/* Step guide vertical connector */
-.step-connector {
-  position: absolute;
-  left: 19px;
-  top: 20px;
-  bottom: 20px;
-  width: 1px;
-  background: linear-gradient(to bottom, rgba(6,182,212,0.35), rgba(16,185,129,0.25));
-}
-
-/* e-Pass print support */
-@media print {
-  body > *:not(#epass-print-root),
-  body > * > *:not(#epass-print-root),
-  header, nav, aside, footer,
-  [data-radix-popper-content-wrapper] {
-    display: none !important;
-  }
-
-  #epass-print-root {
-    display: block !important;
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    max-width: 480px;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-}
-
-/* Time slot grid */
-.slot-time-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 0.375rem;
-}
-
-/* Port selector bar anchor icon size fix */
+/* Half-pixel icon sizing used by the brand marks in TopBar/RoleSelect. */
 .w-4\.5 { width: 1.125rem; }
 .h-4\.5 { height: 1.125rem; }
 
-/* No scrollbar utility (used in DateScrubber) */
+/* Hide scrollbars on horizontal chip rails (DateScrubber, tier rows). */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================================
+   LogiSync site kit
+
+   Scoped under .lw-root so none of it can leak into the app console. The app's
+   own glass/neumorphic system above is untouched.
+
+   Note: two legacy globals above use !important (`button { border-radius }` and
+   `button[class*="bg-gradient"]`). The .lw-* rules below are more specific than
+   both, so they win without needing to edit the originals.
+   ========================================================================= */
+
+.lw-root {
+  /* Brand */
+  --lw-navy: #0b1b3a;
+  --lw-navy-2: #071228;
+  --lw-blue: #2563eb;
+  --lw-blue-hover: #1d4ed8;
+  --lw-blue-soft: #eff4ff;
+  --lw-teal: #14b8a6;
+  --lw-teal-soft: #e6faf7;
+  --lw-amber: #f59e0b;
+  --lw-red: #ef4444;
+
+  /* Surfaces */
+  --lw-bg: #f6f8fb;
+  --lw-surface: #ffffff;
+  --lw-line: #e2e8f0;
+  --lw-line-2: #edf1f7;
+
+  /* Text (slate scale) */
+  --lw-ink: #0f172a;
+  --lw-ink-2: #334155;
+  --lw-ink-3: #64748b;
+  --lw-ink-4: #94a3b8;
+
+  /* Layered elevation */
+  --lw-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --lw-shadow-2: 0 2px 4px rgba(15, 23, 42, 0.04), 0 8px 16px rgba(15, 23, 42, 0.06);
+  --lw-shadow-3: 0 4px 8px rgba(15, 23, 42, 0.04), 0 16px 32px rgba(15, 23, 42, 0.1);
+  --lw-shadow-lift: 0 8px 16px rgba(15, 23, 42, 0.06), 0 24px 48px rgba(15, 23, 42, 0.12);
+
+  --lw-radius: 16px;
+  --lw-radius-sm: 10px;
+
+  background: var(--lw-bg);
+  color: var(--lw-ink);
+  font-feature-settings: 'cv02', 'cv03', 'cv04';
+}
+
+/* Dark panels reuse the same names so a component drops onto navy unchanged */
+.lw-on-navy {
+  --lw-bg: #0b1b3a;
+  --lw-surface: #12244a;
+  --lw-line: rgba(255, 255, 255, 0.14);
+  --lw-line-2: rgba(255, 255, 255, 0.08);
+  --lw-ink: #ffffff;
+  --lw-ink-2: #c3d0e4;
+  --lw-ink-3: #8fa1bd;
+  --lw-ink-4: #6b7d9c;
+  --lw-blue-soft: rgba(37, 99, 235, 0.16);
+  --lw-teal-soft: rgba(20, 184, 166, 0.16);
+  background: var(--lw-bg);
+  color: var(--lw-ink);
+}
+
+/* --- Type ---------------------------------------------------------------- */
+
+.lw-display {
+  font-family: 'Inter Display', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.125;
+}
+
+.lw-h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+.lw-h2 { font-size: clamp(1.875rem, 3.2vw, 2.5rem); }
+
+.lw-body { font-size: 1rem; line-height: 1.625; }
+.lw-small { font-size: 13px; line-height: 20px; }
+
+.lw-eyebrow {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Tracking IDs, stats and any column of figures stay vertically aligned */
+.lw-tnum {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Shell --------------------------------------------------------------- */
+
+.lw-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 24px;
+}
+
+@media (min-width: 768px) {
+  .lw-container { padding-inline: 32px; }
+}
+
+.lw-shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* --- Button -------------------------------------------------------------- */
+
+.lw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  text-decoration: none;
+  /* 150ms ease, per spec */
+  transition: none;
+}
+
+.lw-btn:focus-visible {
+  outline: 2px solid var(--lw-blue);
+  outline-offset: 2px;
+}
+
+.lw-btn:disabled,
+.lw-btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.lw-btn-primary {
+  background-image: none !important;
+  background-color: var(--lw-blue) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+  box-shadow: var(--lw-shadow-1);
+}
+
+.lw-btn-primary:hover:not(:disabled) {
+  background-color: var(--lw-blue-hover) !important;
+  box-shadow: var(--lw-shadow-2);
+  transform: translateY(-1px);
+}
+
+.lw-btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+.lw-btn-secondary {
+  background-image: none !important;
+  background-color: transparent !important;
+  color: var(--lw-ink) !important;
+  border: 1px solid var(--lw-line) !important;
+  border-radius: 10px !important;
+}
+
+.lw-btn-secondary:hover:not(:disabled) {
+  background-color: var(--lw-blue-soft) !important;
+  border-color: var(--lw-blue) !important;
+  color: var(--lw-blue) !important;
+}
+
+.lw-btn-ghost {
+  background-image: none !important;
+  background-color: transparent !important;
+  color: var(--lw-ink-2) !important;
+  border: 1px solid transparent !important;
+  border-radius: 10px !important;
+}
+
+.lw-btn-ghost:hover:not(:disabled) {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+  color: var(--lw-ink) !important;
+}
+
+.lw-on-navy .lw-btn-primary {
+  background-color: var(--lw-blue) !important;
+}
+
+.lw-on-navy .lw-btn-secondary {
+  border-color: var(--lw-line) !important;
+  color: var(--lw-ink) !important;
+}
+
+.lw-on-navy .lw-btn-secondary:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+}
+
+.lw-on-navy .lw-btn-ghost:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+/* --- Card ---------------------------------------------------------------- */
+
+.lw-card {
+  background: var(--lw-surface);
+  border: 1px solid var(--lw-line);
+  border-radius: var(--lw-radius);
+  box-shadow: var(--lw-shadow-1);
+  transition: none;
+}
+
+.lw-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--lw-shadow-lift);
+  border-color: #cbd5e1;
+}
+
+.lw-card-hover:focus-within {
+  border-color: var(--lw-blue);
+  box-shadow: var(--lw-shadow-2);
+}
+
+/* --- Form controls ------------------------------------------------------- */
+
+.lw-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: var(--lw-radius-sm);
+  border: 1px solid var(--lw-line);
+  background: var(--lw-surface);
+  color: var(--lw-ink);
+  font-size: 15px;
+  line-height: 24px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.lw-input::placeholder { color: var(--lw-ink-4); }
+
+.lw-input:hover:not(:disabled):not(:focus) { border-color: #cbd5e1; }
+
+.lw-input:focus {
+  outline: none;
+  border-color: var(--lw-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+}
+
+.lw-input:disabled {
+  background: var(--lw-line-2);
+  color: var(--lw-ink-4);
+  cursor: not-allowed;
+}
+
+.lw-input[aria-invalid='true'] {
+  border-color: var(--lw-red);
+}
+
+.lw-input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16);
+}
+
+textarea.lw-input { height: auto; padding: 12px 14px; resize: vertical; }
+
+select.lw-input {
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+}
+
+/* Segmented control â€” the selected segment is the only filled element */
+.lw-segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--lw-line-2);
+  border: 1px solid var(--lw-line);
+}
+
+.lw-segment {
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 9px !important;
+  background: transparent !important;
+  color: var(--lw-ink-3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.lw-segment:hover { color: var(--lw-ink); }
+
+.lw-segment:focus-visible {
+  outline: 2px solid var(--lw-blue);
+  outline-offset: 1px;
+}
+
+.lw-segment[aria-checked='true'],
+.lw-segment[aria-selected='true'] {
+  background: var(--lw-surface) !important;
+  color: var(--lw-blue);
+  border-color: var(--lw-line);
+  box-shadow: var(--lw-shadow-1);
+}
+
+/* Checkbox keeps the native input so keyboard and SR behaviour is free */
+.lw-check {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  appearance: none;
+  border-radius: 5px;
+  border: 1px solid var(--lw-line-strong, #cbd5e1);
+  background: var(--lw-surface);
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.lw-check:checked {
+  background-color: var(--lw-blue) !important;
+  border-color: var(--lw-blue);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  background-size: 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.lw-check:focus-visible {
+  outline: 2px solid var(--lw-blue);
+  outline-offset: 2px;
+}
+
+/* --- Badge / status ------------------------------------------------------ */
+
+.lw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+/* Teal is only ever a fill or a mark on light surfaces - as text it fails AA.
+   On navy panels the light teal used here is well above 4.5:1. */
+.lw-badge-teal { background: rgba(20, 184, 166, 0.14); color: #0f766e; border-color: rgba(20, 184, 166, 0.3); }
+.lw-on-navy .lw-badge-teal { background: rgba(20, 184, 166, 0.18); color: #5eead4; border-color: rgba(20, 184, 166, 0.35); }
+
+.lw-badge-amber { background: rgba(245, 158, 11, 0.14); color: #b45309; border-color: rgba(245, 158, 11, 0.3); }
+.lw-on-navy .lw-badge-amber { background: rgba(245, 158, 11, 0.18); color: #fcd34d; border-color: rgba(245, 158, 11, 0.35); }
+
+.lw-badge-blue { background: var(--lw-blue-soft); color: var(--lw-blue); border-color: rgba(37, 99, 235, 0.25); }
+.lw-on-navy .lw-badge-blue { background: rgba(37, 99, 235, 0.2); color: #93c5fd; border-color: rgba(37, 99, 235, 0.4); }
+
+.lw-badge-slate { background: var(--lw-line-2); color: var(--lw-ink-3); border-color: var(--lw-line); }
+
+.lw-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+/* --- Route line motif ---------------------------------------------------- */
+
+.lw-map-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Draw-in: the line is the full length, then pulled back to zero on load */
+.lw-draw path {
+  stroke-dasharray: var(--len, 1200);
+  stroke-dashoffset: var(--len, 1200);
+  animation: lw-draw-in 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes lw-draw-in {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Continuous flow on top of the drawn line */
+.lw-flow path {
+  stroke-dasharray: 5 14;
+  animation: lw-flow 3.2s linear infinite;
+}
+
+@keyframes lw-flow {
+  to { stroke-dashoffset: -76; }
+}
+
+/* Nodes pulse softly - slow enough to read as ambient, not attention-seeking */
+.lw-node-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lw-node 3.4s ease-in-out infinite;
+}
+
+@keyframes lw-node {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.5); }
+}
+
+/* Trucks travel their lane. The road clipPath hides the truck at both ends, so
+   the loop reads as entering and leaving instead of snapping back. */
+.lw-truck {
+  animation: lw-travel 12s linear infinite;
+}
+
+@keyframes lw-travel {
+  from { transform: translateX(0px); }
+  to   { transform: translateX(800px); }
+}
+
+/* --- Motion utilities ---------------------------------------------------- */
+
+.lw-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lw-reveal.lw-in { opacity: 1; transform: none; }
+
+/* Tab content fades and slides */
+.lw-tab-panel { animation: lw-tab-in 260ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+@keyframes lw-tab-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* --- Skip link ----------------------------------------------------------- */
+
+.lw-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  padding: 12px 20px;
+  background: var(--lw-blue);
+  color: #fff;
+  border-radius: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.lw-skip:focus { left: 0; }
+
+/* --- Reduced motion ------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .lw-reveal { opacity: 1; transform: none; transition: none; }
+
+  .lw-draw path { stroke-dashoffset: 0; animation: none; }
+  .lw-flow path,
+  .lw-node-pulse,
+  .lw-truck,
+  .lw-tab-panel { animation: none !important; }
+
+  .lw-btn,
+  .lw-card,
+  .lw-card-hover:hover { transition: none; }
+
+  .lw-card-hover:hover { transform: none; }
+}
+
+/* Hero dashboard drifts slowly - ambient depth, not attention-seeking */
+.lw-float-slow {
+  animation: lw-float 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes lw-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lw-float-slow { animation: none; }
+}
+
+/* ============================================================================
+   Motion policy
+
+   The landing page is deliberately static. Every animation that shipped in the
+   first pass - draw-in lanes, marching dashes, pulsing nodes, count-up, scroll
+   reveals, float, card lift - has been removed. The map is a backdrop for the
+   headline, and motion there competes with the type rather than supporting it.
+
+   What remains are colour changes on hover/focus, which are instant state
+   feedback rather than decoration.
+   ========================================================================= */
+
+/* Reveal is now a no-op: content is present from first paint. */
+.lw-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+/* Kill every animation declared above, site-wide. */
+.lw-draw path,
+.lw-flow path,
+.lw-node-pulse,
+.lw-truck,
+.lw-float-slow,
+.lw-tab-panel,
+.skeleton {
+  animation: none !important;
+}
+
+.lw-draw path {
+  stroke-dashoffset: 0;
+}
+
+.lw-flow path {
+  stroke-dasharray: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lw-draw path,
+  .lw-flow path,
+  .lw-node-pulse,
+  .lw-truck,
+  .lw-float-slow,
+  .lw-tab-panel { animation: none !important; }
+}
+
+/* Port tooltip on the hero map. Leaflet injects the markup, so it needs real
+   CSS rather than Tailwind classes. */
+.leaflet-tooltip.lw-port-tip {
+  background: var(--lw-surface, #fff);
+  color: var(--lw-ink, #0f172a);
+  border: 1px solid var(--lw-line, #e2e8f0);
+  border-radius: 10px;
+  box-shadow: var(--lw-shadow-2, 0 8px 16px rgba(15, 23, 42, .06));
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip.lw-port-tip::before {
+  display: none;
+}
+
+/* The map itself is decorative and sits behind the headline; the markers are
+   the interactive layer, so restore pointer events on them only. */
+.lw-map-markers {
+  pointer-events: auto;
+}

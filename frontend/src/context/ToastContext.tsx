@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { X } from 'lucide-react';
 
 export interface Toast {
   id: string;
@@ -58,9 +59,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               </div>
               <button
                 onClick={() => removeToast(t.id)}
-                className="text-xs opacity-60 hover:opacity-100 font-bold px-1"
+                className="text-xs opacity-60 hover:opacity-100 p-1 text-slate-500 hover:text-slate-800 dark:hover:text-white transition"
+                aria-label="Close notification"
               >
-                ✕
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );

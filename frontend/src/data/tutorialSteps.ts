@@ -1,185 +1,117 @@
+// ─── Guided tour steps ────────────────────────────────────────────────────────
+// Targets must match ids that actually exist in the marketplace UI. Steps whose
+// target is missing are skipped by TutorialOverlay rather than throwing.
+
 export interface TutorialStep {
-  id: string;
-  target: string; // CSS selector
+  target: string;
   title: string;
   body: string;
   whyItMatters: string;
-  placement: 'top' | 'bottom' | 'left' | 'right';
-  essential: boolean;
-  page: string;
+  essential?: boolean;
 }
 
 export const TUTORIAL_STEPS_BY_PAGE: Record<string, TutorialStep[]> = {
-  login: [
+  home: [
     {
-      id: 'login-roles',
-      target: '#tutorial-login-roles',
-      title: 'Role-Based Access Control',
-      body: 'Select your operational persona: Port Admin (full access), Fleet Manager (live telematics), or Dispatcher (gate slot allocation).',
-      whyItMatters: 'Enforces security segregation between terminal gate operators, transport dispatchers, and port authority.',
-      placement: 'bottom',
+      target: 'tutorial-driver-home',
+      title: 'Your active batch',
+      body: 'The batch you have claimed appears here with its area, departure window and earnings.',
+      whyItMatters: 'Everything else on this page hangs off one claimed batch.',
       essential: true,
-      page: 'login'
     },
     {
-      id: 'login-demo',
-      target: '#tutorial-login-demo-btn',
-      title: '1-Click Demo Console',
-      body: 'Bypass Cognito credentials in local testing with full administrative command rights.',
-      whyItMatters: 'Permits instant evaluation of simulated maritime cargo dispatches and corridor bottlenecks.',
-      placement: 'top',
+      target: 'tutorial-stop-checklist',
+      title: 'Work the stops in order',
+      body: 'Each stop has a one-tap status update: Picked up, Arrived, Delivered - or flag it as failed with a short reason.',
+      whyItMatters: 'Every tap is audited and pushed live to the customer.',
       essential: true,
-      page: 'login'
-    }
+    },
+    {
+      target: 'tutorial-driver-map',
+      title: 'The locked route',
+      body: 'Once you depart, the stop order and road geometry are fixed and drawn here.',
+      whyItMatters: 'A locked route stops the consumer\'s ETA from moving around.',
+    },
   ],
-  dashboard: [
+
+  jobs: [
     {
-      id: 'dash-header',
-      target: '#tutorial-dash-status-strip',
-      title: 'VOC Port Terminal Operations Strip',
-      body: 'Real-time telemetry feeds displaying AIS incoming vessels, yard container density, gate dwell averages, and active quay cranes.',
-      whyItMatters: 'Inbound vessel arrivals trigger all downstream gate allocations and container drayage schedules.',
-      placement: 'bottom',
+      target: 'tutorial-availability',
+      title: 'Control your availability',
+      body: 'Only drivers marked available receive new batch broadcasts.',
+      whyItMatters: 'Going offline keeps work away while you are busy.',
       essential: true,
-      page: 'dashboard'
     },
     {
-      id: 'dash-map',
-      target: '#tutorial-map-container',
-      title: 'Interactive Leaflet GIS Command Canvas',
-      body: 'Pan, zoom, and inspect real-time port maritime boundaries, terminal yards, smart gate lanes, and active vehicle GPS transponders.',
-      whyItMatters: 'Provides unified situational awareness across port quayside, highway corridors, and container freight stations.',
-      placement: 'right',
+      target: 'tutorial-job-feed',
+      title: 'Claim a batch',
+      body: 'Broadcast batches appear here in real time. Claim one to take it.',
+      whyItMatters: 'First to claim wins, so speed matters.',
       essential: true,
-      page: 'dashboard'
     },
-    {
-      id: 'dash-layers',
-      target: '#tutorial-layers-btn',
-      title: 'GIS Layer Visibility Toggle',
-      body: 'Toggle geofence operational zones, Berth 4 STS crane buffers, and HazMat yard boundaries.',
-      whyItMatters: 'Declutters the command view during peak dispatch surges.',
-      placement: 'top',
-      essential: false,
-      page: 'dashboard'
-    },
-    {
-      id: 'dash-reroute',
-      target: '#tutorial-reroute-action-btn',
-      title: 'Live-Location-Triggered AI Rerouting',
-      body: 'Evaluates highway congestion in real-time. Instantly diverts approaching trucks to open gates, avoiding physical queues.',
-      whyItMatters: 'Cuts idle fuel burn by up to 35% and prevents multi-kilometer gridlock on NH 38.',
-      placement: 'left',
-      essential: true,
-      page: 'dashboard'
-    }
   ],
-  slots: [
+
+  deliveries: [
     {
-      id: 'slot-matrix',
-      target: '#tutorial-gate-matrix',
-      title: 'Four-Gate Congestion Matrix',
-      body: 'Displays live queue depth, wait time estimates, and operational states across Gates 1 through 4.',
-      whyItMatters: 'Prevents gate overcrowding by directing specific cargo types to designated terminal entries.',
-      placement: 'bottom',
-      essential: true,
-      page: 'slots'
+      target: 'tutorial-deliveries',
+      title: 'Your delivery history',
+      body: 'Every batch you have claimed, expandable to show each stop and its outcome.',
+      whyItMatters: 'Useful for reconciling earnings against completed work.',
     },
-    {
-      id: 'slot-ai-pick',
-      target: '#tutorial-ai-top-pick',
-      title: 'AI Optimizer Top Recommendation',
-      body: 'Recommends the lowest-congestion arrival window based on ship unloading schedules and gate throughput.',
-      whyItMatters: 'Eliminates peak-hour queue spikes by dynamically smoothing incoming truck waves.',
-      placement: 'bottom',
-      essential: true,
-      page: 'slots'
-    },
-    {
-      id: 'slot-booking-form',
-      target: '#tutorial-booking-form',
-      title: 'Slot Dispatch & RFID E-Pass Sync',
-      body: 'Book targeted arrival slots with vehicle plates, container numbers, and priority tier allocation.',
-      whyItMatters: 'Generates automated QR digital entry passes sent via SMS directly to the driver.',
-      placement: 'left',
-      essential: true,
-      page: 'slots'
-    }
   ],
-  fleet: [
+
+  'fleet-manage': [
     {
-      id: 'fleet-search',
-      target: '#tutorial-fleet-search',
-      title: 'Multi-Parameter Telematics Filter',
-      body: 'Search by vehicle registration plate, driver identity, cargo container code, or duty status.',
-      whyItMatters: 'Quickly locates specific hazardous cargo or refrigerated freight needing priority berths.',
-      placement: 'bottom',
+      target: 'tutorial-fm-pending',
+      title: 'Pending requests at your depot',
+      body: 'Every consumer request waiting to be batched, plotted on the map.',
+      whyItMatters: 'This is the raw material for every batch you create.',
       essential: true,
-      page: 'fleet'
     },
     {
-      id: 'fleet-cards',
-      target: '#tutorial-fleet-list',
-      title: 'Live 24-Vehicle Fleet Roster',
-      body: 'Real-time telemetry readouts displaying speed, heading direction, fuel percentages, and cold-chain reefer temperatures.',
-      whyItMatters: 'Allows immediate intervention if refrigerated perishable cargo suffers temperature deviations.',
-      placement: 'right',
+      target: 'tutorial-schedule-creator',
+      title: 'Build and broadcast a batch',
+      body: 'Set an area and radius, choose which requests ride along, then broadcast to available drivers.',
+      whyItMatters: 'Fuller batches mean fewer empty runs and faster claims.',
       essential: true,
-      page: 'fleet'
     },
     {
-      id: 'fleet-network',
-      target: '#tutorial-fleet-telecom',
-      title: 'GNSS & 5G NR Telemetry Health',
-      body: 'Live monitor showing satellite lock count and low-latency wireless communication link quality.',
-      whyItMatters: 'Confirms that autonomous truck dispatch commands arrive with sub-5ms latency.',
-      placement: 'bottom',
-      essential: false,
-      page: 'fleet'
-    }
+      target: 'tutorial-fm-batches',
+      title: 'Oversee live batches',
+      body: 'Watch who claimed what, reassign an unresponsive driver, or force-lock a batch early.',
+      whyItMatters: 'Manual intervention is the safety net when a batch stalls.',
+    },
   ],
+
   analytics: [
     {
-      id: 'analytics-kpis',
-      target: '#tutorial-analytics-kpis',
-      title: 'Executive Operational KPIs',
-      body: 'Turnaround reductions, fuel saved, gate utilization, and CO2 emissions eliminated through AI coordination.',
-      whyItMatters: 'Provides auditable sustainability metrics and port performance benchmarks.',
-      placement: 'bottom',
+      target: 'tutorial-analytics-kpis',
+      title: 'Marketplace health',
+      body: 'Time to claim, average batch fill, on-time rate and driver utilisation.',
+      whyItMatters: 'Time-to-claim and fill together tell you whether the market is liquid.',
       essential: true,
-      page: 'analytics'
     },
     {
-      id: 'analytics-heatmap',
-      target: '#tutorial-heatmap-chart',
-      title: 'Hourly Gate Congestion Heatmap',
-      body: 'Visualizes historical and predicted traffic bottlenecks across each gate throughout the working day.',
-      whyItMatters: 'Identifies recurring choke points to adjust terminal shift manpower accordingly.',
-      placement: 'top',
-      essential: true,
-      page: 'analytics'
+      target: 'tutorial-heatmap-chart',
+      title: 'Volume vs deliveries',
+      body: 'Submitted against delivered over the selected period.',
+      whyItMatters: 'A widening gap means batching capacity is the bottleneck.',
     },
     {
-      id: 'analytics-actions',
-      target: '#tutorial-analytics-actions',
-      title: 'Telemetry Export & Monte Carlo Simulation',
-      body: 'Download raw CSV/JSON logs or execute stochastic queue stress tests across hundreds of simulated arrivals.',
-      whyItMatters: 'Validates port gate capacity under surge container vessel discharge scenarios.',
-      placement: 'left',
-      essential: true,
-      page: 'analytics'
-    }
+      target: 'tutorial-busiest-areas',
+      title: 'Busiest delivery clusters',
+      body: 'Areas ranked by stop volume, with the earnings they generated.',
+      whyItMatters: 'This is where new broadcast areas should go.',
+    },
   ],
+
   settings: [
     {
-      id: 'settings-preferences',
-      target: '#tutorial-settings-form',
-      title: 'Console Preferences & Notifications',
-      body: 'Configure interactive tutorial assistance, theme, default map mode, and automated alert dispatches.',
-      whyItMatters: 'Customizes the terminal workspace to suit individual port operator requirements.',
-      placement: 'top',
+      target: 'tutorial-settings',
+      title: 'Preferences',
+      body: 'Theme, units, alert channels and tutorials.',
+      whyItMatters: 'Everything here is stored against your account.',
       essential: true,
-      page: 'settings'
-    }
-  ]
+    },
+  ],
 };

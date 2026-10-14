@@ -201,3 +201,25 @@ Every screen except Screen 1 (Login) shares a persistent, responsive shell:
    }
    ```
 5. **No Placeholders**: Render all UI with realistic Tamil Nadu / VOC Port terminal logistics data (plates like `TN-04-E-8821`, `KA-01-MJ-9941`, INR currency `₹`, reefer temperatures in Celsius, and accurate TEU metrics).
+# Current product design requirements
+
+These requirements are the current source of truth for website presentation and supersede conflicting visual guidance in the older specification below.
+
+## Avoid
+
+- Purple or violet gradients.
+- Pill-shaped buttons. Use modest corner rounding for controls.
+- Fabricated reviews, testimonials, usage figures, uptime claims, or customer counters.
+- Generic hero slogans or unsupported product claims. Describe what a user can do on the page.
+- Emoji as interface icons. Use the project's icon set or text labels.
+- Em dashes in user-facing copy.
+- Large or scroll-triggered decorative motion, cursor effects, AI-generated stock imagery, or promotional copy that sounds generic or inflated.
+- “Made with AI” attribution labels.
+
+## Include
+
+- A project favicon that uses the LogiSync maritime identity and does not use purple.
+- Public Privacy Policy and Terms and Conditions pages, linked from the site.
+
+Prefer restrained color, clear hierarchy, real interface data, and concise, specific copy. Keep motion functional and brief, such as loading or live-status feedback.
+

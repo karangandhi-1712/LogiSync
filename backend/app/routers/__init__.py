@@ -1,27 +1,23 @@
 from app.routers.auth import router as auth_router
-from app.routers.bookings import router as bookings_router
 from app.routers.admin import router as admin_router
 from app.routers.maps import router as maps_router
-from app.routers.slots import router as slots_router
-from app.routers.fleet import router as fleet_router
-from app.routers.operations import router as operations_router
-from app.routers.gis import router as gis_router
 from app.routers.analytics import router as analytics_router
 from app.routers.settings import router as settings_router
-from app.routers.notifications import router as notifications_router
 from app.routers.ports import router as ports_router
+from app.routers.consumer import router as consumer_router, track_router
+from app.routers.schedules import router as schedules_router, drivers_router
+from app.routers.deliveries import router as deliveries_router
 
 __all__ = [
     "auth_router",
-    "bookings_router",
     "admin_router",
     "maps_router",
-    "slots_router",
-    "fleet_router",
-    "operations_router",
-    "gis_router",
     "analytics_router",
     "settings_router",
-    "notifications_router",
-    "ports_router"
+    "ports_router",
+    "consumer_router",
+    "track_router",
+    "schedules_router",
+    "drivers_router",
+    "deliveries_router",
 ]

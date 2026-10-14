@@ -1,4 +1,4 @@
-// ─── locationSuggestions.ts — Google Maps style logistics & cargo destinations ──
+// ─── locationSuggestions.ts - Google Maps style logistics & cargo destinations ──
 import { getPort } from './ports';
 
 export interface LocationSuggestion {
@@ -8,6 +8,9 @@ export interface LocationSuggestion {
   category: 'CFS' | 'ICD' | 'Port Yard' | 'Logistics Park' | 'Industrial Zone' | 'City Hub';
   portId?: string; // Associated primary port if applicable
   approxKm?: number;
+  /** Present when the provider resolved the place; absent for local text matches. */
+  lat?: number;
+  lng?: number;
 }
 
 export const LOGISTICS_DESTINATIONS: LocationSuggestion[] = [
@@ -117,6 +120,8 @@ export async function searchLocationSuggestions(query: string, currentPortId?: s
             title: mainTitle,
             subtitle: subTitle,
             category: 'City Hub' as const,
+            lat: (item.lat ? Number(item.lat) : undefined),
+            lng: (item.lon ? Number(item.lon) : undefined),
           };
         });
 

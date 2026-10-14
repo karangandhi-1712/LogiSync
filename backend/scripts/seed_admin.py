@@ -1,7 +1,11 @@
 """One-time seed: create the single port_admin account. Run manually:
-  .venv\\Scripts\\python.exe scripts\\seed_admin.py --email admin@logisync.ai --password <pw> --mobile +919840000001 --name "Port Admin"
+   .venv\Scripts\python.exe scripts\seed_admin.py --email admin@logisync.ai --password <pw> --mobile +919840000001 --name "Port Admin"
+
+Uses Alembic rather than create_all so the depot registry (which the new FK
+constraints point at) is present before the admin row is written.
 """
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -9,7 +13,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.db import Base, engine, SessionLocal
 from app.models.user import UserModel
+from app.seed import seed_ports
 from app.services.password import hash_password, validate_password_constraints
+
+
+def migrate():
+    try:
+        from alembic import command
+        from alembic.config import Config
+
+        backend_root = Path(__file__).resolve().parents[1]
+        cfg = Config(str(backend_root / "alembic.ini"))
+        cfg.set_main_option("script_location", str(backend_root / "alembic"))
+        command.upgrade(cfg, "head")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Alembic upgrade failed ({exc}); falling back to create_all")
+        Base.metadata.create_all(bind=engine)
 
 
 def main():
@@ -25,9 +44,12 @@ def main():
         print("Password does not meet constraints:", errs)
         sys.exit(2)
 
-    Base.metadata.create_all(bind=engine)
+    migrate()
+
     db = SessionLocal()
     try:
+        written = seed_ports(db)
+        print(f"Depots upserted ({written} new)")
         if db.query(UserModel).filter(UserModel.role == "port_admin").first():
             print("A port_admin already exists. Aborting (single admin rule).")
             sys.exit(1)

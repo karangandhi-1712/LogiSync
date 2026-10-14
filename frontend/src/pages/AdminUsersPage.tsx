@@ -1,25 +1,30 @@
-import { useEffect, useState, useCallback } from 'react';
-import { fetchAdminUsers, createFleetManager, deactivateUser, activateUser, deleteUser } from '../services/api';
-import { PORTS } from '../data/ports';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import {
+  fetchAdminUsers, createFleetManager, deactivateUser, activateUser, deleteUser,
+} from '../services/api';
+import { usePort } from '../context/PortContext';
 import { useToast } from '../context/ToastContext';
-import { X, UserPlus, ShieldOff, ShieldCheck, Trash2, Eye, User, Mail, Phone, MapPin, Clock, Shield } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import {
+  X, UserPlus, ShieldOff, ShieldCheck, Trash2, Eye, User, Mail, Phone, MapPin,
+  Clock, Shield, LayoutDashboard, Users as UsersIcon, Activity, Truck, ShoppingBag,
+  UserCog, AlertTriangle,
+} from 'lucide-react';
+import type { AdminUser } from '../services/api';
 
-interface UserRow {
-  id: string;
-  role: string;
-  full_name: string;
-  email: string;
-  mobile_number: string;
-  assigned_port_id: string | null;
-  is_active: boolean;
-}
+interface UserRow extends AdminUser {}
 
 // Shared liquid-glass sunken field (mirrors FleetTracker search-well pattern)
 const fieldCls =
   'px-3.5 py-2.5 rounded-xl border border-white/70 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl neu-inset shadow-inner text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 transition-all [&>option]:text-slate-900';
 
+type Tab = 'dashboard' | 'users';
+
 export default function AdminUsersPage() {
+  const { ports: PORTS } = usePort();
   const { showToast } = useToast();
+  const { isDark } = useTheme();
+  const [tab, setTab] = useState<Tab>('dashboard');
   const [rows, setRows] = useState<UserRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [form, setForm] = useState({ full_name: '', email: '', mobile: '', temp_password: '', assigned_port_id: 'voc' });
@@ -47,7 +52,7 @@ export default function AdminUsersPage() {
     setCreating(true);
     try {
       const r = await createFleetManager(form);
-      showToast({ type: 'success', title: 'Fleet Manager Created', message: `${r.email} — temp password: ${r.temp_password}` });
+      showToast({ type: 'success', title: 'Fleet Manager Created', message: `${r.email} - temp password: ${r.temp_password}` });
       setForm({ full_name: '', email: '', mobile: '', temp_password: '', assigned_port_id: 'voc' });
       load();
     } catch (e: any) {
@@ -123,12 +128,88 @@ export default function AdminUsersPage() {
   }
 
   const getPortName = (portId: string | null) => {
-    if (!portId) return '—';
+    if (!portId) return '-';
     return PORTS.find(p => p.id === portId)?.name || portId;
   };
 
   const fleetManagers = rows.filter(u => u.role === 'fleet_manager');
   const otherUsers = rows.filter(u => u.role !== 'fleet_manager');
+
+  /**
+   * Everything the dashboard shows is derived from the single `/admin/users`
+   * payload rather than a second endpoint. These are counts over one already-
+   * fetched list, so a dedicated stats route would add a request that could
+   * disagree with the roster it is supposed to summarise.
+   */
+  const stats = useMemo(() => {
+    const by = (role: string) => rows.filter(u => u.role === role);
+    const activeIn = (list: UserRow[]) => list.filter(u => u.is_active).length;
+    const drivers = by('driver');
+    const consumers = by('consumer');
+    const recent = [...rows]
+      .filter(u => u.created_at)
+      .sort((a, b) => (b.created_at! > a.created_at! ? 1 : -1))
+      .slice(0, 5);
+
+    // Depot coverage: a fleet manager owns one depot, so a port with none is a
+    // gap the port admin needs to see rather than infer.
+    const coverage = PORTS.map(p => ({
+      port: p,
+      managers: fleetManagers.filter(u => u.assigned_port_id === p.id && u.is_active).length,
+    }));
+
+    return {
+      total: rows.length,
+      active: activeIn(rows),
+      suspended: rows.length - activeIn(rows),
+      fleetManagers,
+      fleetActive: activeIn(fleetManagers),
+      drivers,
+      driverAvailable: drivers.filter(u => u.availability_status === 'available').length,
+      driverBusy: drivers.filter(u => u.availability_status === 'busy').length,
+      driverOffline: drivers.filter(u => u.availability_status === 'offline').length,
+      consumers,
+      consumerActive: activeIn(consumers),
+      portAdmins: by('port_admin').length,
+      coverage,
+      recent,
+    };
+  }, [rows, PORTS]);
+
+  /* ── Liquid-glass tokens, matching LoginPage so the console and the sign-in
+        screen read as one product rather than two. ── */
+  const glass = isDark
+    ? {
+        surface: { background: 'rgba(18,18,28,0.55)', border: '1px solid rgba(255,255,255,0.12)' },
+        inset: {
+          background: 'rgba(255,255,255,0.06)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), 0 6px 22px rgba(0,0,0,0.28)',
+        },
+        active: {
+          background: 'rgba(255,255,255,0.16)',
+          border: '1px solid rgba(255,255,255,0.24)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.26), 0 0 0 1px rgba(255,255,255,0.05)',
+        },
+      }
+    : {
+        surface: { background: 'rgba(255,255,255,0.62)', border: '1px solid rgba(255,255,255,0.70)' },
+        inset: {
+          background: 'rgba(255,255,255,0.55)',
+          border: '1px solid rgba(255,255,255,0.70)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.90), 0 6px 20px rgba(15,23,42,0.06)',
+        },
+        active: {
+          background: 'rgba(255,255,255,0.92)',
+          border: '1px solid rgba(255,255,255,0.95)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,1), 0 0 0 1px rgba(2,132,199,0.18), 0 4px 14px rgba(15,23,42,0.10)',
+        },
+      };
+
+  const TABS: { id: Tab; label: string; icon: typeof LayoutDashboard }[] = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'users', label: 'Users', icon: UsersIcon },
+  ];
 
   return (
     <div className="h-full overflow-y-auto bg-[var(--bg-canvas)]">
@@ -144,8 +225,252 @@ export default function AdminUsersPage() {
           </p>
         </div>
 
+        {/* ─── Tabs ───────────────────────────────────────────────────── */}
+        <div
+          className="relative p-1.5 rounded-2xl inline-flex gap-1.5 liquid-glass border border-white/70 dark:border-white/12"
+          style={{ backdropFilter: 'blur(24px) saturate(180%)' }}
+          role="tablist"
+          aria-label="User management views"
+        >
+          {/* Edge sheen - the tell that this is glass and not a flat pill bar. */}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-white/80 via-white/20 to-transparent" />
+          {TABS.map(t => {
+            const on = tab === t.id;
+            const TabIcon = t.icon;
+            return (
+              <button
+                key={t.id}
+                role="tab"
+                aria-selected={on}
+                type="button"
+                onClick={() => setTab(t.id)}
+                className={`relative z-10 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                  on ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+                style={on ? glass.active : undefined}
+              >
+                <TabIcon className={`w-4 h-4 ${on ? 'text-cyan-500 dark:text-cyan-300' : ''}`} />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ══ DASHBOARD ══════════════════════════════════════════════ */}
+        {tab === 'dashboard' && (
+          <>
+            {/* Headline tiles */}
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                {
+                  icon: UsersIcon, label: 'Total accounts', value: stats.total,
+                  foot: `${stats.active} active · ${stats.suspended} suspended`,
+                  tone: 'text-cyan-600 dark:text-cyan-300',
+                  bg: 'bg-cyan-500/15',
+                },
+                {
+                  icon: Shield, label: 'Fleet managers', value: stats.fleetManagers.length,
+                  foot: `${stats.fleetActive} active across ${PORTS.length} depots`,
+                  tone: 'text-indigo-600 dark:text-indigo-300',
+                  bg: 'bg-indigo-500/15',
+                },
+                {
+                  icon: Truck, label: 'Drivers', value: stats.drivers.length,
+                  foot: `${stats.driverAvailable} available now`,
+                  tone: 'text-emerald-600 dark:text-emerald-300',
+                  bg: 'bg-emerald-500/15',
+                },
+                {
+                  icon: ShoppingBag, label: 'Customers', value: stats.consumers.length,
+                  foot: `${stats.consumerActive} active`,
+                  tone: 'text-sky-600 dark:text-sky-300',
+                  bg: 'bg-sky-500/15',
+                },
+              ].map(tile => (
+                <div
+                  key={tile.label}
+                  className="p-5 rounded-[26px] liquid-glass-elevated border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-9 h-9 rounded-2xl flex items-center justify-center ${tile.bg}`}>
+                      <tile.icon className={`w-5 h-5 ${tile.tone}`} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      {tile.label}
+                    </p>
+                  </div>
+                  <p className="mt-4 text-4xl font-black text-slate-900 dark:text-white">
+                    {isLoading ? '–' : tile.value}
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">{tile.foot}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Driver pool + admin accounts */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="p-5 rounded-[26px] liquid-glass border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
+                    <Truck className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                  </div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Driver pool
+                  </h2>
+                </div>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Available now', value: stats.driverAvailable, bar: 'bg-emerald-500', on: 'text-emerald-600 dark:text-emerald-300' },
+                    { label: 'On a run', value: stats.driverBusy, bar: 'bg-amber-500', on: 'text-amber-600 dark:text-amber-300' },
+                    { label: 'Offline', value: stats.driverOffline, bar: 'bg-slate-400', on: 'text-slate-500 dark:text-slate-300' },
+                  ].map(row => (
+                    <div
+                      key={row.label}
+                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl"
+                      style={glass.inset}
+                    >
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 flex-1">
+                        {row.label}
+                      </span>
+                      <div className="w-24 h-1.5 rounded-full bg-slate-500/15 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${row.bar} transition-all duration-500`}
+                          style={{
+                            width: `${stats.drivers.length ? (row.value / stats.drivers.length) * 100 : 0}%`,
+                          }}
+                        />
+                      </div>
+                      <span className={`text-sm font-black w-7 text-right ${row.on}`}>{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+                {stats.drivers.length === 0 && !isLoading && (
+                  <p className="mt-3 text-xs text-slate-400 text-center py-2">
+                    No drivers have registered yet.
+                  </p>
+                )}
+              </div>
+
+              <div className="p-5 rounded-[26px] liquid-glass border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-indigo-500/15 flex items-center justify-center">
+                    <UserCog className="w-5 h-5 text-indigo-600 dark:text-indigo-300" />
+                  </div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Accounts
+                  </h2>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: 'Port admins', value: stats.portAdmins, tone: 'text-amber-600 dark:text-amber-300' },
+                    { label: 'Fleet managers', value: stats.fleetManagers.length, tone: 'text-indigo-600 dark:text-indigo-300' },
+                    { label: 'Drivers', value: stats.drivers.length, tone: 'text-emerald-600 dark:text-emerald-300' },
+                    { label: 'Customers', value: stats.consumers.length, tone: 'text-sky-600 dark:text-sky-300' },
+                  ].map(row => (
+                    <div key={row.label} className="px-3.5 py-3 rounded-2xl" style={glass.inset}>
+                      <p className={`text-2xl font-black ${row.tone}`}>{row.value}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {row.label}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Depot coverage + recent signups */}
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="p-5 rounded-[26px] liquid-glass border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-cyan-500/15 flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-cyan-600 dark:text-cyan-300" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                      Depot coverage
+                    </h2>
+                    <p className="text-[10px] text-slate-400">A depot with no fleet manager has nobody dispatching it</p>
+                  </div>
+                </div>
+                <ul className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-0.5">
+                  {stats.coverage.map(({ port, managers }) => (
+                    <li
+                      key={port.id}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-[11px]"
+                      style={glass.inset}
+                    >
+                      {managers === 0 && (
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" aria-label="Unstaffed" />
+                      )}
+                      <span className="font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
+                        {port.name}
+                      </span>
+                      <span
+                        className={`font-black ${
+                          managers === 0 ? 'text-amber-600 dark:text-amber-300' : 'text-emerald-600 dark:text-emerald-300'
+                        }`}
+                      >
+                        {managers}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="p-5 rounded-[26px] liquid-glass border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="w-9 h-9 rounded-2xl bg-sky-500/15 flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-sky-600 dark:text-sky-300" />
+                  </div>
+                  <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Recent accounts
+                  </h2>
+                </div>
+                {stats.recent.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-6">Nothing created yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {stats.recent.map(u => (
+                      <li
+                        key={u.id}
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl"
+                        style={glass.inset}
+                      >
+                        <div className="w-8 h-8 rounded-xl bg-slate-500/10 flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                            {u.full_name}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-mono truncate">
+                            {u.created_at ? new Date(u.created_at).toLocaleDateString() : '–'} · {u.role.replace('_', ' ')}
+                          </p>
+                        </div>
+                        {!u.is_active && (
+                          <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-500/15 text-red-600 dark:text-red-300">
+                            inactive
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══ USERS ═════════════════════════════════════════════════ */}
+        {tab === 'users' && (
+          <>
         {/* ─── Create Fleet Manager Form ─────────────────────────────── */}
-        <div className="p-5 rounded-3xl liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm">
+        {/* Emerald, and with a hairline along its top edge, so it reads as a
+            distinct provisioning step rather than as the header of the roster
+            directly beneath it. */}
+        <div className="relative p-5 rounded-[26px] liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm overflow-hidden">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-400/70 to-transparent" />
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
               <UserPlus className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -192,7 +517,7 @@ export default function AdminUsersPage() {
             <button
               onClick={handleCreate}
               disabled={creating}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-4 h-4" />
               {creating ? 'Creating...' : 'Create Fleet Manager'}
@@ -201,7 +526,7 @@ export default function AdminUsersPage() {
         </div>
 
         {/* ─── Fleet Managers Table ───────────────────────────────────── */}
-        <div className="p-5 rounded-3xl liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm">
+        <div className="p-5 rounded-[26px] liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-2xl bg-cyan-500/20 flex items-center justify-center">
@@ -262,7 +587,7 @@ export default function AdminUsersPage() {
                   </span>
 
                   {/* Status */}
-                  <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full border ${
+                  <span className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-md border ${
                     u.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -312,7 +637,7 @@ export default function AdminUsersPage() {
 
         {/* ─── Other Users Table ──────────────────────────────────────── */}
         {otherUsers.length > 0 && (
-          <div className="p-5 rounded-3xl liquid-glass border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm">
+          <div className="p-5 rounded-[26px] liquid-glass border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm">
             <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-3">
               Other Users ({otherUsers.length})
             </h2>
@@ -325,11 +650,11 @@ export default function AdminUsersPage() {
                   <button onClick={() => setDetailUser(u)} className="font-bold text-slate-900 dark:text-white hover:text-cyan-600 dark:hover:text-cyan-400 hover:underline underline-offset-2 cursor-pointer">
                     {u.full_name}
                   </button>
-                  <span className="text-slate-400 uppercase font-bold text-[10px] px-2 py-0.5 rounded-full border border-slate-300/30 dark:border-white/10">
+                  <span className="text-slate-400 uppercase font-bold text-[10px] px-2 py-0.5 rounded-md border border-slate-300/30 dark:border-white/10">
                     {u.role}
                   </span>
                   <span className="text-slate-500 dark:text-slate-400">{u.email}</span>
-                  <span className={`ml-auto text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                  <span className={`ml-auto text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
                     u.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -340,6 +665,8 @@ export default function AdminUsersPage() {
               ))}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
 
@@ -363,7 +690,7 @@ export default function AdminUsersPage() {
                   <h3 className="text-lg font-black text-slate-900 dark:text-white">
                     {detailUser.full_name}
                   </h3>
-                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                  <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border ${
                     detailUser.is_active
                       ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-400/30'
                       : 'bg-red-500/15 text-red-700 dark:text-red-300 border-red-400/30'
@@ -385,9 +712,9 @@ export default function AdminUsersPage() {
               {[
                 { icon: Shield, label: 'Role', value: detailUser.role.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), color: 'text-indigo-500' },
                 { icon: Mail, label: 'Email', value: detailUser.email, color: 'text-cyan-500' },
-                { icon: Phone, label: 'Mobile', value: detailUser.mobile_number || '—', color: 'text-emerald-500' },
+                { icon: Phone, label: 'Mobile', value: detailUser.mobile_number || '-', color: 'text-emerald-500' },
                 { icon: MapPin, label: 'Assigned Port', value: getPortName(detailUser.assigned_port_id), color: 'text-amber-500' },
-                { icon: Clock, label: 'User ID', value: detailUser.id.slice(0, 8) + '...', color: 'text-violet-500' },
+                { icon: Clock, label: 'User ID', value: detailUser.id.slice(0, 8) + '...', color: 'text-sky-500' },
                 { icon: Eye, label: 'Status', value: detailUser.is_active ? 'Active' : 'Inactive', color: detailUser.is_active ? 'text-emerald-500' : 'text-red-500' },
               ].map(item => (
                 <div key={item.label} className="p-3 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/70 dark:border-white/10 neu-flat-sm backdrop-blur-xl">

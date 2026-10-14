@@ -1,9 +1,13 @@
 """True road-geometry routing via Geoapify (free tier), with honest fallback.
 
-`GET /api/maps/route` returns GeoJSON LineString geometry for truck->gate
-legs. When no key is configured or the provider is unreachable, the response
-is a straight connector flagged `"simulated": true` so the UI renders it
-dashed + labeled "indicative" instead of pretending it is road geometry.
+`GET /api/maps/route` returns GeoJSON LineString geometry for one leg — a depot
+to a delivery address, or one stop to the next. When no key is configured or the
+provider is unreachable, the response is a straight connector flagged
+`"simulated": true` so the UI renders it dashed + labeled "indicative" instead of
+pretending it is road geometry.
+
+Multi-stop batching does NOT use this service; see
+`app/services/route_optimizer.py`, which assembles one leg per consecutive stop.
 """
 
 import logging

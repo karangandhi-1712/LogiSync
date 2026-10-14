@@ -1,461 +1,347 @@
-import { Bell, Sun, Moon, ChevronDown, Truck, Shield, Wifi, Satellite, Sparkles, GraduationCap, CheckCheck, Eye } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
-import { useTutorial } from '../../context/TutorialContext';
-import { useNotifications } from '../../context/NotificationContext';
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
-import { createTelemetryWebSocket, fetchTelemetryStats } from '../../services/api';
+import {
+  Bell,
+  ChevronDown,
+  FileText,
+  LogOut,
+  Moon,
+  Package,
+  Radio,
+  ShieldCheck,
+  Sun,
+  Truck,
+  Zap,
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { useMarketplace, useMarketplaceEvent } from '../../context/MarketplaceContext';
+import { useNotifications } from '../../context/NotificationContext';
+import { fetchMarketplaceKpis } from '../../services/api';
+import type { DeliverySchedule } from '../../types';
 
-const NOTIF_TYPE_BADGE: Record<string, string> = {
-  slot:       'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-400/30',
-  reroute:    'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-400/30',
-  congestion: 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-400/30',
-  system:     'bg-slate-400/15 text-slate-500 dark:text-slate-400 border-slate-400/20',
+const NOTIF_STYLE: Record<string, { cls: string; Icon: any }> = {
+  broadcast: { cls: 'bg-sky-500/12 text-sky-600 dark:text-cyan-300 border-sky-400/30', Icon: Radio },
+  claimed: { cls: 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-300 border-emerald-400/30', Icon: Truck },
+  stop: { cls: 'bg-indigo-500/12 text-indigo-600 dark:text-indigo-300 border-indigo-400/30', Icon: Package },
+  urgent: { cls: 'bg-rose-500/12 text-rose-600 dark:text-rose-300 border-rose-400/30', Icon: Zap },
 };
 
-const NOTIF_TYPE_LABEL: Record<string, string> = {
-  slot: 'SLOT',
-  reroute: 'REROUTE',
-  congestion: 'ALERT',
-  system: 'SYSTEM',
-};
-
+/**
+ * Ops header.
+ *
+ * The KPI strip and live indicator used to read truck telemetry. It now reads
+ * marketplace state - the driver's availability and whatever the event socket
+ * last told us - and the bell is fed by MarketplaceContext rather than a
+ * hard-coded in-memory list.
+ */
 export function TopBar() {
-  const { isDark, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
-  const { isTutorialOn, toggleTutorial } = useTutorial();
-  const {
-    notifications,
-    unreadCount,
-    markRead,
-    markAllRead,
-    selectedSlotBooking,
-    setSelectedSlotBooking,
-  } = useNotifications();
+  const { isDark, toggleTheme } = useTheme();
+  const { state } = useMarketplace();
+  const { notifications, unreadCount, markAllRead, clearAll } = useNotifications();
   const navigate = useNavigate();
 
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
-  const [wsStatus, setWsStatus] = useState<'connecting' | 'connected' | 'reconnecting' | 'disconnected'>('connecting');
-  const [telemetryStats, setTelemetryStats] = useState({
-    fleet: '24 Online',
-    queue: '4 Trucks',
-    uptime: '99.98%',
-    gnss: '28 Locked'
-  });
-  // Ref on the bell button — used to position the dropdown panel
-  const bellBtnRef = useRef<HTMLButtonElement>(null);
-  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
-  // Ref on the user pill — user menu renders via portal so map controls
-  // (Bright Map / Satellite) and Leaflet panes can never overlap or clip it.
+  const [stats, setStats] = useState({ active: 0, pending: 0, drivers: 0 });
   const userBtnRef = useRef<HTMLButtonElement>(null);
-  const [userMenuPos, setUserMenuPos] = useState({ top: 0, right: 0 });
+  const bellBtnRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Load REST telemetry fallback
   useEffect(() => {
-    fetchTelemetryStats().then(stats => {
-      if (stats) {
-        setTelemetryStats({
-          fleet: `${(stats as any).total_active_trucks ?? 24} Online`,
-          queue: '4 Trucks',
-          uptime: '99.98%',
-          gnss: `${(stats as any).gnss_locked_count ?? 24} Locked`,
+    // Marketplace KPIs are available to port admins and fleet managers only.
+    // Drivers and customers should not make a request that will be rejected.
+    if (user?.role !== 'port_admin' && user?.role !== 'fleet_manager') return;
+    let cancelled = false;
+    fetchMarketplaceKpis('7d', user?.assigned_port_id ?? undefined)
+      .then((k) => {
+        if (cancelled) return;
+        setStats({
+          active: k.active_batches ?? 0,
+          pending: k.pending ?? 0,
+          drivers: k.drivers_total ?? 0,
         });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.assigned_port_id, user?.role]);
+
+  // Live counters follow the same events the pages subscribe to.
+  useMarketplaceEvent('schedule:broadcast', (d: DeliverySchedule) => {
+    setStats((s) => ({ ...s, active: s.active + 1 }));
+  });
+  useMarketplaceEvent('schedule:claimed', () => {
+    setStats((s) => ({ ...s, active: Math.max(0, s.active - 1) }));
+  });
+  useMarketplaceEvent('delivery:status_changed', () => {
+    setStats((s) => ({ ...s, pending: Math.max(0, s.pending - 1) }));
+  });
+
+  useEffect(() => {
+    if (!showUserMenu && !showNotifPanel) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (showUserMenu && menuRef.current && !menuRef.current.contains(t) && !userBtnRef.current?.contains(t)) {
+        setShowUserMenu(false);
       }
-    }).catch(() => {});
-  }, []);
-
-  // Connect live WebSocket
-  useEffect(() => {
-    const handle = createTelemetryWebSocket(
-      'thoothukudi',
-      () => {},
-      (stats) => {
-        if (stats) {
-          setTelemetryStats({
-            fleet: `${stats.total_active_trucks || 24} Online`,
-            queue: `${stats.queue_depth || 4} Trucks`,
-            uptime: `${stats.system_uptime_pct || 99.98}%`,
-            gnss: `${stats.gnss_locked_count || 28} Locked`
-          });
-        }
-      },
-      (status) => setWsStatus(status)
-    );
-    return () => handle.close();
-  }, []);
-
-  // Update panel position when opened (so it tracks the bell button correctly)
-  const openNotifPanel = () => {
-    if (bellBtnRef.current) {
-      const rect = bellBtnRef.current.getBoundingClientRect();
-      setPanelPos({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
-      });
-    }
-    setShowNotifPanel(p => !p);
-  };
-
-  // Close when clicking outside
-  useEffect(() => {
-    if (!showNotifPanel) return;
-    const close = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        !target.closest('[data-notif-dropdown]') &&
-        !target.closest('[data-notif-bell]')
-      ) {
+      if (showNotifPanel && panelRef.current && !panelRef.current.contains(t) && !bellBtnRef.current?.contains(t)) {
         setShowNotifPanel(false);
       }
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [showNotifPanel]);
-
-  const openUserMenu = () => {
-    if (userBtnRef.current) {
-      const rect = userBtnRef.current.getBoundingClientRect();
-      setUserMenuPos({
-        top: rect.bottom + 8,
-        right: window.innerWidth - rect.right,
-      });
-    }
-    setShowUserMenu(p => !p);
-  };
-
-  // Close user menu on outside click / Escape (portal has no header ancestor)
-  useEffect(() => {
-    if (!showUserMenu) return;
-    const close = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        !target.closest('[data-user-menu]') &&
-        !target.closest('[data-user-btn]')
-      ) {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
         setShowUserMenu(false);
+        setShowNotifPanel(false);
       }
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowUserMenu(false);
-    };
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
     return () => {
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
     };
-  }, [showUserMenu]);
+  }, [showUserMenu, showNotifPanel]);
 
-  const handleNotifClick = (id: string) => markRead(id);
+  const ROLE_LABEL: Record<string, string> = {
+  port_admin: 'Port Admin',
+  fleet_manager: 'Fleet Manager',
+  driver: 'Driver',
+  consumer: 'Customer',
+};
+const roleLabel = ROLE_LABEL[user?.role ?? 'driver'] ?? 'Operator';
 
-  const KPI_STRIP = [
-    {
-      icon: (
-        <span className="relative flex h-2.5 w-2.5">
-          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${wsStatus === 'connected' ? 'bg-emerald-400' : 'bg-amber-400'} opacity-75`} />
-          <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${wsStatus === 'connected' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-amber-500'}`} />
-        </span>
-      ),
-      label: 'Fleet',
-      value: telemetryStats.fleet,
-    },
-    {
-      icon: <Wifi className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />,
-      label: 'Gate Queue',
-      value: telemetryStats.queue,
-    },
-    {
-      icon: <Shield className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />,
-      label: 'Uptime',
-      value: telemetryStats.uptime,
-    },
-    {
-      icon: <Satellite className="w-3.5 h-3.5 text-sky-500 dark:text-cyan-400" />,
-      label: 'GNSS RTK',
-      value: telemetryStats.gnss,
-    },
-  ];
+  // Batch/driver counters are depot telemetry - meaningless on a customer
+  // account, so the strip is ops-only.
+  const isOpsRole = user?.role === 'port_admin' || user?.role === 'fleet_manager';
 
   return (
-    <>
-      <header className="h-[64px] flex items-center px-4 md:px-6 gap-4 border-b flex-shrink-0
-        liquid-glass border-b-white/40 dark:border-b-white/10
-        shadow-[0_4px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)]
-        z-30 relative backdrop-blur-2xl"
-      >
-        {/* Brand & Console Badge */}
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative group">
-            <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-sky-400 via-cyan-400 to-indigo-500 opacity-75 blur-sm group-hover:opacity-100 transition duration-300" />
-            <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 dark:from-cyan-400 dark:to-blue-600 flex items-center justify-center shadow-lg shadow-sky-500/20 dark:shadow-cyan-500/30">
-              <Truck className="w-5 h-5 text-white drop-shadow-md" />
-            </div>
-          </div>
-
-          <div className="hidden lg:block min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-black text-slate-900 dark:text-white text-base tracking-tight chroma-text">
-                LogiSync
-              </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full bg-gradient-to-r from-sky-500/15 to-cyan-500/15 dark:from-cyan-500/25 dark:to-blue-500/25 text-sky-600 dark:text-cyan-300 border border-sky-300/40 dark:border-cyan-400/30 shadow-sm">
-                <Sparkles className="w-2.5 h-2.5 text-cyan-500 dark:text-cyan-400" />
-                v2.0 PRO
-              </span>
-            </div>
-            <div className="text-[9px] text-slate-400 dark:text-slate-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
-              <span>PORT OPS CONSOLE</span>
-              <span className={`w-1.5 h-1.5 rounded-full ${wsStatus === 'connected' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
-              <span className="text-cyan-600 dark:text-cyan-400 font-mono">
-                {wsStatus === 'connected' ? 'LIVE 5G TELEMETRY' : 'RECONNECTING...'}
-              </span>
-            </div>
-          </div>
+    <header className="relative z-40 flex-shrink-0 px-4 sm:px-6 h-16 flex items-center gap-4 border-b border-white/40 dark:border-white/8 bg-white/25 dark:bg-white/[0.02] backdrop-blur-xl">
+      <Link to="/" className="flex items-center gap-2.5 shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-400 grid place-items-center text-white shadow-sm">
+          <Package className="w-4.5 h-4.5" />
         </div>
-
-        {/* KPI Telemetry Strip */}
-        <div className="flex items-center gap-2 flex-1 justify-center overflow-x-auto no-scrollbar py-1">
-          {KPI_STRIP.map((kpi, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-full
-                bg-white/60 dark:bg-slate-900/60
-                border border-white/60 dark:border-white/10
-                neu-flat-sm dark:shadow-[0_2px_10px_rgba(0,0,0,0.3)]
-                flex-shrink-0 transition-transform duration-200 hover:scale-105 backdrop-blur-md"
-            >
-              <span className="flex items-center">{kpi.icon}</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium hidden xl:block">
-                {kpi.label}:
-              </span>
-              <span className="text-[11px] font-bold tabular text-slate-800 dark:text-slate-100 font-mono">
-                {kpi.value}
-              </span>
-            </div>
-          ))}
+        <div className="min-w-0">
+          <h1 className="text-sm font-black text-slate-900 dark:text-white leading-none">
+            LogiSync
+          </h1>
+          <p className="text-[9px] font-bold text-slate-400 tracking-wider mt-0.5">
+            DELIVERY MARKETPLACE
+          </p>
         </div>
+      </Link>
 
-        {/* Utility Actions */}
-        <div className="flex items-center gap-2.5 flex-shrink-0">
-          {/* Tutorial Toggle */}
-          <button
-            onClick={toggleTutorial}
-            title={isTutorialOn ? 'Tutorial mode is on' : 'Tutorial mode is off'}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border transition-all duration-200 neu-button ${
-              isTutorialOn
-                ? 'bg-gradient-to-r from-sky-500/20 to-cyan-500/20 border-cyan-400/50 text-cyan-600 dark:text-cyan-300 shadow-[0_0_12px_rgba(6,182,212,0.3)] scale-[1.02]'
-                : 'bg-white/60 dark:bg-slate-800/60 border-white/60 dark:border-white/10 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-            }`}
-          >
-            <GraduationCap className={`w-4 h-4 ${isTutorialOn ? 'text-cyan-500 animate-bounce' : 'text-slate-400'}`} />
-            <span className="text-xs font-bold hidden md:inline">Tutorial</span>
-            <span className={`w-2 h-2 rounded-full ${isTutorialOn ? 'bg-cyan-400 shadow-[0_0_6px_#00f5d4]' : 'bg-slate-400'}`} />
-          </button>
-
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="w-9 h-9 flex items-center justify-center rounded-xl
-              bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800
-              border border-white/80 dark:border-white/10
-              neu-button text-slate-700 dark:text-slate-200 transition-all duration-200"
-          >
-            {isDark ? (
-              <Sun className="w-4 h-4 text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]" />
-            ) : (
-              <Moon className="w-4 h-4 text-slate-600 hover:text-sky-600 transition-colors" />
-            )}
-          </button>
-
-          {/* Notification Bell — panel rendered via portal to avoid header clipping */}
-          <button
-            ref={bellBtnRef}
-            data-notif-bell
-            id="notif-bell-btn"
-            onClick={openNotifPanel}
-            className="relative w-9 h-9 flex items-center justify-center rounded-xl
-              bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800
-              border border-white/80 dark:border-white/10
-              neu-button text-slate-700 dark:text-slate-200 transition-all duration-200"
-          >
-            <Bell className="w-4 h-4" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-red-500 to-rose-600 text-white text-[9px] font-bold flex items-center justify-center shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-
-          {/* User Profile Pill */}
-          <div className="relative">
-            <button
-              ref={userBtnRef}
-              data-user-btn
-              onClick={openUserMenu}
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl
-                bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800
-                border border-white/80 dark:border-white/10
-                neu-button transition-all duration-200"
-            >
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-cyan-400 via-sky-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
-                <span className="text-[10px] font-black text-white uppercase">
-                  {(user?.name?.slice(0, 2) || user?.email?.slice(0, 2) || 'US').toUpperCase()}
-                </span>
-              </div>
-              <div className="hidden md:block text-left">
-                <div className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
-                  {user?.name?.split(' ')[0] || 'User'}
-                </div>
-                <div className="text-[9px] text-cyan-600 dark:text-cyan-400 uppercase font-semibold">{user?.role?.replace('_', ' ') || 'Console'}</div>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
-          </div>
+      {/* KPI strip */}
+      {isOpsRole && (
+        <div className="hidden lg:flex items-center gap-4 ml-4 text-[11px]">
+          <Pill label="Active batches" value={stats.active} tone="sky" />
+          <Pill label="Pending requests" value={stats.pending} tone="amber" />
+          <Pill label="Drivers" value={stats.drivers} tone="emerald" />
         </div>
-      </header>
-
-      {/* ── User menu — portal so it always floats above map controls ── */}
-      {showUserMenu && createPortal(
-        <div
-          data-user-menu
-          style={{
-            position: 'fixed',
-            top: userMenuPos.top,
-            right: userMenuPos.right,
-            width: 224,
-            zIndex: 9999,
-          }}
-          className="rounded-2xl liquid-glass-elevated
-            border border-white/60 dark:border-white/15 overflow-hidden shadow-2xl"
-        >
-          <div className="px-4 py-3 border-b border-slate-200/50 dark:border-slate-700/50 bg-white/40 dark:bg-slate-900/40">
-            <div className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user?.email}</div>
-            <div className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.name}</div>
-            <div className="flex items-center gap-1.5 mt-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 w-fit">
-              <Shield className="w-3 h-3 text-emerald-500" />
-              <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold tracking-wider">COGNITO AES-256</span>
-            </div>
-          </div>
-          <button
-            onClick={() => { setShowUserMenu(false); navigate('/settings'); }}
-            className="w-full text-left px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-800/50 transition-colors"
-          >
-            Settings &amp; Preferences
-          </button>
-          <button
-            onClick={() => { logout(); navigate('/'); }}
-            className="w-full text-left px-4 py-3 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            Sign Out Console
-          </button>
-        </div>,
-        document.body
       )}
 
-      {/* ── Notification dropdown — rendered via portal so it's never clipped by header ── */}
+      <div className="ml-auto flex items-center gap-2">
+        <span
+          className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase border ${
+            state === 'connected'
+              ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-300 border-emerald-400/30'
+              : 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-400/25'
+          }`}
+        >
+          <span className="relative flex w-1.5 h-1.5">
+            {state === 'connected' && (
+              <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+            )}
+            <span
+              className={`relative inline-flex w-1.5 h-1.5 rounded-full ${
+                state === 'connected' ? 'bg-emerald-500' : 'bg-slate-400'
+              }`}
+            />
+          </span>
+          {state === 'connected' ? 'Live' : state}
+        </span>
+
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-xl text-slate-500 hover:bg-slate-500/10 dark:text-slate-400 dark:hover:text-slate-200 transition"
+          aria-label="Toggle theme"
+        >
+          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600 dark:text-slate-300" />}
+        </button>
+
+        <button
+          ref={bellBtnRef}
+          id="notif-bell-btn"
+          onClick={() => setShowNotifPanel((s) => !s)}
+          className="relative p-2 rounded-xl text-slate-500 hover:bg-slate-500/10 dark:text-slate-400 dark:hover:text-slate-200"
+          aria-label={`Notifications (${unreadCount} unread)`}
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black grid place-items-center">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          ref={userBtnRef}
+          onClick={() => setShowUserMenu((s) => !s)}
+          className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-slate-500/10 transition"
+        >
+          <div className="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-600 dark:text-cyan-300 grid place-items-center text-[11px] font-black">
+            {(user?.name ?? 'O').charAt(0).toUpperCase()}
+          </div>
+          <span className="hidden sm:block text-[11px] font-bold text-slate-700 dark:text-slate-200 max-w-[130px] truncate">
+            {user?.name ?? 'Operator'} · {roleLabel}
+          </span>
+          <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+        </button>
+      </div>
+
+      {showNotifPanel && (
+        <div className="fixed inset-0 z-[50]" onClick={() => setShowNotifPanel(false)} />
+      )}
       {showNotifPanel && createPortal(
         <div
-          data-notif-dropdown
-          style={{
-            position: 'fixed',
-            top: panelPos.top,
-            right: panelPos.right,
-            width: 384,
-            zIndex: 9999,
-          }}
-          className="rounded-2xl shadow-2xl overflow-hidden border border-white/80 dark:border-white/20
-            bg-white/95 dark:bg-[#0f1829]/98 backdrop-blur-2xl"
+          ref={panelRef}
+          className="fixed top-[68px] right-4 w-[360px] max-w-[92vw] rounded-2xl liquid-glass-elevated border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden"
+          style={{ zIndex: 9999 }}
         >
-          {/* Panel header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/40 dark:border-white/10 bg-white/50 dark:bg-slate-900/50">
-            <div className="flex items-center gap-2">
-              <Bell className="w-3.5 h-3.5 text-cyan-500" />
-              <span className="text-xs font-black text-slate-900 dark:text-white">Terminal Alerts</span>
-              {unreadCount > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-red-500 text-white">
-                  {unreadCount}
+          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/40 dark:border-white/8">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-200">
+              Activity
+            </h3>
+            {notifications.length > 0 && (
+              <div className="ml-auto flex gap-2">
+                <button
+                  onClick={markAllRead}
+                  className="text-[10px] font-bold text-sky-600 dark:text-cyan-300 hover:underline"
+                >
+                  Mark all read
+                </button>
+                <button
+                  onClick={clearAll}
+                  className="text-[10px] font-bold text-slate-400 hover:underline"
+                >
+                  Clear
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="max-h-[420px] overflow-y-auto">
+            {notifications.length === 0 ? (
+              <p className="px-4 py-10 text-center text-xs text-slate-500 dark:text-slate-400">
+                Nothing yet. Batches and stop updates land here.
+              </p>
+            ) : (
+              notifications.map((n) => {
+                const style = NOTIF_STYLE[n.type] ?? NOTIF_STYLE.stop;
+                const Icon = style.Icon;
+                return (
+                  <div
+                    key={n.id}
+                    className={`px-4 py-3 flex items-start gap-2.5 border-b border-slate-200/40 dark:border-white/5 ${
+                      n.read ? 'opacity-60' : ''
+                    }`}
+                  >
+                    <div className={`p-1.5 rounded-lg border shrink-0 ${style.cls}`}>
+                      <Icon className="w-3 h-3" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 break-words">
+                        {n.title}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 break-words">
+                        {n.body}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {new Date(n.timestamp).toLocaleTimeString('en-IN', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {showUserMenu && createPortal(
+        <div
+          ref={menuRef}
+          className="fixed top-[68px] right-4 w-60 rounded-2xl liquid-glass-elevated border border-white/50 dark:border-white/10 shadow-2xl overflow-hidden"
+          style={{ zIndex: 9999 }}
+        >
+          <div className="px-4 py-3 border-b border-white/40 dark:border-white/8">
+            <p className="text-xs font-black text-slate-900 dark:text-white truncate">
+              {user?.name}
+            </p>
+            <p className="text-[10px] text-slate-400 truncate">{user?.email}</p>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span className="px-1.5 py-0.5 rounded bg-sky-500/12 text-sky-600 dark:text-cyan-300 text-[9px] font-black uppercase">
+                {roleLabel}
+              </span>
+              {user?.vehicle_number && (
+                <span className="px-1.5 py-0.5 rounded bg-slate-500/12 text-slate-500 dark:text-slate-400 text-[9px] font-mono">
+                  {user.vehicle_number}
                 </span>
               )}
             </div>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                className="flex items-center gap-1 text-[10px] text-cyan-600 dark:text-cyan-400 font-bold hover:opacity-75 transition-opacity"
-              >
-                <CheckCheck className="w-3 h-3" />
-                Mark all read
-              </button>
-            )}
           </div>
-
-          {/* Notification list */}
-          <div className="max-h-[420px] overflow-y-auto divide-y divide-white/20 dark:divide-white/5">
-            {notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-[11px] text-slate-400">
-                No notifications yet
-              </div>
-            ) : (
-              notifications.map(n => (
-                <div
-                  key={n.id}
-                  onClick={() => handleNotifClick(n.id)}
-                  className={`px-4 py-3 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-white/[0.03] ${
-                    n.read ? 'opacity-60' : 'bg-white/30 dark:bg-slate-800/30'
-                  }`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    {/* Unread indicator dot */}
-                    <div className="mt-1.5 flex-shrink-0 w-1.5">
-                      {!n.read
-                        ? <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 block shadow-[0_0_6px_rgba(6,182,212,0.7)]" />
-                        : <span className="w-1.5 h-1.5 block" />
-                      }
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border ${NOTIF_TYPE_BADGE[n.type] || NOTIF_TYPE_BADGE.system}`}>
-                          {NOTIF_TYPE_LABEL[n.type] || n.type.toUpperCase()}
-                        </span>
-                        <span className="text-[10px] font-bold text-slate-900 dark:text-white truncate">
-                          {n.title}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-300 leading-relaxed">
-                        {n.body}
-                      </p>
-                      <div className="flex items-center justify-between mt-1.5">
-                        <span className="text-[9px] text-slate-400">{n.timestamp}</span>
-                        {/* "View Details" only for slot bookings with attached data */}
-                        {n.type === 'slot' && n.bookingDetails && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedSlotBooking(n.bookingDetails!);
-                              setShowNotifPanel(false);
-                              navigate('/');
-                            }}
-                            className="flex items-center gap-1 px-2 py-0.5 rounded-lg
-                              bg-cyan-500/15 border border-cyan-400/30 text-cyan-600 dark:text-cyan-400
-                              text-[9px] font-black uppercase tracking-wider hover:bg-cyan-500/25 transition-colors"
-                          >
-                            <Eye className="w-2.5 h-2.5" />
-                            View Details
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+          <div className="py-1 border-b border-white/40 dark:border-white/8 text-xs">
+            <Link
+              to="/privacy"
+              onClick={() => setShowUserMenu(false)}
+              className="flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-500/10 transition"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-sky-500" />
+              Privacy policy
+            </Link>
+            <Link
+              to="/terms"
+              onClick={() => setShowUserMenu(false)}
+              className="flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-500/10 transition"
+            >
+              <FileText className="w-3.5 h-3.5 text-sky-500" />
+              Terms and conditions
+            </Link>
           </div>
+          <button
+            onClick={() => {
+              setShowUserMenu(false);
+              logout();
+              navigate('/');
+            }}
+            className="w-full px-4 py-2.5 text-left text-xs font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2 transition"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign out
+          </button>
         </div>,
-        document.body
+        document.body,
       )}
-    </>
+    </header>
+  );
+}
+
+function Pill({ label, value, tone }: { label: string; value: number; tone: string }) {
+  const tones: Record<string, string> = {
+    sky: 'text-sky-600 dark:text-cyan-300',
+    amber: 'text-amber-600 dark:text-amber-300',
+    emerald: 'text-emerald-600 dark:text-emerald-300',
+  };
+  return (
+    <span className="flex items-baseline gap-1.5">
+      <span className={`text-sm font-black font-mono ${tones[tone]}`}>{value}</span>
+      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
+    </span>
   );
 }
