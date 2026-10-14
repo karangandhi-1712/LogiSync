@@ -33,6 +33,7 @@ from app.models.delivery_schedule import DeliveryScheduleModel
 from app.models.port import PortModel
 from app.models.user import UserModel
 from app.ports import is_valid_port
+from app.services.schedule_engine import IST_OFFSET
 
 router = APIRouter(prefix="/analytics/delivery", tags=["Delivery marketplace analytics"])
 
@@ -163,26 +164,72 @@ def _on_time_by_tier(db: Session, port: Optional[str], since: datetime) -> Dict[
         total_done += len(tier_rows)
         out[tier] = {
             "delivered": len(tier_rows),
+            # `measured` excludes deliveries with no requested window to have
+            # been late against, so the percentage is never diluted by stops
+            # that were never eligible to be scored.
+            "measured": sum(1 for r in tier_rows if _is_measurable(r)),
             "on_time": ok,
-            "on_time_pct": round(ok / len(tier_rows) * 100, 1) if tier_rows else 0.0,
+            # None, not 0.0 — "no data" and "genuinely never on time" are very
+            # different readings of the same bar, and the UI renders them
+            # differently. A tier with nothing delivered has no rate.
+            "on_time_pct": (round(ok / len(tier_rows) * 100, 1) if tier_rows else None),
         }
-    out["overall_pct"] = round(total_ok / total_done * 100, 1) if total_done else 0.0
+    out["overall_pct"] = round(total_ok / total_done * 100, 1) if total_done else None
     return out
 
 
-def _within_window(r: DeliveryRequestModel) -> bool:
-    """On-time when no window was requested, or delivery closed before it ended."""
-    if not r.requested_window_end:
-        return True
-    if not r.updated_at:
-        return False
+def _window_minutes(value: Optional[str]) -> Optional[int]:
+    """An `HH:MM` string as minutes past midnight, or None if unusable."""
+    if not value or ":" not in str(value):
+        return None
     try:
-        h, m = (int(x) for x in r.requested_window_end.split(":")[:2])
-    except (ValueError, AttributeError):
+        h, m = str(value).split(":")[:2]
+        return int(h) * 60 + int(m)
+    except (ValueError, TypeError):
+        return None
+
+
+def _is_measurable(r: DeliveryRequestModel) -> bool:
+    """Whether this delivery can be scored against a window at all."""
+    return _window_minutes(r.requested_window_end) is not None
+
+
+def _within_window(r: DeliveryRequestModel) -> bool:
+    """Delivered inside the customer's requested window.
+
+    Two things this has to get right, and historically got neither:
+
+    * **Timezone.** `requested_window_end` is depot-local IST wall-clock, because
+      every customer picked it off their own phone clock. Every timestamp in the
+      database is naive UTC. Comparing `updated_at.hour` straight against the
+      window meant a 23:36 IST delivery read as 18:06 and was scored against an
+      18:00 deadline — every evening batch was late by construction.
+    * **Which timestamp.** `updated_at` is `onupdate=datetime.utcnow`, so it
+      moves on every write to the row, not just delivery. `delivered_at` is
+      stamped once by the delivered transition and is what this wants; it falls
+      back to `updated_at` only for rows written before that column existed.
+    """
+    end = _window_minutes(r.requested_window_end)
+    if end is None:
+        # No window was requested. Nothing to be late against, so the delivery
+        # is not a miss - but it is also not evidence, which is why
+        # `_is_measurable` keeps it out of the denominator.
         return True
-    end_minutes = h * 60 + m
-    actual = r.updated_at.hour * 60 + r.updated_at.minute
-    return actual <= end_minutes
+
+    stamp = getattr(r, "delivered_at", None) or r.updated_at
+    if stamp is None:
+        return False
+
+    actual = (stamp + IST_OFFSET)
+    actual_min = actual.hour * 60 + actual.minute
+
+    start = _window_minutes(r.requested_window_start)
+    if start is None:
+        return actual_min <= end
+    if start <= end:
+        return start <= actual_min <= end
+    # Window wraps past midnight, e.g. 22:00 → 02:00.
+    return actual_min >= start or actual_min <= end
 
 
 @router.get("/volume")

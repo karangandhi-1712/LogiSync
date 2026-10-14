@@ -129,17 +129,24 @@ export interface DeliveryRequest {
   package_type: string | null;
   package_weight: number | null;
   special_handling: string | null;
+  handling_flags: HandlingFlag[];
   priority_tier: PriorityTier;
   tier_fee: number;
   requested_window_start: string | null;
   requested_window_end: string | null;
-  status: DeliveryStatus;
-  failure_reason: string | null;
-  schedule_id: string | null;
-  stop_sequence: number | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+status: DeliveryStatus;
+    failure_reason: string | null;
+    payment_status: PaymentStatus;
+    payment_method: string | null;
+    payment_amount: number;
+    paid_at: string | null;
+    schedule_id: string | null;
+    stop_sequence: number | null;
+    out_for_delivery_at: string | null;
+    delivered_at: string | null;
+    created_at: string | null;
+    updated_at: string | null;
+  }
 
 export interface OptimizedRoute {
   order: string[];
@@ -198,6 +205,7 @@ export interface ConsumerRequestIn {
   package_type?: string | null;
   package_weight?: number | null;
   special_handling?: string | null;
+  handling_flags?: HandlingFlag[];
   priority_tier?: PriorityTier;
   requested_window_start?: string | null;
   requested_window_end?: string | null;
@@ -212,6 +220,12 @@ export interface ConsumerSubmission {
   pickup_port_id: string;
   delivery_lat: number;
   delivery_lng: number;
+  payment_status: PaymentStatus;
+  payment_method: string | null;
+  payment_amount: number;
+  payment_provider: string;
+  /** True when the parcel must be paid before the depot will act on it. */
+  requires_payment: boolean;
   /** "geoapify" when the address was really resolved, "fallback" when approximated. */
   geocode_source: string;
   created_at: string | null;
@@ -228,8 +242,18 @@ export interface TrackingPayload {
   requested_window_start: string | null;
   requested_window_end: string | null;
   package_type: string | null;
+  package_weight: number | null;
   special_handling: string | null;
+  handling_flags: HandlingFlag[];
   stop_sequence: number | null;
+  payment_status: PaymentStatus;
+  payment_method: string | null;
+  payment_amount: number;
+  paid_at: string | null;
+  out_for_delivery_at: string | null;
+  delivered_at: string | null;
+  /** Whether the driver's phone number is released to this customer yet. */
+  driver_contact_visible: boolean;
   created_at: string | null;
   updated_at: string | null;
   failure_reason: string | null;
@@ -243,11 +267,25 @@ export interface TrackingPayload {
     driver_lat: number | null;
     driver_lng: number | null;
     driver_updated_at: string | null;
-    driver?: { name: string; vehicle_number: string | null };
+    driver?: DriverCard;
     route?: { polyline: [number, number][]; simulated: boolean };
   };
   /** True while the stop is still cancellable by the customer from their account. */
   is_cancellable?: boolean;
+}
+
+/**
+ * The driver, as a customer is allowed to see them.
+ *
+ * `phone` is absent — not null — until `contact_visible` is true. Treat the field
+ * as undefined as "not released", never as "no number on file".
+ */
+export interface DriverCard {
+  name: string;
+  vehicle_number: string | null;
+  vehicle_type?: string | null;
+  contact_visible: boolean;
+  phone?: string | null;
 }
 
 // ─── Customer account ────────────────────────────────────────────────────────
@@ -278,10 +316,116 @@ export interface ConsumerOrderHistoryEntry {
   timestamp: string | null;
 }
 
+// ─── Earnings & payments ─────────────────────────────────────────────────────
+
+/** One stop's contribution to a driver's payout, itemised. */
+export interface StopEarning {
+  reference: string;
+  priority_tier: PriorityTier;
+  weight_kg: number;
+  handling_flags: HandlingFlag[];
+  base_pay: number;
+  weight_pay: number;
+  handling_pay: number;
+  stop_total: number;
+}
+
+/** What a driver earns for a prospective batch. Served by POST /schedules/quote. */
+export interface EarningsQuote {
+  stops: StopEarning[];
+  stop_count: number;
+  route_km: number;
+  stops_pay: number;
+  distance_pay: number;
+  batch_bonus: number;
+  total: number;
+}
+
+export interface PaymentConfig {
+  provider: 'razorpay' | 'cash_on_depot';
+  enabled: boolean;
+  key_id: string;
+  currency: string;
+  cod_enabled: boolean;
+}
+
+export interface PaymentQuoteLine {
+  label: string;
+  amount: number;
+  emphasis?: boolean;
+}
+
+export interface PaymentState {
+  token_number: string;
+  status: PaymentStatus;
+  amount: number;
+  method: string | null;
+  ref: string | null;
+  paid_at: string | null;
+  provider: string;
+  breakdown: PaymentQuoteLine[];
+  /** Paid, still pending, and not on a batch yet - i.e. ready for the FM. */
+  releaseable: boolean;
+  released?: boolean;
+  auto_attached?: boolean;
+  already_paid?: boolean;
+}
+
+export interface RazorpayOrder {
+  provider: 'razorpay';
+  order_id: string;
+  key_id: string;
+  amount: number;
+  amount_paise: number;
+  currency: string;
+  token_number: string;
+  prefill: { name: string; contact: string };
+  notes: Record<string, string>;
+}
+
+/** A parcel's price, computed server-side before the order exists. */
+export interface PaymentEstimate {
+  tier: PriorityTier;
+  base_fee: number;
+  weight_kg: number;
+  weight_component: number;
+  handling_flags: HandlingFlag[];
+  handling_fee: number;
+  /** True when the quote fell under the floor and was lifted to it. */
+  min_charge_applied: boolean;
+  total: number;
+  provider: string;
+  lines: PaymentQuoteLine[];
+}
+
 export interface PendingQueue {
   requests: DeliveryRequest[];
   /** Urgent requests with no open batch - drive the FM's immediate-schedule prompt. */
   urgent_without_batch: DeliveryRequest[];
+}
+
+/** A parcel's machine-readable handling requirements. Mirrors VALID_HANDLING. */
+export type HandlingFlag = 'fragile' | 'upright' | 'refrigerated' | 'liquid';
+
+export const HANDLING_OPTIONS: {
+  id: HandlingFlag;
+  label: string;
+  hint: string;
+}[] = [
+  { id: 'fragile', label: 'Fragile', hint: 'Glass, porcelain, breakable' },
+  { id: 'upright', label: 'Keep upright', hint: 'No top-load, do not tilt' },
+  { id: 'refrigerated', label: 'Refrigerated', hint: 'Cold chain, perishable' },
+  { id: 'liquid', label: 'Liquid', hint: 'Drums, canisters, bottles' },
+];
+
+export type PaymentStatus = 'unpaid' | 'paid' | 'failed' | 'refunded';
+
+/** Payment fields returned on every request and tracking payload. */
+export interface PaymentState {
+  payment_status: PaymentStatus;
+  payment_method: string | null;
+  payment_amount: number;
+  paid_at: string | null;
 }
 
 export interface MarketplaceKpis {
@@ -297,9 +441,12 @@ export interface MarketplaceKpis {
   avg_batch_fill_pct: number;
   on_time_rate_by_tier: Record<string, {
     delivered: number;
+    /** Deliveries that actually had a window to be scored against. */
+    measured: number;
     on_time: number;
-    on_time_pct: number;
-  }> & { overall_pct: number };
+    /** null, not 0 — a tier with no deliveries has no rate, not a zero rate. */
+    on_time_pct: number | null;
+  }> & { overall_pct: number | null };
   on_time_rate_overall: number;
   drivers_total: number;
   drivers_active: number;
@@ -360,8 +507,9 @@ export type MarketplaceEventType =
   | 'schedule:stop_added'
   | 'schedule:locked'
   | 'schedule:driver_position'
-  | 'delivery:status_changed'
-  | 'driver:position:ack'
+| 'delivery:status_changed'
+    | 'delivery:out_for_delivery'
+    | 'driver:position:ack'
   | 'pong'
   | 'error';
 

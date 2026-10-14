@@ -57,6 +57,8 @@ def list_users(role: Optional[str] = None, port: Optional[str] = None, db: Sessi
              "availability_status": getattr(u, "availability_status", None),
              "going_offline_at": (u.going_offline_at.isoformat()
                                   if getattr(u, "going_offline_at", None) else None),
+             # Sorted client-side into "recently created" on the dashboard.
+             "created_at": (u.created_at.isoformat() if getattr(u, "created_at", None) else None),
              "is_active": u.is_active} for u in q.limit(500).all()]
 
 

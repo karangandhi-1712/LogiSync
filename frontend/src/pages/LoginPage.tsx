@@ -66,7 +66,7 @@ const ROLES: Record<string, RoleTheme> = {
     id: 'port_admin',
     title: 'Port Admin',
     subtitle: 'Terminal Authority & Governance Center',
-    tag: 'PORT AUTHORITY • MULTI-TERMINAL',
+    tag: 'PORT AUTHORITY ΓÇó MULTI-TERMINAL',
     icon: ShieldCheck,
     defaultEmail: 'admin@logisync.ai',
     iconBox: 'bg-amber-100 border-amber-300 dark:bg-amber-500/20 dark:border-amber-400/30',
@@ -96,7 +96,7 @@ const ROLES: Record<string, RoleTheme> = {
     id: 'fleet_manager',
     title: 'Fleet Manager',
     subtitle: 'Live Telematics & Port Ingress Command',
-    tag: 'OPERATIONAL CLEARANCE • ASSIGNED PORT',
+    tag: 'OPERATIONAL CLEARANCE ΓÇó ASSIGNED PORT',
     icon: Truck,
     defaultEmail: 'manager@logisync.ai',
     infoNote: 'Fleet Manager accounts are created by the Port Admin. Sign in with the credentials assigned to your operational terminal.',
@@ -127,7 +127,7 @@ const ROLES: Record<string, RoleTheme> = {
     id: 'driver',
     title: 'Driver',
     subtitle: 'Driver Dispatch & Route Execution',
-    tag: 'LOGISTICS CLEARANCE • TRUCK & DRIVER',
+    tag: 'LOGISTICS CLEARANCE ΓÇó TRUCK & DRIVER',
     icon: Truck,
     defaultEmail: 'driver@logisync.ai',
     iconBox: 'bg-blue-100 border-blue-300 dark:bg-blue-500/20 dark:border-blue-400/30',
@@ -157,7 +157,7 @@ const ROLES: Record<string, RoleTheme> = {
     id: 'consumer',
     title: 'Customer',
     subtitle: 'Request, Track & Follow Every Delivery',
-    tag: 'CUSTOMER ACCOUNT • SELF-SIGNUP',
+    tag: 'CUSTOMER ACCOUNT ΓÇó SELF-SIGNUP',
     icon: ShoppingBag,
     defaultEmail: 'customer@logisync.ai',
     infoNote: 'Create a free customer account to request deliveries, track them live on the map, and keep your full order history.',
@@ -189,11 +189,12 @@ const ROLES: Record<string, RoleTheme> = {
 function normalizeRole(r?: string): string {
   if (r === 'dispatcher') return 'driver';
   if (r && r in ROLES) return r;
-  return 'port_admin';
+  // Plain /login opens the public-facing tabs, not the operator console.
+  return 'driver';
 }
 
 export default function LoginPage() {
-  const { role: urlRole = 'port_admin' } = useParams();
+  const { role: urlRole } = useParams();
   const initialRole = normalizeRole(urlRole);
   const [currentRole, setCurrentRole] = useState(initialRole);
 
@@ -205,6 +206,17 @@ export default function LoginPage() {
   const justRegistered = (location.state as any)?.justRegistered === true;
 
   const currentTheme = ROLES[currentRole] || ROLES.port_admin;
+
+  // Operator accounts (Port Admin, Fleet Manager) are not offered on the
+  // public sign-in. Staff reach them via the "auth login" link on the landing
+  // page, which lands on /login/port_admin. Everyone else sees Driver and
+  // Shipper only.
+  const OPERATOR_ROLES = ['port_admin', 'fleet_manager'];
+  const showOperators = OPERATOR_ROLES.includes(currentRole);
+  const allRoles = Object.values(ROLES);
+  const visibleRoles = showOperators
+    ? allRoles.filter((r) => OPERATOR_ROLES.includes(r.id))
+    : allRoles.filter((r) => !OPERATOR_ROLES.includes(r.id));
 
   const [identifier, setIdentifier] = useState(currentTheme.defaultEmail);
   const [password, setPassword] = useState('');
@@ -280,7 +292,7 @@ export default function LoginPage() {
     ? { ring: 'rgba(16, 185, 129, 0.65)', glow: 'rgba(16, 185, 129, 0.22)' }
     : { ring: 'rgba(14, 165, 233, 0.65)', glow: 'rgba(14, 165, 233, 0.22)' };
 
-  /* ── Apple Liquid Glass token set ── */
+  /* ΓöÇΓöÇ Apple Liquid Glass token set ΓöÇΓöÇ */
   const chipBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.62)';
   const chipBorder = isDark ? '1px solid rgba(255,255,255,0.10)' : '1px solid rgba(255,255,255,0.60)';
   const chipShadow = isDark
@@ -296,23 +308,28 @@ export default function LoginPage() {
     chip: isDark
       ? { background: chipBg, border: chipBorder, backdropFilter: 'blur(20px)', boxShadow: chipShadow }
       : { background: chipBg, border: chipBorder, backdropFilter: 'blur(20px)', boxShadow: chipShadow },
-    // Input field with specular edge and role-colored ambient focus
+    // Input field: iOS-style liquid glass. A frosted slab with a bright
+    // top-edge highlight and a soft drop shadow; focus adds a crisp accent ring
+    // and a touch more opacity. No per-role colour glow - that read as a
+    // different control depending on which tab you were on.
     input: (isFocused: boolean) => (isDark
       ? {
-          background: isFocused ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.05)',
-          border: isFocused ? `1px solid ${roleFocusColor.ring}` : '1px solid rgba(255,255,255,0.11)',
-          backdropFilter: 'blur(24px) saturate(180%)',
+          background: isFocused ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.07)',
+          border: isFocused ? '1px solid rgba(56,189,248,0.7)' : '1px solid rgba(255,255,255,0.12)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
           boxShadow: isFocused
-            ? `inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.2), 0 0 0 1px ${roleFocusColor.ring}, 0 0 20px ${roleFocusColor.glow}`
-            : 'inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -1px 0 rgba(0,0,0,0.2)',
+            ? 'inset 0 1px 0 rgba(255,255,255,0.28), inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 0 4px rgba(56,189,248,0.18), 0 8px 24px rgba(0,0,0,0.35)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px rgba(0,0,0,0.28)',
         }
       : {
-          background: isFocused ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.65)',
-          border: isFocused ? `1px solid ${roleFocusColor.ring}` : '1px solid rgba(255,255,255,0.60)',
-          backdropFilter: 'blur(24px) saturate(180%)',
+          background: isFocused ? 'rgba(255,255,255,0.86)' : 'rgba(255,255,255,0.62)',
+          border: isFocused ? '1px solid rgba(2,132,199,0.65)' : '1px solid rgba(255,255,255,0.75)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
           boxShadow: isFocused
-            ? `inset 0 1px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(0,0,0,0.04), 0 0 0 1px ${roleFocusColor.ring}, 0 0 20px ${roleFocusColor.glow}`
-            : 'inset 0 1px 0 rgba(255,255,255,0.92), inset 0 -1px 0 rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03)',
+            ? 'inset 0 1px 0 rgba(255,255,255,1), 0 0 0 4px rgba(2,132,199,0.16), 0 10px 28px rgba(15,23,42,0.10)'
+            : 'inset 0 1px 0 rgba(255,255,255,0.95), 0 10px 28px rgba(15,23,42,0.07)',
         }),
     // Pill - small rounded badge row
     pill: isDark
@@ -352,8 +369,14 @@ export default function LoginPage() {
         />
       </div>
 
-      {/* ══ LEFT PANEL ══ */}
-      <div className="relative z-10 flex flex-col w-full lg:w-[480px] xl:w-[520px] shrink-0 min-h-screen border-r border-white/30 dark:border-white/6"
+      {/* Form panel. Driver and Shipper get the form on the left with the showcase
+          on the right; the operator console flips that, so the form moves right
+          and the showcase becomes the left-hand backdrop. */}
+      <div className={`relative z-10 flex flex-col w-full lg:w-[480px] xl:w-[520px] shrink-0 min-h-screen ${
+        showOperators
+          ? 'lg:order-2 border-l border-white/30 dark:border-white/6'
+          : 'lg:order-1 border-r border-white/30 dark:border-white/6'
+      }`}
         style={lg.panel}>
 
         {/* Top bar */}
@@ -373,16 +396,16 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Form area */}
-        <div className="flex-1 flex flex-col justify-center px-6 sm:px-8 py-8">
-
+{/* Form area */}
+        <div className="flex flex-1 flex-col justify-center px-6 sm:px-10 py-12">
+          <div className="mx-auto w-full max-w-[400px]">
           {/* Role tabs - liquid glass tube */}
           <div className="relative mb-5 p-1.5 rounded-2xl flex gap-1.5 overflow-hidden"
             style={{ ...lg.chip, backdropFilter: 'blur(24px)' }}>
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/90 to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 left-0 w-px bg-gradient-to-b from-white/80 via-white/20 to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-white/60 via-white/10 to-transparent" />
-            {Object.values(ROLES).map(role => {
+            {visibleRoles.map(role => {
               const TabIcon = role.icon;
               const isActive = role.id === currentRole;
               return (
@@ -425,34 +448,34 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={submit} className="space-y-4">
+          <form onSubmit={submit} className="space-y-5">
             {justRegistered && (
               <div className="p-3.5 rounded-2xl text-xs text-emerald-800 dark:text-emerald-200" style={lg.alertSuccess}>Account created - sign in to open your dashboard.</div>
             )}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">{(currentRole === 'driver' || currentRole === 'dispatcher' || currentRole === 'consumer') ? 'Email or Mobile Number' : 'Official Email Address'}</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"><Mail className="w-4 h-4" /></div>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"><Mail className="w-4 h-4" /></div>
                 <input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)}
                   onFocus={() => setFocusedField('identifier')}
                   onBlur={() => setFocusedField(null)}
                   placeholder={currentRole === 'port_admin' ? 'admin@logisync.ai' : currentRole === 'fleet_manager' ? 'e.g. manager@port.gov.in' : 'e.g. TN01AB1234 or email'}
                   required
-                  className="w-full pl-11 pr-4 py-3.5 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 text-sm font-medium focus:outline-none transition-all duration-200"
+                  className="w-full pl-12 pr-5 py-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 text-[15px] font-medium focus:outline-none"
                   style={lg.input(focusedField === 'identifier')} />
               </div>
             </div>
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"><Lock className="w-4 h-4" /></div>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-slate-500"><Lock className="w-4 h-4" /></div>
                 <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
                   placeholder="Enter your password" required
-                  className="w-full pl-11 pr-11 py-3.5 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 text-sm font-medium focus:outline-none transition-all duration-200"
+                  className="w-full pl-12 pr-12 py-4 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 text-[15px] font-medium focus:outline-none"
                   style={lg.input(focusedField === 'password')} />
-                <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                <button type="button" onClick={() => setShowPassword(p => !p)} className="absolute inset-y-0 right-1 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -500,11 +523,12 @@ export default function LoginPage() {
             )}
             <Link to="/" className="hover:text-slate-800 dark:hover:text-white font-medium transition-colors flex items-center gap-1"><span>Browse all roles</span><span aria-hidden="true">→</span></Link>
           </div>
+          </div>
         </div>
 
         <div className="px-6 py-3 border-t flex items-center justify-between text-[10px] font-mono text-slate-400 dark:text-slate-500"
           style={{ borderColor: lg.bar.borderColor, background: lg.bar.background, backdropFilter: lg.bar.backdropFilter }}>
-          <span>PORT CLEARANCE AUTHORITY • VOC THOOTHUKUDI</span>
+          <span>PORT CLEARANCE AUTHORITY ΓÇó VOC THOOTHUKUDI</span>
           <div className="flex items-center gap-3">
             <Link to="/privacy" className="hover:underline text-slate-500 dark:text-slate-400 font-sans">Privacy</Link>
             <Link to="/terms" className="hover:underline text-slate-500 dark:text-slate-400 font-sans">Terms</Link>
@@ -513,8 +537,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ══ RIGHT PANEL - Apple Liquid Glass Showcase ══ */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center p-8 xl:p-14"
+      {/* Showcase panel — right for Driver/Shipper, left for operators */}
+      <div className={`hidden lg:flex flex-1 relative overflow-hidden items-center justify-center p-8 xl:p-14 ${
+        showOperators ? 'lg:order-1' : 'lg:order-2'
+      }`}
         style={{ background: isDark ? 'linear-gradient(160deg,#080810 0%,#0d0d1a 40%,#111120 100%)' : 'linear-gradient(160deg,#d8e8f5 0%,#e5eef8 40%,#eef3fb 100%)' }}>
 
         {/* Animated colour blobs - change per role */}
@@ -562,10 +588,23 @@ export default function LoginPage() {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
             </span>
             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">12 PORTS CONNECTED</span>
-            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="text-slate-300 dark:text-slate-600">ΓÇó</span>
             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">AES-256 ENCRYPTED</span>
           </div>
         </div>
+
+        {/* Operator sign-in, bottom-left and unmarked. Doubles as the way back out
+            once the operator console has swapped the panels. Bottom-left rather
+            than bottom-right: the showcase panel is the *left* pane in the operator
+            layout, so anchoring right pushed this link under the far edge of the
+            viewport, well away from the form it is meant to complement. */}
+        <button
+          type="button"
+          onClick={() => handleTabSwitch(showOperators ? 'driver' : 'port_admin')}
+          className="absolute bottom-6 left-6 z-20 text-[13px] text-slate-500 dark:text-slate-400 underline-offset-4 transition-colors hover:text-slate-800 hover:underline dark:hover:text-white"
+        >
+          {showOperators ? 'back to sign in' : 'auth login'}
+        </button>
       </div>
     </div>
   );

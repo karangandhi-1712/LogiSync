@@ -9,11 +9,16 @@ import type {
   DeliveryRequest,
   DeliverySchedule,
   Driver,
+  EarningsQuote,
   MarketplaceEvent,
   MarketplaceEventType,
   MarketplaceKpis,
+  PaymentConfig,
+  PaymentEstimate,
+  PaymentState,
   PendingQueue,
   PortSummary,
+  RazorpayOrder,
   SocketState,
   TrackingPayload,
   VolumeSeries,
@@ -142,6 +147,22 @@ export async function createSchedule(payload: CreateScheduleInput): Promise<Deli
   return data;
 }
 
+/**
+ * Price a prospective batch without creating it.
+ *
+ * The fleet manager's estimate comes from the server rather than a local copy of
+ * the earnings formula, which is what used to drift: the panel showed one figure
+ * and the driver was offered another as soon as a constant changed.
+ */
+export async function quoteSchedule(payload: {
+  request_ids: string[];
+  area_center_lat?: number | null;
+  area_center_lng?: number | null;
+}): Promise<EarningsQuote> {
+  const { data } = await api.post('/api/schedules/quote', payload);
+  return data;
+}
+
 export async function fetchSchedules(status?: string): Promise<DeliverySchedule[]> {
   const { data } = await api.get('/api/schedules', { params: status ? { status } : {} });
   return data;
@@ -253,6 +274,81 @@ export async function cancelStop(id: string, reason?: string): Promise<DeliveryR
 export async function fetchStopHistory(id: string) {
   const { data } = await api.get(`/api/deliveries/${id}/history`);
   return data;
+}
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+export async function fetchPaymentConfig(): Promise<PaymentConfig> {
+  const { data } = await api.get('/api/payments/config');
+  return data;
+}
+
+export async function fetchPaymentState(token: string): Promise<PaymentState> {
+  const { data } = await api.get(`/api/payments/${token}`);
+  return data;
+}
+
+/** Price a parcel before creating the order, for the checkout review step. */
+export async function estimatePayment(payload: {
+  priority_tier: string;
+  package_weight?: number | null;
+  package_type?: string | null;
+  handling_flags?: string[];
+  special_handling?: string | null;
+}): Promise<PaymentEstimate> {
+  const { data } = await api.post('/api/payments/estimate', payload);
+  return data;
+}
+
+/** Open a gateway order. Resolves to a COD state when no gateway is configured. */
+export async function createPaymentOrder(token: string): Promise<RazorpayOrder | PaymentState> {
+  const { data } = await api.post('/api/payments/order', { token_number: token });
+  return data;
+}
+
+/**
+ * Hand the checkout result to the server for signature verification.
+ *
+ * The browser's own success callback is never trusted — Razorpay's signature is
+ * checked server-side against the API secret before the parcel is released.
+ */
+export async function verifyPayment(payload: {
+  token_number: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<PaymentState> {
+  const { data } = await api.post('/api/payments/verify', payload);
+  return data;
+}
+
+/** Acknowledge pay-on-collection. 409s when a gateway is live. */
+export async function confirmPayOnDepot(token: string): Promise<PaymentState> {
+  const { data } = await api.post('/api/payments/cod/confirm', { token_number: token });
+  return data;
+}
+
+/**
+ * Load Razorpay's checkout script once.
+ *
+ * Returns null when the gateway is disabled or the CDN is unreachable — callers
+ * treat that as "fall back to pay at depot" rather than an error, so a blocked
+ * CDN degrades the flow instead of breaking the page.
+ */
+let _razorpayPromise: Promise<boolean> | null = null;
+export function loadRazorpay(): Promise<boolean> {
+  if (_razorpayPromise) return _razorpayPromise;
+  _razorpayPromise = new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve(false);
+    if ((window as any).Razorpay) return resolve(true);
+    const s = document.createElement('script');
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    s.async = true;
+    s.onload = () => resolve(Boolean((window as any).Razorpay));
+    s.onerror = () => resolve(false);
+    document.body.appendChild(s);
+  });
+  return _razorpayPromise;
 }
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
@@ -377,6 +473,8 @@ export interface AdminUser {
   availability_status: AvailabilityStatus | null;
   going_offline_at: string | null;
   is_active: boolean;
+  /** Added so the dashboard can sort by newest without a second request. */
+  created_at: string | null;
 }
 
 export async function fetchAdminUsers(role?: string, port?: string): Promise<AdminUser[]> {

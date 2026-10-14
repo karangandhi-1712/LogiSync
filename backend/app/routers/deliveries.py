@@ -6,6 +6,7 @@ fleet-manager-facing surfaces. When the last stop closes, the parent batch
 completes and the driver becomes broadcastable again.
 """
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,6 +16,8 @@ from sqlalchemy.orm import Session
 from app.constants import (
     REQUEST_TRANSITIONS,
     REQ_CANCELLED,
+    REQ_DELIVERED,
+    REQ_EN_ROUTE,
     REQ_FAILED,
     REQ_PENDING,
     SCHED_CANCELLED,
@@ -25,7 +28,8 @@ from app.dependencies import require_role
 from app.models.delivery_request import DeliveryRequestModel
 from app.models.delivery_schedule import DeliveryScheduleModel
 from app.models.status_log import StatusUpdateLogModel
-from app.serializers import serialize_request
+from app.models.user import UserModel
+from app.serializers import serialize_driver_for_consumer, serialize_request
 from app.services import events, schedule_engine
 
 router = APIRouter(prefix="/deliveries", tags=["Delivery execution"])
@@ -129,6 +133,19 @@ def update_stop_status(
     r.status = new_status
     if new_status == REQ_FAILED:
         r.failure_reason = (payload.reason or "").strip()[:512]
+
+    # Stamped once, never cleared. `out_for_delivery_at` is what authorises
+    # showing the customer the driver's phone number, so it must not be derived
+    # from `r.status` — a later cancellation would un-set that and, worse, a
+    # status-set test would wrongly open the gate for a stop cancelled before it
+    # ever left the depot. `delivered_at` is the on-time analytics clock for the
+    # same reason `updated_at` cannot be: it moves on every write.
+    now = datetime.utcnow()
+    if new_status == REQ_EN_ROUTE and r.out_for_delivery_at is None:
+        r.out_for_delivery_at = now
+    if new_status == REQ_DELIVERED and r.delivered_at is None:
+        r.delivered_at = now
+
     db.add(StatusUpdateLogModel(
         delivery_request_id=r.id,
         schedule_id=r.schedule_id,
@@ -152,9 +169,26 @@ def update_stop_status(
         if schedule.fleet_manager_id:
             audience.append(schedule.fleet_manager_id)
     # Whoever placed this order gets told, so their portal updates without polling.
-    from app.routers.consumer import consumer_user_ids_for_schedule
+    from app.routers.consumer import (
+        consumer_user_id_for_request,
+        consumer_user_ids_for_schedule,
+    )
     audience.extend(consumer_user_ids_for_schedule(db, r.schedule_id))
     events.emit_status_changed_sync(serialize_request(r), r.schedule_id, audience)
+
+    # ── Out for delivery: hand the customer a way to reach the driver. ────
+    if new_status == REQ_EN_ROUTE and schedule is not None and schedule.claimed_by_driver_id:
+        driver = db.query(UserModel).filter(
+            UserModel.id == schedule.claimed_by_driver_id
+        ).first()
+        card = serialize_driver_for_consumer(driver, r)
+        if card is not None:
+            # Only this parcel's own customer, not everyone on the batch.
+            owner = consumer_user_id_for_request(db, r.id)
+            events.emit_out_for_delivery_sync(
+                serialize_request(r), r.schedule_id,
+                [owner] if owner else [], card,
+            )
 
     body = serialize_request(r)
     body["schedule_completed"] = schedule_completed

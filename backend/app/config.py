@@ -60,6 +60,18 @@ class Settings(BaseSettings):
     S3_STATIC_BUCKET: str = "logisync-frontend-assets"
     S3_AUDIT_BUCKET: str = "logisync-audit-logs"
 
+    # Payment gateway (Razorpay)
+    # Leave blank to run the depot's pay-on-collection flow: orders are created
+    # already paid and nothing is gated. Supplying both keys switches the whole
+    # marketplace to online capture. Test-mode keys work identically.
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+    #: Signature secret for the webhook route. Razorpay shows this per webhook.
+    #: Separate from the API secret because the two are rotated independently.
+    RAZORPAY_WEBHOOK_SECRET: str = ""
+    #: Set only when running against Razorpay's live dashboard, never in tests.
+    RAZORPAY_LIVE: bool = False
+
     # Security & Rate Limiting
     SECRET_KEY: str = "logisync-super-secret-production-signing-key-2026"
     JWT_SECRET: str = ""
@@ -135,6 +147,39 @@ class Settings(BaseSettings):
         pool = (self.COGNITO_USER_POOL_ID or "").strip()
         placeholder = (not pool) or ("XXXX" in pool) or ("EXAMPLE" in pool.upper())
         return bool(self.DEMO_MODE) or placeholder
+
+    @property
+    def payments_enabled(self) -> bool:
+        """True when online capture is actually possible.
+
+        Requires a non-placeholder key *pair*. The placeholder guard matches the
+        rest of the file: a `.env` copied from `.env.example` must not half-enable
+        a payment path and then fail at checkout with a gateway error.
+        """
+        return not (
+            self._is_placeholder(self.RAZORPAY_KEY_ID)
+            or self._is_placeholder(self.RAZORPAY_KEY_SECRET)
+        )
+
+    @property
+    def razorpay_client(self):
+        """A configured Razorpay client, or None when capture is disabled.
+
+        Imported lazily so the SDK is an optional dependency: a deployment
+        running pay-on-collection does not need it installed at all.
+        """
+        if not self.payments_enabled:
+            return None
+        try:
+            import razorpay
+        except ImportError:
+            logger = __import__("logging").getLogger("logisync.config")
+            logger.warning(
+                "RAZORPAY_KEY_ID/SECRET are set but the `razorpay` package is not "
+                "installed; falling back to pay-on-collection."
+            )
+            return None
+        return razorpay.Client(auth=(self.RAZORPAY_KEY_ID, self.RAZORPAY_KEY_SECRET))
 
 
 @lru_cache()

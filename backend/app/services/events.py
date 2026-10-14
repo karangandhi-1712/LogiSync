@@ -153,6 +153,13 @@ def emit_status_changed_sync(request_payload: Dict[str, Any], schedule_id: Optio
     emit_sync(lambda: emit_status_changed(request_payload, schedule_id, who))
 
 
+def emit_out_for_delivery_sync(request_payload: Dict[str, Any], schedule_id: Optional[str],
+                               audience: Iterable[str], driver_payload: Any) -> None:
+    """Tell the customer their parcel is on the move, with a way to reach the driver."""
+    who = list(audience)
+    emit_sync(lambda: emit_out_for_delivery(request_payload, schedule_id, who, driver_payload))
+
+
 def emit_driver_position_sync(schedule_id: str, lat: float, lng: float,
                               heading: Optional[float], fleet_manager_id: Optional[str],
                               consumer_ids: Optional[Iterable[str]] = None) -> None:
@@ -189,6 +196,24 @@ async def emit_status_changed(request_payload: Dict[str, Any], schedule_id: Opti
     await hub.to_users(audience, "delivery:status_changed", {
         "schedule_id": schedule_id,
         "request": request_payload,
+    })
+
+
+async def emit_out_for_delivery(request_payload: Dict[str, Any], schedule_id: Optional[str],
+                                audience: Iterable[str], driver_payload: Any) -> None:
+    """Fired the moment a stop reaches en_route.
+
+    Separate from `delivery:status_changed` because the payload is different in
+    kind, not just in shape: this one carries the customer's authorised way to
+    contact the driver, which is only built once `out_for_delivery_at` is set.
+    """
+    who = [uid for uid in audience if uid]
+    if not who:
+        return
+    await hub.to_users(who, "delivery:out_for_delivery", {
+        "schedule_id": schedule_id,
+        "request": request_payload,
+        "driver": driver_payload,
     })
 
 

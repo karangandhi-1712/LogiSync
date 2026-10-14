@@ -12,6 +12,7 @@ from app.models.delivery_request import DeliveryRequestModel
 from app.models.delivery_schedule import DeliveryScheduleModel
 from app.models.port import PortModel
 from app.models.user import UserModel
+from app.services import handling
 from app.services.route_optimizer import route_payload
 
 
@@ -77,14 +78,23 @@ def serialize_request(r: DeliveryRequestModel, port: Optional[PortModel] = None,
         "package_type": r.package_type,
         "package_weight": r.package_weight,
         "special_handling": r.special_handling,
+        "handling_flags": sorted(handling.deserialize(r.handling_flags)),
         "priority_tier": r.priority_tier,
         "tier_fee": TIER_FEES.get(r.priority_tier, 0),
         "requested_window_start": r.requested_window_start,
         "requested_window_end": r.requested_window_end,
         "status": r.status,
         "failure_reason": r.failure_reason,
+        "payment_status": r.payment_status,
+        "payment_method": r.payment_method,
+        "payment_amount": round(float(r.payment_amount or 0.0), 2),
+        "paid_at": r.paid_at.isoformat() if r.paid_at else None,
         "schedule_id": r.schedule_id,
         "stop_sequence": r.stop_sequence,
+        "out_for_delivery_at": (
+            r.out_for_delivery_at.isoformat() if r.out_for_delivery_at else None
+        ),
+        "delivered_at": r.delivered_at.isoformat() if r.delivered_at else None,
         "created_at": r.created_at.isoformat() if r.created_at else None,
         "updated_at": r.updated_at.isoformat() if r.updated_at else None,
     }
@@ -137,10 +147,52 @@ def serialize_schedule(s: DeliveryScheduleModel, port: Optional[PortModel] = Non
     return out
 
 
+def driver_contact_visible(r: DeliveryRequestModel) -> bool:
+    """Whether this parcel has reached the customer-visible "out for delivery" stage.
+
+    Gated on `out_for_delivery_at`, which is stamped once when the stop reaches
+    en_route and is never cleared. Deriving this from `r.status` instead would
+    leak: a stop cancelled while still `batched` lands on `cancelled`, which any
+    "terminal status" check would read as "the customer already met the driver".
+    The timestamp cannot be un-set by a later transition, so it cannot be.
+    """
+    return getattr(r, "out_for_delivery_at", None) is not None
+
+
+def serialize_driver_for_consumer(
+    driver: Optional[UserModel],
+    r: DeliveryRequestModel,
+) -> Optional[Dict[str, Any]]:
+    """The driver card a customer is entitled to see.
+
+    Name and vehicle are always shown — the customer can see a truck assigned to
+    their parcel without knowing who is driving it. The phone number is the
+    sensitive field, and it is withheld until the parcel is genuinely out for
+    delivery, at which point the customer has a reason to call and the driver has
+    agreed to be reachable.
+    """
+    if driver is None:
+        return None
+    visible = driver_contact_visible(r)
+    card: Dict[str, Any] = {
+        "name": driver.full_name,
+        "vehicle_number": driver.vehicle_number,
+        "vehicle_type": driver.vehicle_type,
+        "contact_visible": visible,
+    }
+    if visible:
+        card["phone"] = driver.mobile_number
+    return card
+
+
 def serialize_tracking(r: DeliveryRequestModel, schedule: Optional[DeliveryScheduleModel],
                        driver: Optional[UserModel], port: Optional[PortModel]) -> Dict[str, Any]:
-    """Public, token-authorised tracking payload. No private driver detail beyond
-    the name and vehicle the consumer is entitled to see."""
+    """Public, token-authorised tracking payload.
+
+    Driver phone number appears only once the stop is out for delivery — see
+    `driver_contact_visible`. Everything else the consumer sees is already their
+    own parcel.
+    """
     payload: Dict[str, Any] = {
         "token_number": r.token_number,
         "status": r.status,
@@ -152,8 +204,19 @@ def serialize_tracking(r: DeliveryRequestModel, schedule: Optional[DeliverySched
         "requested_window_start": r.requested_window_start,
         "requested_window_end": r.requested_window_end,
         "package_type": r.package_type,
+        "package_weight": r.package_weight,
         "special_handling": r.special_handling,
+        "handling_flags": sorted(handling.deserialize(r.handling_flags)),
         "stop_sequence": r.stop_sequence,
+        "payment_status": r.payment_status,
+        "payment_method": r.payment_method,
+        "payment_amount": round(float(r.payment_amount or 0.0), 2),
+        "paid_at": r.paid_at.isoformat() if r.paid_at else None,
+        "out_for_delivery_at": (
+            r.out_for_delivery_at.isoformat() if r.out_for_delivery_at else None
+        ),
+        "delivered_at": r.delivered_at.isoformat() if r.delivered_at else None,
+        "driver_contact_visible": driver_contact_visible(r),
         "created_at": r.created_at.isoformat() if r.created_at else None,
         "updated_at": r.updated_at.isoformat() if r.updated_at else None,
         "failure_reason": r.failure_reason,
@@ -174,11 +237,9 @@ def serialize_tracking(r: DeliveryRequestModel, schedule: Optional[DeliverySched
                 schedule.driver_updated_at.isoformat() if schedule.driver_updated_at else None
             ),
         }
-        if driver is not None:
-            payload["schedule"]["driver"] = {
-                "name": driver.full_name,
-                "vehicle_number": driver.vehicle_number,
-            }
+        card = serialize_driver_for_consumer(driver, r)
+        if card is not None:
+            payload["schedule"]["driver"] = card
         route = route_payload(schedule)
         if route:
             payload["schedule"]["route"] = {

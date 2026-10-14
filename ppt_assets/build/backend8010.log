@@ -1,0 +1,327 @@
+INFO:     Started server process [25588]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
+[seed] ports upserted (0 new)
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=206.37 method=POST path=/api/auth/login request_id=bb80adea-2874-450a-b7bd-ec7f3901710f status_code=200 user_id=anonymous
+INFO:     127.0.0.1:11968 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=13.96 method=GET path=/api/analytics/delivery/volume request_id=1680d746-3edb-4f21-a122-2fa944a77048 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:11968 - "GET /api/analytics/delivery/volume?period=90d HTTP/1.1" 200 OK
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=84.03 method=GET path=/api/analytics/delivery/kpis request_id=48ee1475-7f64-4782-87cb-8499154026e0 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:11968 - "GET /api/analytics/delivery/kpis?period=90d HTTP/1.1" 200 OK
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=31.61 method=GET path=/api/analytics/delivery/batches request_id=0b95f9ad-763e-4fb2-807c-6b5a4c2ffe9a status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:11968 - "GET /api/analytics/delivery/batches?period=90d HTTP/1.1" 200 OK
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=10.87 method=GET path=/api/analytics/delivery/ports request_id=118469f5-c917-4f96-ad53-0f2b6e8489ed status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:11968 - "GET /api/analytics/delivery/ports?period=90d HTTP/1.1" 200 OK
+2026-10-14 01:26:28 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.97 method=GET path=/api/admin/users request_id=bed34682-acd8-4fdc-9ec3-b645713cefb5 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:11968 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:30 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.73 method=GET path=/api/ports request_id=7e0a8904-abce-4b06-a1bb-1c46ca193b3e status_code=200 user_id=anonymous
+INFO:     127.0.0.1:6751 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:30 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=1.47 method=GET path=/api/ports request_id=f3f2521e-810f-4c59-a9fe-ea3a2ae03630 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:6751 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:34 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.25 method=GET path=/api/ports request_id=82058b09-d255-4d67-80b5-2183fd88be14 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:6751 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:34 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=1.55 method=GET path=/api/ports request_id=5da91664-885c-499e-9fb3-afeabbd5c017 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:3945 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:38 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=1.95 method=GET path=/api/ports request_id=d5175dbe-b0ae-4f2e-9426-8a65cdf0aa57 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:3945 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:38 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.08 method=GET path=/api/ports request_id=451d76c9-ef2e-499d-bc47-1b60e64491b6 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:6751 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6751 - "OPTIONS /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=183.97 method=POST path=/api/auth/login request_id=fc648bae-99f0-4d91-aaf2-9e43a5d02e6f status_code=200 user_id=anonymous
+INFO:     127.0.0.1:3945 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3945 - "OPTIONS /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.82 method=GET path=/api/auth/me request_id=97803df8-bfac-4f07-b2b8-22b3f13b568b status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:6751 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6751 - "OPTIONS /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3945 - "OPTIONS /api/admin/users HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2246 - "OPTIONS /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6751 - "OPTIONS /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.83 method=GET path=/api/admin/users request_id=7849c69a-3e48-426f-9fe2-b25b06343396 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2246 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.21 method=GET path=/api/admin/users request_id=62b0c4c1-ea14-47b4-8e64-23ce1d9eefb9 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:6751 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=24.51 method=GET path=/api/analytics/delivery/kpis request_id=9afd7454-d3a9-439e-9912-ecb53c72471c status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3945 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:26:40 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=13.14 method=GET path=/api/analytics/delivery/kpis request_id=4374a90c-7a8e-4a3f-8859-8188cd2ad83d status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:6751 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12418 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTAwMCwiaWF0IjoxNzkxOTIxNDAwfQ.bLBDyQHPcW_1t8yafGLYBsLOw5uUI9CC95P_FiaRJ0M" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:3945 - "OPTIONS /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2246 - "OPTIONS /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=7.6 method=GET path=/api/auth/me request_id=bb1160ee-cb7c-45db-942f-d29cadbc61ea status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:6751 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.29 method=GET path=/api/ports request_id=150eded0-e41a-4f7b-a781-6b135cd7b5ee status_code=200 user_id=anonymous
+INFO:     127.0.0.1:3969 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.3 method=GET path=/api/auth/me request_id=baa53cb2-9805-4d10-92e9-84ef1bf1f612 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2246 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.88 method=GET path=/api/ports request_id=b92c4d23-5560-4293-9275-f991baffdd20 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:6751 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=7.91 method=GET path=/api/admin/users request_id=5fe87285-a6ba-4fc3-ac7f-edb9ce3ff733 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2246 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=14.66 method=GET path=/api/admin/users request_id=06febfa5-93b9-4dbe-9bcf-2bdaefe28cd9 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3969 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:26:44 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=31.94 method=GET path=/api/analytics/delivery/kpis request_id=86f1948b-67fd-4b3f-b559-dece878b9d72 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:6751 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13302 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTAwMCwiaWF0IjoxNzkxOTIxNDAwfQ.bLBDyQHPcW_1t8yafGLYBsLOw5uUI9CC95P_FiaRJ0M" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:8478 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTAwMCwiaWF0IjoxNzkxOTIxNDAwfQ.bLBDyQHPcW_1t8yafGLYBsLOw5uUI9CC95P_FiaRJ0M" [accepted]
+INFO:     connection open
+2026-10-14 01:26:51 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.3 method=GET path=/api/auth/me request_id=3bc5d16b-d8da-494e-96c6-d56635228b8d status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:12823 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:51 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.41 method=GET path=/api/ports request_id=013a39f1-9715-483d-aca0-f7016552ca26 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:13040 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:51 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.1 method=GET path=/api/auth/me request_id=dca6a55b-344b-4f66-aac3-716c58ee43ad status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:12823 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:51 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.28 method=GET path=/api/ports request_id=6ef1f1e0-50ab-454c-8fa3-5264a0931291 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:13040 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2914 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTAwMCwiaWF0IjoxNzkxOTIxNDAwfQ.bLBDyQHPcW_1t8yafGLYBsLOw5uUI9CC95P_FiaRJ0M" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:11910 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTAwMCwiaWF0IjoxNzkxOTIxNDAwfQ.bLBDyQHPcW_1t8yafGLYBsLOw5uUI9CC95P_FiaRJ0M" [accepted]
+INFO:     connection open
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=183.34 method=POST path=/api/auth/login request_id=27c8313a-e3fa-4964-93c8-8f44b9c4c72b status_code=200 user_id=anonymous
+INFO:     127.0.0.1:13040 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.63 method=GET path=/api/auth/me request_id=a4b13a43-1f5a-4a4c-8507-65a7701d1667 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:13040 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13040 - "OPTIONS /api/analytics/delivery/kpis?period=7d&port=voc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12823 - "OPTIONS /api/schedules/pending HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6682 - "OPTIONS /api/schedules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2351 - "OPTIONS /api/analytics/delivery/kpis?period=7d&port=voc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13040 - "OPTIONS /api/schedules/pending HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=22.31 method=GET path=/api/schedules request_id=325daa3f-8c16-4e5b-bd02-c2f9185137bc status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:2351 - "GET /api/schedules HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=28.38 method=GET path=/api/analytics/delivery/kpis request_id=757d5cce-0f7b-48bc-9ddc-da84254ed260 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "GET /api/analytics/delivery/kpis?period=7d&port=voc HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=29.15 method=GET path=/api/schedules/pending request_id=328c9923-5018-4e76-b280-126c6e11c46f status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:6682 - "GET /api/schedules/pending HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=15.58 method=GET path=/api/schedules request_id=b3b66c84-148a-4d2c-9c27-6097e4f7f39d status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:13040 - "GET /api/schedules HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=17.27 method=GET path=/api/schedules/pending request_id=af8f1087-be19-4dd0-a773-3979380566ee status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "GET /api/schedules/pending HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=19.95 method=GET path=/api/analytics/delivery/kpis request_id=2e58d24f-212c-4707-873c-8d983e51842d status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:2351 - "GET /api/analytics/delivery/kpis?period=7d&port=voc HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6342 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NmJiYjBkMi1lNzg5LTQ1MjktODkyZC0wYWViZDAzMDM0NDMiLCJyb2xlIjoiZmxlZXRfbWFuYWdlciIsImFzc2lnbmVkX3BvcnRfaWQiOiJ2b2MiLCJleHAiOjE3OTE5MjUwMTQsImlhdCI6MTc5MTkyMTQxNH0.IRYe5RAidHBoHAr4o4XhJYf3_TgjfOmuNQm3Xu0MeFg" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:2351 - "OPTIONS /api/schedules/quote HTTP/1.1" 200 OK
+2026-10-14 01:26:54 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.34 method=POST path=/api/schedules/quote request_id=03761e6a-9e9b-421a-83c5-3b8037b5445c status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "POST /api/schedules/quote HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.34 method=GET path=/api/auth/me request_id=28f5b55c-949f-4161-b553-a78ed5525713 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=7.48 method=GET path=/api/ports request_id=69e624b7-fe4a-4fd0-822b-f6db877ee34c status_code=200 user_id=anonymous
+INFO:     127.0.0.1:2351 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.52 method=GET path=/api/auth/me request_id=f3066888-9a61-4544-b7fe-255fdae4ddf6 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:13040 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.31 method=GET path=/api/ports request_id=9fb8c28c-71b4-43a6-b28c-8a6e1ba54667 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:12823 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=17.29 method=GET path=/api/schedules/pending request_id=26e04f1b-f879-4bd6-bb9a-cb047dc56f28 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:13040 - "GET /api/schedules/pending HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=25.69 method=GET path=/api/analytics/delivery/kpis request_id=a4121a1d-7a62-41cf-ad60-2b9d2dc65ec3 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "GET /api/analytics/delivery/kpis?period=7d&port=voc HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=27.36 method=GET path=/api/schedules request_id=47d79fb5-9376-4a7b-bc00-6698e38220aa status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:2351 - "GET /api/schedules HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=16.33 method=GET path=/api/schedules/pending request_id=c82139b8-6dd8-401e-a4e0-e18c98a82e94 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:6682 - "GET /api/schedules/pending HTTP/1.1" 200 OK
+2026-10-14 01:26:57 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=11.18 method=GET path=/api/schedules request_id=62868b3c-a1dc-4cd2-97cc-843e2abf0b0d status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "GET /api/schedules HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5322 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NmJiYjBkMi1lNzg5LTQ1MjktODkyZC0wYWViZDAzMDM0NDMiLCJyb2xlIjoiZmxlZXRfbWFuYWdlciIsImFzc2lnbmVkX3BvcnRfaWQiOiJ2b2MiLCJleHAiOjE3OTE5MjUwMTQsImlhdCI6MTc5MTkyMTQxNH0.IRYe5RAidHBoHAr4o4XhJYf3_TgjfOmuNQm3Xu0MeFg" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:9312 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NmJiYjBkMi1lNzg5LTQ1MjktODkyZC0wYWViZDAzMDM0NDMiLCJyb2xlIjoiZmxlZXRfbWFuYWdlciIsImFzc2lnbmVkX3BvcnRfaWQiOiJ2b2MiLCJleHAiOjE3OTE5MjUwMTQsImlhdCI6MTc5MTkyMTQxNH0.IRYe5RAidHBoHAr4o4XhJYf3_TgjfOmuNQm3Xu0MeFg" [accepted]
+INFO:     connection open
+2026-10-14 01:26:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.66 method=POST path=/api/schedules/quote request_id=b66b4cb4-78f8-4874-851a-07d4f2597958 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:12823 - "POST /api/schedules/quote HTTP/1.1" 200 OK
+Exception in callback _ProactorBasePipeTransport._call_connection_lost()
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost()>
+Traceback (most recent call last):
+  File "C:\Users\hp\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\events.py", line 94, in _run
+    self._context.run(self._callback, *self._args)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hp\AppData\Local\Python\pythoncore-3.14-64\Lib\asyncio\proactor_events.py", line 166, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+2026-10-14 01:27:04 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.84 method=GET path=/api/auth/me request_id=642a3312-9f61-4b33-adba-ff5f150a9bd7 status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:11700 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:04 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.92 method=GET path=/api/ports request_id=11009596-f218-41b9-b47e-3981c26b060f status_code=200 user_id=anonymous
+INFO:     127.0.0.1:8417 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:04 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.86 method=GET path=/api/auth/me request_id=78b674e4-bc48-4142-a592-f7008481252c status_code=200 user_id=86bbb0d2-e789-4529-892d-0aebd0303443
+INFO:     127.0.0.1:11700 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:04 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.45 method=GET path=/api/ports request_id=565df8cb-03fa-456f-bd0e-54fba78d3637 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:8417 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8664 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NmJiYjBkMi1lNzg5LTQ1MjktODkyZC0wYWViZDAzMDM0NDMiLCJyb2xlIjoiZmxlZXRfbWFuYWdlciIsImFzc2lnbmVkX3BvcnRfaWQiOiJ2b2MiLCJleHAiOjE3OTE5MjUwMTQsImlhdCI6MTc5MTkyMTQxNH0.IRYe5RAidHBoHAr4o4XhJYf3_TgjfOmuNQm3Xu0MeFg" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:5808 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4NmJiYjBkMi1lNzg5LTQ1MjktODkyZC0wYWViZDAzMDM0NDMiLCJyb2xlIjoiZmxlZXRfbWFuYWdlciIsImFzc2lnbmVkX3BvcnRfaWQiOiJ2b2MiLCJleHAiOjE3OTE5MjUwMTQsImlhdCI6MTc5MTkyMTQxNH0.IRYe5RAidHBoHAr4o4XhJYf3_TgjfOmuNQm3Xu0MeFg" [accepted]
+INFO:     connection open
+2026-10-14 01:27:07 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=183.4 method=POST path=/api/auth/login request_id=ad615f2f-3785-4443-91f2-02226d52bb3e status_code=200 user_id=anonymous
+INFO:     127.0.0.1:8417 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:27:07 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.54 method=GET path=/api/auth/me request_id=1e46ef47-8082-462b-b446-b8519884bb1c status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:8417 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8417 - "OPTIONS /api/schedules/feed/mine HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11700 - "OPTIONS /api/schedules/feed/mine HTTP/1.1" 200 OK
+2026-10-14 01:27:07 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=8.14 method=GET path=/api/schedules/feed/mine request_id=239cf593-935e-4834-993d-8b27bbc9c123 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:7582 - "GET /api/schedules/feed/mine HTTP/1.1" 200 OK
+2026-10-14 01:27:07 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.86 method=GET path=/api/schedules/feed/mine request_id=a4703da0-86ec-494c-ad44-0bd8453a9c66 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:11700 - "GET /api/schedules/feed/mine HTTP/1.1" 200 OK
+INFO:     127.0.0.1:14843 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.43 method=GET path=/api/auth/me request_id=9398b7b9-96ad-43b6-9b79-cd956bccc8a8 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:11700 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.08 method=GET path=/api/ports request_id=c8a837b6-c97e-4466-a51b-993e4dc74ea1 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:7582 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.69 method=GET path=/api/auth/me request_id=859ea0e5-6f04-4517-b9ae-d32d6255c85a status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:8417 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.54 method=GET path=/api/ports request_id=761442d8-9c98-4e8a-84eb-528569de2a47 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:11700 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11700 - "OPTIONS /api/schedules/feed/broadcasting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:8417 - "OPTIONS /api/schedules/feed/broadcasting HTTP/1.1" 200 OK
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=11.96 method=GET path=/api/schedules/feed/broadcasting request_id=749ce4ed-2f0a-4c03-9a53-e8210cf498d6 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:7582 - "GET /api/schedules/feed/broadcasting HTTP/1.1" 200 OK
+2026-10-14 01:27:10 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=7.5 method=GET path=/api/schedules/feed/broadcasting request_id=9e2e8108-eba3-4e1d-934c-4dffb9b56468 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:8417 - "GET /api/schedules/feed/broadcasting HTTP/1.1" 200 OK
+INFO:     127.0.0.1:6529 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:9293 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.25 method=GET path=/api/auth/me request_id=528d9033-2193-4c04-8bfa-777ab7db70a0 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:10091 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=1.67 method=GET path=/api/ports request_id=70e04adc-f58a-43fc-8f8f-809748098b88 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:10091 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.08 method=GET path=/api/auth/me request_id=2df8a537-8419-4800-86b2-df510b12def9 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:10091 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.48 method=GET path=/api/ports request_id=b5454d20-80ac-41ca-92b7-b778dee1c84c status_code=200 user_id=anonymous
+INFO:     127.0.0.1:10091 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.64 method=GET path=/api/schedules/feed/mine request_id=bfefd9b5-995d-456a-8761-1dc217c7c87d status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:10091 - "GET /api/schedules/feed/mine HTTP/1.1" 200 OK
+2026-10-14 01:27:16 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.3 method=GET path=/api/schedules/feed/mine request_id=a3dfa251-54de-4359-bc31-03fb319ff6a1 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:10091 - "GET /api/schedules/feed/mine HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10691 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:6106 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+2026-10-14 01:27:19 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.18 method=GET path=/api/auth/me request_id=a0770887-7257-4ef8-bd72-99306e95ab72 status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:10091 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:19 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.3 method=GET path=/api/ports request_id=8caba6ee-56d7-44c9-9955-513bf2ea659c status_code=200 user_id=anonymous
+INFO:     127.0.0.1:11921 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:19 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.52 method=GET path=/api/auth/me request_id=4de6de08-4b9f-4def-8138-4044c248618c status_code=200 user_id=768b0543-f98b-4e6d-9315-560f2a543081
+INFO:     127.0.0.1:5437 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:19 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.55 method=GET path=/api/ports request_id=6c5ed8aa-6efa-4a24-a316-420cd189d459 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:13130 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11565 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:14221 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NjhiMDU0My1mOThiLTRlNmQtOTMxNS01NjBmMmE1NDMwODEiLCJyb2xlIjoiZHJpdmVyIiwiYXNzaWduZWRfcG9ydF9pZCI6bnVsbCwiZXhwIjoxNzkxOTI1MDI3LCJpYXQiOjE3OTE5MjE0Mjd9.MroJgBa2yghKBN1y8cYFDr_8DE1JT2hwa5intccmFuc" [accepted]
+INFO:     connection open
+2026-10-14 01:27:22 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=183.13 method=POST path=/api/auth/login request_id=6425d2f1-8189-434c-8f2c-a35ae7060918 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:13130 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:27:22 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.51 method=GET path=/api/auth/me request_id=69a07e1f-5d8a-4f14-a94c-8e6b356cbc64 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:13130 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13130 - "OPTIONS /api/consumer/account/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5437 - "OPTIONS /api/consumer/account/orders HTTP/1.1" 200 OK
+2026-10-14 01:27:22 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.23 method=GET path=/api/consumer/account/orders request_id=3292c073-bcb7-40fa-9754-0c96694b25d4 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:11921 - "GET /api/consumer/account/orders HTTP/1.1" 200 OK
+2026-10-14 01:27:22 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.42 method=GET path=/api/consumer/account/orders request_id=73a6cca5-56d9-4c26-89ba-a21c634b60ba status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:5437 - "GET /api/consumer/account/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9439 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.8 method=GET path=/api/auth/me request_id=b0c62604-ac1d-4d96-920d-636eaaf753a9 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:5437 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=7.35 method=GET path=/api/ports request_id=6cddfd7f-84f7-4f69-894e-c962b1f824ac status_code=200 user_id=anonymous
+INFO:     127.0.0.1:11921 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.41 method=GET path=/api/auth/me request_id=8c8d4e0e-e9fe-42f3-9182-11c2e26b37dc status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:13130 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.29 method=GET path=/api/ports request_id=2d010fe0-5401-457a-91ec-3aae8a5f6d40 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:5437 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5437 - "OPTIONS /api/consumer/account/profile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13130 - "OPTIONS /api/consumer/account/profile HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.35 method=GET path=/api/consumer/account/profile request_id=41ad46da-23da-4fe6-ac92-a289ee2adb26 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:11921 - "GET /api/consumer/account/profile HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.57 method=GET path=/api/consumer/account/profile request_id=848e612b-19f7-46ee-b233-1de069503344 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:13130 - "GET /api/consumer/account/profile HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13130 - "OPTIONS /api/payments/estimate HTTP/1.1" 200 OK
+2026-10-14 01:27:25 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.69 method=POST path=/api/payments/estimate request_id=abc0345b-3d0d-48d3-bb10-6651261f2b84 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:11921 - "POST /api/payments/estimate HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10801 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:4313 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.29 method=GET path=/api/auth/me request_id=7e728992-1d1f-48c9-8ff4-0834b4d8de04 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:9938 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.08 method=GET path=/api/ports request_id=0b4be9b3-e7e6-4072-a145-e7a2f915aa11 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9938 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.14 method=GET path=/api/auth/me request_id=8c89903c-a357-4f04-9f7b-8d9791503580 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:9938 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=2.02 method=GET path=/api/ports request_id=42f56234-1b5f-4317-b94d-d55c5b5a3077 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9938 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.22 method=GET path=/api/consumer/account/orders request_id=efe798ba-3ce7-4d8d-bdc3-e4fa8ad760c4 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:9938 - "GET /api/consumer/account/orders HTTP/1.1" 200 OK
+2026-10-14 01:27:49 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.0 method=GET path=/api/consumer/account/orders request_id=ddb06d43-923e-45f4-b3c5-b498a2c93715 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:9938 - "GET /api/consumer/account/orders HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13324 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:1516 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+2026-10-14 01:27:52 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=4.2 method=GET path=/api/auth/me request_id=c6baa1d2-89d6-4142-9135-0e48afca17f7 status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:9938 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:52 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.96 method=GET path=/api/ports request_id=2cba1c16-b13e-47e6-8d4c-79677759b740 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:3101 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:52 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.04 method=GET path=/api/auth/me request_id=5f2cc683-9750-4343-a711-4be323c79b6a status_code=200 user_id=de817e41-02e8-41f6-af75-cdea2f9ffe62
+INFO:     127.0.0.1:2513 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:52 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.01 method=GET path=/api/ports request_id=5592fb9d-c57b-416c-8847-9694c582a59c status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9938 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:10024 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:10233 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkZTgxN2U0MS0wMmU4LTQxZjYtYWY3NS1jZGVhMmY5ZmZlNjIiLCJyb2xlIjoiY29uc3VtZXIiLCJhc3NpZ25lZF9wb3J0X2lkIjpudWxsLCJleHAiOjE3OTE5MjUwNDIsImlhdCI6MTc5MTkyMTQ0Mn0.pcGTVQygeMfjyDdUI49AGhl8FTED9AbPh817tmIMTH4" [accepted]
+INFO:     connection open
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=183.49 method=POST path=/api/auth/login request_id=776eb461-2b82-43e2-991b-56108674e766 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9938 - "POST /api/auth/login HTTP/1.1" 200 OK
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.01 method=GET path=/api/auth/me request_id=2fb43a78-64a3-414d-ab9a-0e695f640125 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9938 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=5.37 method=GET path=/api/admin/users request_id=5c6476cf-6f71-4707-b044-2a96cffb90b6 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2513 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=11.58 method=GET path=/api/admin/users request_id=2285e202-3c98-435d-8152-009c27812494 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3101 - "GET /api/admin/users HTTP/1.1" 200 OK
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=27.55 method=GET path=/api/analytics/delivery/kpis request_id=c29f4b5b-4e49-457a-b3cb-a58d7c90a90d status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9938 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:55 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=18.31 method=GET path=/api/analytics/delivery/kpis request_id=374e85fe-cb52-4b3b-8098-4542c8d11c82 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3101 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12176 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTA3NSwiaWF0IjoxNzkxOTIxNDc1fQ.2j08yzpUUWgdcLuMWPX9cdaEgLnliGFauhI69NQMp8g" [accepted]
+INFO:     connection open
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.84 method=GET path=/api/auth/me request_id=9829489d-db4e-4858-a16b-8ed75f35e5ad status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3101 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=6.87 method=GET path=/api/ports request_id=f2ed1e4c-14e1-4eff-b77a-af297b19a98d status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9938 - "GET /api/ports HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.17 method=GET path=/api/auth/me request_id=15190293-40a4-4505-8481-55b1134e5266 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2513 - "GET /api/auth/me HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=3.51 method=GET path=/api/ports request_id=5fb0bd3c-60a1-4c8c-a1b8-f1fe9181b439 status_code=200 user_id=anonymous
+INFO:     127.0.0.1:9212 - "GET /api/ports HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2513 - "OPTIONS /api/analytics/delivery/volume?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9938 - "OPTIONS /api/analytics/delivery/areas?period=30d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3101 - "OPTIONS /api/analytics/delivery/batches?period=30d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9774 - "OPTIONS /api/analytics/delivery/volume?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:2513 - "OPTIONS /api/analytics/delivery/areas?period=30d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9938 - "OPTIONS /api/analytics/delivery/batches?period=30d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=15.06 method=GET path=/api/analytics/delivery/volume request_id=4610cc6f-a19a-4aec-8cbf-749ce5b5a632 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:3101 - "GET /api/analytics/delivery/volume?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=31.05 method=GET path=/api/analytics/delivery/volume request_id=4860f200-3a06-4828-b246-ef4946ffc3fb status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9938 - "GET /api/analytics/delivery/volume?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=70.61 method=GET path=/api/analytics/delivery/kpis request_id=1f78c952-f162-4d2a-b9f0-c76bd0b9a963 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9212 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=88.44 method=GET path=/api/analytics/delivery/batches request_id=49212c1b-d709-4c40-b830-ae995cec4ad3 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2513 - "GET /api/analytics/delivery/batches?period=30d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=95.73 method=GET path=/api/analytics/delivery/areas request_id=8989da89-0e09-4e3f-b2b5-40d07267c3b0 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9774 - "GET /api/analytics/delivery/areas?period=30d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=52.05 method=GET path=/api/analytics/delivery/batches request_id=ee12d707-bfed-4d89-972a-b010f8e1d85c status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9212 - "GET /api/analytics/delivery/batches?period=30d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=80.01 method=GET path=/api/analytics/delivery/kpis request_id=4b69f57a-8f02-43e4-9ad9-3644fb319468 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9938 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9938 - "OPTIONS /api/analytics/delivery/ports?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=25.23 method=GET path=/api/analytics/delivery/ports request_id=6ec43cc3-07a7-4c6c-afb2-1b198ac09557 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9774 - "GET /api/analytics/delivery/ports?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=84.0 method=GET path=/api/analytics/delivery/areas request_id=ea1bf8fa-7c90-46e0-b1dc-5052c900c27b status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:2513 - "GET /api/analytics/delivery/areas?period=30d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=42.66 method=GET path=/api/analytics/delivery/kpis request_id=3e298576-3528-4623-91d7-4ffa398b9460 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9212 - "GET /api/analytics/delivery/kpis?period=7d HTTP/1.1" 200 OK
+2026-10-14 01:27:58 [info     ] http_access                    client_ip=127.0.0.1 duration_ms=11.07 method=GET path=/api/analytics/delivery/ports request_id=d8f62880-a845-4a1f-99ea-5c1d51715094 status_code=200 user_id=7525b178-d846-4b47-b166-44dff3d85280
+INFO:     127.0.0.1:9212 - "GET /api/analytics/delivery/ports?period=7d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:1851 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTA3NSwiaWF0IjoxNzkxOTIxNDc1fQ.2j08yzpUUWgdcLuMWPX9cdaEgLnliGFauhI69NQMp8g" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:14604 - "WebSocket /ws/events?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTI1YjE3OC1kODQ2LTRiNDctYjE2Ni00NGRmZjNkODUyODAiLCJyb2xlIjoicG9ydF9hZG1pbiIsImFzc2lnbmVkX3BvcnRfaWQiOm51bGwsImV4cCI6MTc5MTkyNTA3NSwiaWF0IjoxNzkxOTIxNDc1fQ.2j08yzpUUWgdcLuMWPX9cdaEgLnliGFauhI69NQMp8g" [accepted]
+INFO:     connection open

@@ -290,7 +290,11 @@ export default function AnalyticsPage() {
               <Kpi
                 icon={<TrendingUp className="w-4 h-4" />}
                 label="On-time delivery"
-                value={kpis ? `${kpis.on_time_rate_overall}%` : '-'}
+                value={
+                  kpis?.on_time_rate_overall != null
+                    ? `${kpis.on_time_rate_overall}%`
+                    : '—'
+                }
                 sub="within requested window"
                 tone="amber"
               />
@@ -312,29 +316,43 @@ export default function AnalyticsPage() {
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(['standard', 'express', 'urgent'] as const).map((tier) => {
                     const stat = kpis.on_time_rate_by_tier[tier];
-                    const pct = stat?.on_time_pct ?? 0;
+                    // null means "no deliveries in this window", which is not the
+                    // same claim as "0% on time" and used to render identically.
+                    const pct = stat?.on_time_pct ?? null;
                     return (
                       <div key={tier} className="px-3 py-2.5 rounded-xl bg-slate-500/6 border border-slate-200/50 dark:border-white/6">
                         <div className="flex items-center gap-2 mb-1.5">
                           <TierBadge tier={tier} />
-                          <span className="text-sm font-black text-slate-900 dark:text-white ml-auto">
-                            {pct}%
+                          <span
+                            className={`text-sm font-black ml-auto tabular-nums ${
+                              pct === null
+                                ? 'text-slate-400'
+                                : pct >= 90
+                                  ? 'text-emerald-600 dark:text-emerald-300'
+                                  : pct >= 70
+                                    ? 'text-amber-600 dark:text-amber-300'
+                                    : 'text-rose-600 dark:text-rose-300'
+                            }`}
+                          >
+                            {pct === null ? '—' : `${pct}%`}
                           </span>
                         </div>
                         <div className="h-1.5 rounded-full bg-slate-500/12 overflow-hidden">
                           <div
-                            className={`h-full rounded-full ${
+                            className={`h-full rounded-full transition-all duration-500 ${
                               tier === 'urgent'
                                 ? 'bg-rose-500'
                                 : tier === 'express'
                                   ? 'bg-sky-500'
                                   : 'bg-slate-400'
                             }`}
-                            style={{ width: `${Math.min(100, pct)}%` }}
+                            style={{ width: `${pct === null ? 0 : Math.min(100, pct)}%` }}
                           />
                         </div>
                         <p className="mt-1 text-[10px] text-slate-400">
-                          {stat?.delivered ?? 0} delivered
+                          {stat?.delivered
+                            ? `${stat.on_time} of ${stat.delivered} on time`
+                            : 'No deliveries yet'}
                         </p>
                       </div>
                     );

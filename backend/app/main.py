@@ -26,6 +26,7 @@ from app.routers import (
     consumer,
     deliveries,
     maps,
+    payments,
     ports,
     schedules,
 )
@@ -135,6 +136,7 @@ for r in (
     consumer.router,
     consumer.account_router,
     consumer.track_router,
+    payments.router,
     schedules.router,
     schedules.drivers_router,
     deliveries.router,

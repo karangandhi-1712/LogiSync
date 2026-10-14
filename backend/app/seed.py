@@ -127,8 +127,14 @@ def seed_database() -> None:
         if admin_email:
             result = seed_admin(db, admin_email, os.getenv("SEED_ADMIN_PASSWORD", "Admin@123"))
             print(f"[seed] port_admin: {result}")
-        demo_results = seed_demo_accounts(db)
-        print(f"[seed] demo accounts: {demo_results}")
+        # Demo accounts are for demos. The test suite runs the app's own lifespan
+        # against a throwaway database, so seeding them there silently added a
+        # driver and a consumer to every test's user counts - which is why the
+        # KPI and consumer-dedup assertions could not see the fixture rows they
+        # had just created. Tests set this to false.
+        if os.getenv("SEED_DEMO_ACCOUNTS", "true").lower() in ("1", "true", "yes"):
+            demo_results = seed_demo_accounts(db)
+            print(f"[seed] demo accounts: {demo_results}")
     finally:
         db.close()
 

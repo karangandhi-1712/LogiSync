@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Crosshair, Loader2, Radio, Send } from 'lucide-react';
+import { Crosshair, Loader2, Radio, Scale } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { Stepper } from '../ui/Stepper';
 import { TierBadge, formatINR } from './Badges';
+import { quoteSchedule } from '../../services/api';
 import { haversineKm, type PortInfo } from '../../data/ports';
-import type { DeliveryRequest } from '../../types';
+import type { DeliveryRequest, EarningsQuote } from '../../types';
 
 interface Props {
   port: PortInfo;
@@ -27,14 +29,10 @@ const RADIUS_MIN = 1;
 const RADIUS_MAX = 25;
 const CAP_MAX = 12;
 
-/** Mirrors backend services/earnings.py so the quoted figure matches the API. */
-function estimateEarnings(tiers: string[], routeKm: number): number {
-  const perStop: Record<string, number> = { standard: 120, express: 220, urgent: 350 };
-  const stops = tiers.reduce((sum, t) => sum + (perStop[t] ?? 120), 0);
-  const distance = Math.max(0, routeKm) * 12;
-  const bonus = Math.max(0, tiers.length - 1) * 75;
-  return Math.round(stops + distance + bonus);
-}
+const fieldCls =
+  'w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 ' +
+  'text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-sky-400 ' +
+  'focus:ring-2 focus:ring-sky-400/20 text-xs';
 
 export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, onCreate, busy }: Props) {
   const [areaLabel, setAreaLabel] = useState('');
@@ -45,6 +43,9 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
   const [cap, setCap] = useState(4);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [quote, setQuote] = useState<EarningsQuote | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [showBreakdown, setShowBreakdown] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
 
   // Sync when externalCentre changes (e.g. clicking a request or map)
@@ -87,15 +88,45 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
     [inRadius, selected],
   );
 
-  const routeKm = useMemo(() => {
-    if (!centre) return 0;
-    return haversineKm(port.lat, port.lng, centre.lat, centre.lng) * 1.3;
-  }, [port, centre]);
-
-  const estimate = useMemo(
-    () => estimateEarnings(chosen.map((r) => r.priority_tier), routeKm),
-    [chosen, routeKm],
+  /**
+   * The earnings estimate comes from the server, not a local copy of the
+   * formula.
+   *
+   * This panel used to reimplement `earnings.py` in TypeScript, which meant the
+   * figure shown here and the figure the driver was actually offered could
+   * disagree the moment a constant changed — and neither surface failed loudly.
+   * Debounced because selection and radius both move continuously as the user
+   * works.
+   */
+  const quoteKey = useMemo(
+    () => chosen.map(r => r.id).sort().join(',') + `|${centre?.lat ?? ''}|${centre?.lng ?? ''}`,
+    [chosen, centre],
   );
+
+  useEffect(() => {
+    if (chosen.length === 0 || !centre) {
+      setQuote(null);
+      return;
+    }
+    let cancelled = false;
+    setQuoting(true);
+    const timer = setTimeout(() => {
+      quoteSchedule({
+        request_ids: chosen.map(r => r.id),
+        area_center_lat: centre.lat,
+        area_center_lng: centre.lng,
+      })
+        .then(q => { if (!cancelled) setQuote(q); })
+        // A failed quote must not block the broadcast - the schedule still has
+        // a server-computed estimate attached at creation time. Just show nothing.
+        .catch(() => { if (!cancelled) setQuote(null); })
+        .finally(() => { if (!cancelled) setQuoting(false); });
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [quoteKey, chosen, centre]);
 
   function centreOnPending() {
     if (pending.length === 0) return;
@@ -148,47 +179,38 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
   }
 
   return (
-    <div className="space-y-3">
+    <div className="relative rounded-[28px] liquid-glass-elevated border border-white/70 dark:border-white/12 backdrop-blur-2xl neu-flat-sm p-4 space-y-3 overflow-visible">
+      {/* Top-edge sheen - the light catch that sells the glass. */}
+      <div className="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+
       <input
         value={areaLabel}
         onChange={(e) => setAreaLabel(e.target.value)}
         placeholder="e.g. Thoothukudi North - Bryant Nagar belt"
-        className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-sky-400 text-xs"
+        className={fieldCls}
       />
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="px-2.5 py-2 rounded-xl bg-slate-500/6 border border-slate-200/50 dark:border-white/6">
-          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Radius</p>
-          <div className="flex items-center gap-2 mt-1">
-            <input
-              type="range"
-              min={RADIUS_MIN}
-              max={RADIUS_MAX}
-              value={radius}
-              onChange={(e) => setRadius(Number(e.target.value))}
-              className="flex-1 accent-sky-500"
-            />
-            <span className="text-[11px] font-black font-mono text-slate-700 dark:text-slate-200 w-10 text-right">
-              {radius} km
-            </span>
-          </div>
-        </div>
-        <div className="px-2.5 py-2 rounded-xl bg-slate-500/6 border border-slate-200/50 dark:border-white/6">
-          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Batch cap</p>
-          <div className="flex items-center gap-2 mt-1">
-            <input
-              type="range"
-              min={1}
-              max={CAP_MAX}
-              value={cap}
-              onChange={(e) => setCap(Number(e.target.value))}
-              className="flex-1 accent-emerald-500"
-            />
-            <span className="text-[11px] font-black font-mono text-slate-700 dark:text-slate-200 w-10 text-right">
-              {cap} stops
-            </span>
-          </div>
-        </div>
+        <Stepper
+          id="sc-radius"
+          label="Radius"
+          unit="km"
+          value={radius}
+          onChange={setRadius}
+          min={RADIUS_MIN}
+          max={RADIUS_MAX}
+          tone="sky"
+        />
+        <Stepper
+          id="sc-cap"
+          label="Batch cap"
+          unit="stops"
+          value={cap}
+          onChange={setCap}
+          min={1}
+          max={CAP_MAX}
+          tone="emerald"
+        />
       </div>
 
       <div className="flex items-center gap-2">
@@ -199,14 +221,14 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
           type="time"
           value={windowStart}
           onChange={(e) => setWindowStart(e.target.value)}
-          className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-800 dark:text-slate-100 outline-none focus:border-sky-400 font-mono text-xs"
+          className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-800 dark:text-slate-100 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 font-mono text-xs"
         />
         <span className="text-slate-400 text-[10px]">to</span>
         <input
           type="time"
           value={windowEnd}
           onChange={(e) => setWindowEnd(e.target.value)}
-          className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-800 dark:text-slate-100 outline-none focus:border-sky-400 font-mono text-xs"
+          className="flex-1 px-2 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 text-slate-800 dark:text-slate-100 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 font-mono text-xs"
         />
       </div>
 
@@ -278,8 +300,22 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
                       <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100 break-words">
                         {r.delivery_address}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                         <TierBadge tier={r.priority_tier} />
+                        {r.handling_flags.map(f => (
+                          <span
+                            key={f}
+                            title={`${f} — adds to the driver's pay`}
+                            className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-400/25"
+                          >
+                            {f}
+                          </span>
+                        ))}
+                        {r.package_weight != null && (
+                          <span className="text-[10px] font-mono text-slate-400">
+                            {r.package_weight} kg
+                          </span>
+                        )}
                         <span className="text-[10px] font-mono text-slate-400">{km.toFixed(1)} km</span>
                       </div>
                     </div>
@@ -291,13 +327,84 @@ export function ScheduleCreator({ port, pending, externalCentre, onMapCentre, on
         )}
       </div>
 
-      <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-emerald-500/8 border border-emerald-400/25">
-        <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
-          Driver earns ≈
-        </span>
-        <span className="text-sm font-black text-emerald-600 dark:text-emerald-300">
-          {formatINR(estimate)}
-        </span>
+      {/* Earnings. Says "select stops" rather than showing ₹0 when nothing is picked:
+            a zero here reads as "this batch pays nothing", which is a different
+            and wrong claim. */}
+      <div className="rounded-2xl bg-emerald-500/8 border border-emerald-400/25 overflow-hidden">
+        <div className="flex items-center justify-between px-3 py-2.5">
+          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+            Driver earns ≈
+          </span>
+          <div className="flex items-center gap-2">
+            {quoting && <Loader2 className="w-3 h-3 animate-spin text-emerald-500" />}
+            <span className="text-sm font-black text-emerald-600 dark:text-emerald-300 tabular-nums">
+              {quote ? formatINR(quote.total) : '—'}
+            </span>
+            {quote && quote.stop_count > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowBreakdown((v) => !v)}
+                aria-expanded={showBreakdown}
+                className="p-1 rounded-lg text-emerald-600 dark:text-emerald-300 hover:bg-emerald-500/15 transition"
+                title="Show the breakdown"
+              >
+                <Scale className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {!quote && chosen.length === 0 && (
+          <p className="px-3 pb-2.5 text-[10px] text-emerald-700/70 dark:text-emerald-300/70">
+            Select stops inside the radius to see what this batch pays.
+          </p>
+        )}
+
+        {showBreakdown && quote && (
+          <div className="border-t border-emerald-400/20 px-3 py-2.5 space-y-2 bg-emerald-500/4">
+            <ul className="space-y-1.5">
+              {quote.stops.map(s => (
+                <li key={s.reference} className="flex items-start gap-2 text-[10px]">
+                  <span className="font-mono font-bold text-emerald-800 dark:text-emerald-200 truncate">
+                    {s.reference}
+                  </span>
+                  <span className="flex-1 text-emerald-700/70 dark:text-emerald-300/70 truncate">
+                    {s.handling_flags.length ? s.handling_flags.join(' · ') : 'standard'}
+                    {s.weight_kg > 0 && ` · ${s.weight_kg}kg`}
+                  </span>
+                  <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300 shrink-0">
+                    {formatINR(s.stop_total)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="pt-1.5 space-y-1 border-t border-emerald-400/15 text-[10px]">
+              <div className="flex justify-between">
+                <span className="text-emerald-700/70 dark:text-emerald-300/70">
+                  Distance · {quote.route_km.toFixed(1)} km
+                </span>
+                <span className="font-mono text-emerald-700 dark:text-emerald-300">
+                  {formatINR(quote.distance_pay)}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-emerald-700/70 dark:text-emerald-300/70">
+                  Batch bonus · {Math.max(0, quote.stop_count - 1)} extra stop
+                  {quote.stop_count - 1 === 1 ? '' : 's'}
+                </span>
+                <span className="font-mono text-emerald-700 dark:text-emerald-300">
+                  {formatINR(quote.batch_bonus)}
+                </span>
+              </div>
+              <div className="flex justify-between font-black pt-1">
+                <span className="text-emerald-800 dark:text-emerald-200">Total</span>
+                <span className="font-mono text-emerald-700 dark:text-emerald-300">
+                  {formatINR(quote.total)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (

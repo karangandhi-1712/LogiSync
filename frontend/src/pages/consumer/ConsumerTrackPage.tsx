@@ -24,6 +24,7 @@ import {
   SearchX,
   Truck,
   AlertCircle,
+  Wallet,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { LiveTrackingMap } from '../../components/consumer/LiveTrackingMap';
@@ -37,7 +38,7 @@ import {
 import { useMarketplaceEvent } from '../../context/MarketplaceContext';
 import { useToast } from '../../context/ToastContext';
 import { cancelMyOrder, fetchMyOrder } from '../../services/api';
-import { DELIVERY_STEPPER, type DeliveryStatus, type TrackingPayload } from '../../types';
+import { DELIVERY_STEPPER, type DeliveryStatus, type DriverCard, type TrackingPayload } from '../../types';
 import type { TrackMode } from '../../lib/trackSimulation';
 
 const POLL_MS = 15000;
@@ -63,6 +64,7 @@ export default function ConsumerTrackPage() {
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<TrackMode>('idle');
   const [driver, setDriver] = useState<{ lat: number; lng: number; heading: number | null } | null>(null);
+  const [driverCard, setDriverCard] = useState<DriverCard | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
   // Guards the position effect from re-running on every unrelated render.
@@ -77,6 +79,8 @@ export default function ConsumerTrackPage() {
         setData(payload);
         setError(null);
         scheduleIdRef.current = payload.schedule?.id ?? null;
+        // The socket event may have arrived before the first REST load.
+        setDriverCard(prev => payload.schedule?.driver ?? prev);
         // Only seed the marker when we do not already have a live one - a poll
         // landing mid-flight must not yank the truck back to a stale position.
         setDriver((prev) => {
@@ -123,6 +127,30 @@ export default function ConsumerTrackPage() {
     if (d?.request?.token_number !== token || !d.request.status) return;
     setData((prev) => (prev ? { ...prev, status: d.request!.status as DeliveryStatus } : prev));
   });
+
+  // Out for delivery. This is the moment the driver's contact details become the
+  // customer's to use, so the event carries the card itself rather than making
+  // the page wait for the next poll to discover it.
+  useMarketplaceEvent(
+    'delivery:out_for_delivery',
+    (d: { request?: { token_number?: string; status?: DeliveryStatus }; driver?: DriverCard }) => {
+      if (d?.request?.token_number !== token) return;
+      if (d.driver) setDriverCard(d.driver);
+      if (d.request?.status) {
+        setData((prev) => (prev ? { ...prev, status: d.request!.status as DeliveryStatus } : prev));
+      }
+      showToast({
+        type: 'success',
+        title: 'Your driver is out for delivery',
+        message: d.driver?.name
+          ? `${d.driver.name} is on the way to your address.`
+          : 'Your parcel is on the move.',
+      });
+      // Pull the authoritative payload too — the socket event is an optimisation,
+      // not the source of truth, and a dropped frame must not hide the number.
+      load(true);
+    },
+  );
 
   async function cancel() {
     if (cancelling) return;
@@ -306,37 +334,78 @@ export default function ConsumerTrackPage() {
         </div>
       )}
 
-      {(schedule?.driver || driver) && (
-        <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 p-4 flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-sky-500/15 text-sky-600 dark:text-cyan-300 shrink-0">
-            <Truck className="w-5 h-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-slate-800 dark:text-slate-100">
-              {schedule?.driver?.name ?? 'Your driver'}
-            </p>
-            {schedule?.driver?.vehicle_number && (
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                {schedule.driver.vehicle_number}
+      {(schedule?.driver || driver || driverCard) && (
+        <section
+          aria-label="Your driver"
+          className="relative overflow-hidden rounded-[28px] liquid-glass-elevated border border-white/70 dark:border-white/15 backdrop-blur-2xl neu-flat-sm p-5"
+        >
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 shrink-0 rounded-[20px] bg-gradient-to-tr from-sky-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/25">
+              <Truck className="w-7 h-7" />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                Your driver
               </p>
-            )}
-          </div>
-          {mode === 'real' ? (
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/12 text-emerald-600 dark:text-emerald-300 text-[10px] font-black uppercase border border-emerald-400/30">
-              <span className="relative flex w-1.5 h-1.5">
-                <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <p className="text-base font-black text-slate-900 dark:text-white truncate">
+                {driverCard?.name ?? schedule?.driver?.name ?? 'Being assigned'}
+              </p>
+              {(driverCard?.vehicle_number || schedule?.driver?.vehicle_number) && (
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                  {driverCard?.vehicle_number ?? schedule?.driver?.vehicle_number}
+                  {driverCard?.vehicle_type ? ` · ${driverCard.vehicle_type.replace(/_/g, ' ')}` : ''}
+                </p>
+              )}
+            </div>
+
+            {mode === 'real' ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/12 text-emerald-600 dark:text-emerald-300 text-[10px] font-black uppercase border border-emerald-400/30 shrink-0">
+                <span className="relative flex w-1.5 h-1.5">
+                  <span className="absolute inline-flex w-full h-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                  <span className="relative inline-flex w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                </span>
+                Live
               </span>
-              Live
-            </span>
-          ) : mode === 'simulated' ? (
-            <span className="px-2.5 py-1 rounded-md bg-amber-500/12 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase border border-amber-400/30">
-              Simulated
-            </span>
+            ) : mode === 'simulated' ? (
+              <span className="px-2.5 py-1 rounded-md bg-amber-500/12 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase border border-amber-400/30 shrink-0">
+                Simulated
+              </span>
+            ) : null}
+          </div>
+
+          {/* Contact is released only once the parcel is genuinely out for
+              delivery. Until then this explains the absence rather than leaving
+              an empty gap where a number was expected. */}
+          {driverCard?.contact_visible && driverCard.phone ? (
+            <div className="mt-4 flex items-center gap-2">
+              <a
+                href={`tel:${driverCard.phone}`}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-sm font-black shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-[1.01] active:scale-[0.99] transition-all"
+              >
+                <Phone className="w-4 h-4" />
+                Call {driverCard.name.split(' ')[0]}
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard?.writeText(driverCard.phone!);
+                  showToast({ type: 'info', title: 'Number copied', message: driverCard.phone! });
+                }}
+                className="px-4 py-3 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/70 dark:border-white/12 backdrop-blur-xl neu-flat-sm text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/70 transition-all text-xs font-black"
+              >
+                Copy
+              </button>
+            </div>
           ) : (
-            <span className="text-[10px] font-bold text-slate-400">Position pending</span>
+            <p className="mt-4 flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
+              The driver's number appears here once your parcel is out for delivery.
+            </p>
           )}
-        </div>
+        </section>
       )}
 
       <div className="rounded-2xl liquid-glass border border-white/50 dark:border-white/10 divide-y divide-slate-200/50 dark:divide-white/6">
@@ -387,6 +456,29 @@ export default function ConsumerTrackPage() {
           <p className="mt-1 text-xs font-bold text-slate-700 dark:text-slate-200">
             {data.special_handling}
           </p>
+        </div>
+      )}
+
+      {data.payment_amount > 0 && (
+        <div className="rounded-2xl border border-emerald-400/25 bg-emerald-500/6 px-4 py-3 flex items-center gap-3">
+          <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-300 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+              {data.payment_status === 'paid'
+                ? data.payment_method === 'cash_on_depot'
+                  ? 'Pay at the depot'
+                  : 'Paid online'
+                : 'Payment due'}
+            </p>
+            <p className="text-xs font-black text-slate-800 dark:text-slate-100 mt-0.5">
+              ₹{data.payment_amount.toFixed(2)}
+            </p>
+          </div>
+          {data.payment_status !== 'paid' && (
+            <span className="px-2.5 py-1 rounded-md bg-amber-500/12 text-amber-700 dark:text-amber-300 text-[10px] font-black uppercase border border-amber-400/30 shrink-0">
+              Awaiting payment
+            </span>
+          )}
         </div>
       )}
 

@@ -31,7 +31,7 @@ from app.models.delivery_schedule import DeliveryScheduleModel
 from app.models.status_log import StatusUpdateLogModel
 from app.models.user import UserModel
 from app.ports import haversine_km
-from app.services.earnings import broadcast_earnings, final_earnings
+from app.services.earnings import broadcast_earnings, final_earnings, schedule_stops
 from app.services.route_optimizer import optimize_schedule
 
 
@@ -143,15 +143,11 @@ def attach_request(db: Session, schedule: DeliveryScheduleModel,
 
 
 def _recompute_estimate(db: Session, schedule: DeliveryScheduleModel) -> float:
-    tiers = [
-        r.priority_tier for r in db.query(DeliveryRequestModel).filter(
-            DeliveryRequestModel.schedule_id == schedule.id
-        ).all()
-    ]
-    if not tiers:
+    stops = schedule_stops(db, schedule.id)
+    if not stops:
         return 0.0
     return broadcast_earnings(
-        schedule.port_id, schedule.area_center_lat, schedule.area_center_lng, tiers
+        schedule.port_id, schedule.area_center_lat, schedule.area_center_lng, stops
     )
 
 
@@ -169,9 +165,7 @@ async def lock_schedule(db: Session, schedule: DeliveryScheduleModel,
     payload = await optimize_schedule(db, schedule)
     schedule.optimized_route = payload
     schedule.final_earnings = final_earnings(
-        [r.priority_tier for r in db.query(DeliveryRequestModel).filter(
-            DeliveryRequestModel.schedule_id == schedule.id
-        ).all()],
+        schedule_stops(db, schedule.id),
         payload.get("total_distance_km"),
     )
     db.commit()

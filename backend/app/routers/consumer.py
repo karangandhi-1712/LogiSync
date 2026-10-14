@@ -39,7 +39,7 @@ from app.models.port import PortModel
 from app.models.status_log import StatusUpdateLogModel
 from app.models.user import UserModel
 from app.serializers import serialize_consumer, serialize_request, serialize_tracking
-from app.services import geocoding
+from app.services import geocoding, handling, payments
 from app.services.schedule_engine import attach_request, find_attach_target
 
 router = APIRouter(prefix="/consumer", tags=["Consumer intake"])
@@ -63,6 +63,21 @@ def generate_token() -> str:
     return f"LG-{uuid.uuid4().hex[:10].upper()}"
 
 
+def _payment_fields(r: DeliveryRequestModel) -> Dict[str, Any]:
+    """The payment half of an intake response.
+
+    Present on every intake so the client never has to guess whether it needs to
+    open a checkout sheet before the order exists.
+    """
+    return {
+        "payment_status": r.payment_status,
+        "payment_method": r.payment_method,
+        "payment_amount": round(float(r.payment_amount or 0.0), 2),
+        "payment_provider": payments.provider(),
+        "requires_payment": r.payment_status != payments.PAYMENT_PAID,
+    }
+
+
 class ConsumerRequestIn(BaseModel):
     name: str = Field(min_length=2, max_length=128)
     mobile: str = Field(min_length=10, max_length=20)
@@ -73,6 +88,9 @@ class ConsumerRequestIn(BaseModel):
     package_type: Optional[str] = None
     package_weight: Optional[float] = None
     special_handling: Optional[str] = None
+    #: Structured handling chips. Falls back to parsing `special_handling` when
+    #: the caller is an older client that only sends prose.
+    handling_flags: Optional[List[str]] = None
     priority_tier: Optional[str] = TIER_STANDARD
     requested_window_start: Optional[str] = None
     requested_window_end: Optional[str] = None
@@ -135,17 +153,35 @@ async def _create_delivery_request(db: Session, payload: ConsumerRequestIn,
         package_type=payload.package_type,
         package_weight=payload.package_weight,
         special_handling=(payload.special_handling or None),
+        handling_flags=handling.serialize(
+            handling.resolve(
+                payload.handling_flags, payload.special_handling, payload.package_type
+            )
+        ) or None,
         priority_tier=tier,
         requested_window_start=payload.requested_window_start,
         requested_window_end=payload.requested_window_end,
         status=REQ_PENDING,
     )
     db.add(request)
+    db.flush()
+
+    # Price the parcel and decide whether it starts blocked. With a gateway
+    # configured this is `unpaid`, and the request stays out of every queue until
+    # /payments/verify flips it — see routers/payments.py.
+    for field, value in payments.new_payment_state(request).items():
+        setattr(request, field, value)
+
     db.commit()
     db.refresh(request)
 
     # Auto-attach to a batch a driver has already claimed for this area, so the
-    # request rides along instead of competing for a fresh broadcast.
+    # request rides along instead of competing for a fresh broadcast. An unpaid
+    # parcel is never attached: the batch would carry freight nobody has paid for.
+    if not payments.is_paid(request):
+        request._geo_source = source  # type: ignore[attr-defined]
+        return request
+
     target = find_attach_target(db, request)
     if target is not None:
         try:
@@ -178,6 +214,7 @@ async def submit_request(payload: ConsumerRequestIn, db: Session = Depends(get_d
         "delivery_lat": request.delivery_lat,
         "delivery_lng": request.delivery_lng,
         "geocode_source": source,
+        **_payment_fields(request),
         "created_at": request.created_at.isoformat() if request.created_at else None,
     }
 
@@ -270,6 +307,7 @@ class AccountOrderIn(BaseModel):
     package_type: Optional[str] = None
     package_weight: Optional[float] = None
     special_handling: Optional[str] = None
+    handling_flags: Optional[List[str]] = None
     priority_tier: Optional[str] = TIER_STANDARD
     requested_window_start: Optional[str] = None
     requested_window_end: Optional[str] = None
@@ -312,6 +350,10 @@ def consumer_user_ids_for_schedule(db: Session, schedule_id: Optional[str]) -> L
 
     Used to target live driver positions at exactly the people watching them,
     instead of broadcasting every vehicle position to every signed-in customer.
+
+    Deliberately scoped to `en_route`: a customer whose parcel has not left the
+    depot has no reason to watch a truck, and positions are the first half of the
+    same disclosure that `out_for_delivery_at` authorises.
     """
     if not schedule_id:
         return []
@@ -324,6 +366,24 @@ def consumer_user_ids_for_schedule(db: Session, schedule_id: Optional[str]) -> L
         ConsumerModel.user_id.isnot(None),
     ).distinct().all()
     return [r[0] for r in rows if r[0]]
+
+
+def consumer_user_id_for_request(db: Session, request_id: str) -> Optional[str]:
+    """The account id of the customer who owns exactly this parcel.
+
+    `consumer_user_ids_for_schedule` is the right audience for a batch-wide push
+    like a position update, but "your parcel is out for delivery, here is your
+    driver" is specific to one parcel and must not be sent to every customer
+    riding the same batch.
+    """
+    row = db.query(ConsumerModel.user_id).join(
+        DeliveryRequestModel,
+        DeliveryRequestModel.consumer_id == ConsumerModel.id,
+    ).filter(
+        DeliveryRequestModel.id == request_id,
+        ConsumerModel.user_id.isnot(None),
+    ).first()
+    return row[0] if row else None
 
 
 @account_router.get("/profile")
@@ -407,6 +467,7 @@ async def place_order(payload: AccountOrderIn,
             package_type=payload.package_type,
             package_weight=payload.package_weight,
             special_handling=payload.special_handling,
+            handling_flags=payload.handling_flags,
             priority_tier=payload.priority_tier,
             requested_window_start=payload.requested_window_start,
             requested_window_end=payload.requested_window_end,
@@ -426,6 +487,7 @@ async def place_order(payload: AccountOrderIn,
         "delivery_lat": request.delivery_lat,
         "delivery_lng": request.delivery_lng,
         "geocode_source": source,
+        **_payment_fields(request),
         "created_at": request.created_at.isoformat() if request.created_at else None,
     }
 

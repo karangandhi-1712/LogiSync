@@ -40,8 +40,14 @@ from app.serializers import (
     serialize_schedule,
     serialize_user_light,
 )
-from app.services import claim_service, events, schedule_engine
-from app.services.earnings import broadcast_earnings
+from app.services import claim_service, events, payments, schedule_engine
+from app.services.payments import PAYMENT_PAID
+from app.services.earnings import (
+    broadcast_earnings,
+    earnings_quote,
+    estimated_route_km,
+    stop_from_request,
+)
 
 router = APIRouter(prefix="/schedules", tags=["Delivery schedules"])
 
@@ -157,6 +163,14 @@ def _validate_attachable(db: Session, request_ids: List[str], port_id: str) -> L
                 status_code=409,
                 detail=f"Request {r.token_number} belongs to a different depot.",
             )
+        # 402 rather than 409: this is a money problem, not a state conflict, and
+        # the client distinguishes the two to decide whether to re-offer checkout
+        # or just refresh.
+        if not payments.is_paid(r):
+            raise HTTPException(
+                status_code=402,
+                detail=f"Request {r.token_number} is awaiting payment and cannot be batched yet.",
+            )
     return rows
 
 
@@ -167,10 +181,16 @@ def pending_requests(
     user: Dict[str, Any] = Depends(require_role(["fleet_manager", "port_admin"])),
     db: Session = Depends(get_db),
 ):
-    """Pending delivery requests for the FM's depot, for map plotting."""
+    """Pending delivery requests for the FM's depot, for map plotting.
+
+    Unpaid parcels are withheld entirely rather than shown-and-disabled: a fleet
+    manager should not be able to plan a run around freight that has not been
+    paid for, and the customer is not waiting on the depot anyway.
+    """
     port_id = _fm_port(db, user) if user["role"] == "fleet_manager" else None
     q = db.query(DeliveryRequestModel).filter(
-        DeliveryRequestModel.status == REQ_PENDING
+        DeliveryRequestModel.status == REQ_PENDING,
+        DeliveryRequestModel.payment_status == PAYMENT_PAID,
     )
     if port_id:
         q = q.filter(DeliveryRequestModel.pickup_port_id == port_id)
@@ -181,6 +201,49 @@ def pending_requests(
         "requests": [serialize_request(r) for r in rows],
         "urgent_without_batch": [serialize_request(r) for r in urgent_alerts],
     }
+
+
+class QuoteStopsIn(BaseModel):
+    """A prospective batch, priced for the fleet manager before it exists."""
+
+    request_ids: List[str] = Field(default_factory=list)
+    area_center_lat: Optional[float] = None
+    area_center_lng: Optional[float] = None
+
+
+@router.post("/quote")
+def quote_batch(
+    payload: QuoteStopsIn,
+    user: Dict[str, Any] = Depends(require_role(["fleet_manager", "port_admin"])),
+    db: Session = Depends(get_db),
+):
+    """What a driver earns for the currently-selected stops, broken down per stop.
+
+    Served from the same `earnings_quote` the real schedule will be created with,
+    so the figure the fleet manager sees cannot disagree with the one the driver
+    is offered. Replaces a client-side reimplementation of the formula that used
+    to drift whenever a constant changed.
+    """
+    if user["role"] == "fleet_manager":
+        port_id = _fm_port(db, user)
+    else:
+        port_id = None
+
+    rows = db.query(DeliveryRequestModel).filter(
+        DeliveryRequestModel.id.in_(payload.request_ids or [""])
+    ).all()
+    if not rows:
+        return earnings_quote([], 0.0)
+
+    # Price against the batch's own depot, so the distance component matches what
+    # the schedule will eventually compute.
+    reference_port = port_id or rows[0].pickup_port_id
+    lat = payload.area_center_lat if payload.area_center_lat is not None else rows[0].delivery_lat
+    lng = payload.area_center_lng if payload.area_center_lng is not None else rows[0].delivery_lng
+
+    stops = [stop_from_request(r) for r in rows]
+    route_km = estimated_route_km(reference_port, lat, lng)
+    return earnings_quote(stops, route_km)
 
 
 # ── Fleet manager: create / browse / intervene ───────────────────────────────

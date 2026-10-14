@@ -13,6 +13,13 @@ import {
   Package,
   Phone,
   User,
+  CreditCard,
+  Wallet,
+  Clock,
+  AlertTriangle,
+  Snowflake,
+  GlassWater,
+  ArrowUp,
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { DepotPickerModal, DepotSelectorBar } from '../../components/consumer/DepotPicker';
@@ -20,14 +27,31 @@ import { AddressAutocomplete } from '../../components/consumer/AddressAutocomple
 import { TierBadge } from '../../components/marketplace/Badges';
 import { usePort } from '../../context/PortContext';
 import { useToast } from '../../context/ToastContext';
-import { fetchConsumerAccount, fetchNearestPort, placeConsumerOrder } from '../../services/api';
-import { TIER_OPTIONS, type PriorityTier } from '../../types';
+import {
+  fetchConsumerAccount, fetchNearestPort, placeConsumerOrder,
+  estimatePayment, createPaymentOrder, verifyPayment, loadRazorpay,
+} from '../../services/api';
+import { defaultDeliveryWindow, isWindowStillOpen } from '../../lib/deliveryWindow';
+import {
+  TIER_OPTIONS, HANDLING_OPTIONS,
+  type HandlingFlag, type PaymentEstimate, type PriorityTier, type RazorpayOrder,
+} from '../../types';
 
 const PACKAGE_TYPES = ['Carton', 'Pallet', 'Reefer box', 'Sack', 'Drum', 'Documents'];
+
+/** Icon per handling chip, so the requirement is readable at a glance. */
+const HANDLING_ICON: Record<HandlingFlag, typeof GlassWater> = {
+  fragile: GlassWater,
+  upright: ArrowUp,
+  refrigerated: Snowflake,
+  liquid: Package,
+};
 
 const inputCls =
   'w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 ' +
   'text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20';
+
+const STEPS = ['Confirm details', 'Pickup & address', 'Package & speed', 'Review & pay'];
 
 export default function ConsumerBookPage() {
   const navigate = useNavigate();
@@ -42,15 +66,22 @@ export default function ConsumerBookPage() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [packageType, setPackageType] = useState('Carton');
   const [weight, setWeight] = useState('');
-  const [handling, setHandling] = useState('');
+  const [handling, setHandling] = useState<string>('');
+  const [flags, setFlags] = useState<Set<HandlingFlag>>(new Set());
   const [tier, setTier] = useState<PriorityTier>('standard');
-  const [windowStart, setWindowStart] = useState('10:00');
-  const [windowEnd, setWindowEnd] = useState('18:00');
+
+  // Defaults relative to now — see lib/deliveryWindow for why this used to be a
+  // hardcoded 10:00–18:00 that silently expired for anyone booking after 18:00.
+  const [windowStart, setWindowStart] = useState(() => defaultDeliveryWindow().start);
+  const [windowEnd, setWindowEnd] = useState(() => defaultDeliveryWindow().end);
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [estimate, setEstimate] = useState<PaymentEstimate | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   // Identity comes from the account - fetched once, then read-only.
   useEffect(() => {
@@ -72,6 +103,39 @@ export default function ConsumerBookPage() {
 
   const canContinueIdentity = name.trim().length >= 2 && mobile.length >= 12;
   const canContinueAddress = portId != null && address.trim().length >= 6;
+  const windowOpen = isWindowStillOpen({ start: windowStart, end: windowEnd });
+
+  // Live price for the review step. Debounced on the same three inputs the
+  // server prices against, so the number shown is the number charged.
+  const estimateKey = `${tier}|${weight}|${[...flags].sort().join(',')}|${packageType}`;
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      estimatePayment({
+        priority_tier: tier,
+        package_weight: weight ? Number(weight) : null,
+        package_type: packageType,
+        handling_flags: [...flags],
+      })
+        .then(e => { if (!cancelled) setEstimate(e); })
+        .catch(() => { if (!cancelled) setEstimate(null); });
+    }, 250);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [estimateKey, tier, weight, packageType, flags]);
+
+  const selectedPort = useMemo(
+    () => ports.find(p => p.id === portId) ?? null,
+    [ports, portId],
+  );
+
+  function toggleFlag(f: HandlingFlag) {
+    setFlags((prev) => {
+      const next = new Set(prev);
+      if (next.has(f)) next.delete(f);
+      else next.add(f);
+      return next;
+    });
+  }
 
   async function useMyLocation() {
     if (!navigator.geolocation) {
@@ -100,38 +164,116 @@ export default function ConsumerBookPage() {
     );
   }
 
-  async function submit() {
+  function orderPayload() {
+    return {
+      pickup_port_id: portId!,
+      delivery_address: address.trim(),
+      delivery_lat: coords?.lat,
+      delivery_lng: coords?.lng,
+      package_type: packageType,
+      package_weight: weight ? Number(weight) : null,
+      special_handling: handling.trim() || null,
+      handling_flags: [...flags],
+      priority_tier: tier,
+      requested_window_start: windowStart,
+      requested_window_end: windowEnd,
+    };
+  }
+
+  /**
+   * Create the order, then collect.
+   *
+   * The order is created *before* checkout opens so there is a token for the
+   * gateway receipt and for the server to mark paid against. With a gateway
+   * configured the parcel sits unpaid until verification succeeds and is kept
+   * out of every dispatch queue in the meantime; without one it is paid from
+   * birth and we skip straight to tracking.
+   */
+  async function placeAndPay() {
     if (!portId || !canContinueIdentity) return;
     setSubmitting(true);
+    setPaying(true);
     setError(null);
     try {
-      const res = await placeConsumerOrder({
-        pickup_port_id: portId,
-        delivery_address: address.trim(),
-        delivery_lat: coords?.lat,
-        delivery_lng: coords?.lng,
-        package_type: packageType,
-        package_weight: weight ? Number(weight) : null,
-        special_handling: handling.trim() || null,
-        priority_tier: tier,
-        requested_window_start: windowStart,
-        requested_window_end: windowEnd,
-      });
-      showToast({
-        type: 'success',
-        title: 'Delivery requested',
-        message: `Tracking code ${res.token_number}. We'll notify you as it moves.`,
-      });
-      navigate(`/consumer/orders/${res.token_number}`, { replace: true });
+      const res = await placeConsumerOrder(orderPayload());
+      setToken(res.token_number);
+
+      if (!res.requires_payment) {
+        showToast({
+          type: 'success',
+          title: 'Delivery requested',
+          message: `Tracking code ${res.token_number}. Pay at the depot on handover.`,
+        });
+        navigate(`/consumer/orders/${res.token_number}`, { replace: true });
+        return;
+      }
+
+      const order = await createPaymentOrder(res.token_number);
+      if (!('order_id' in order)) {
+        throw new Error('Payment is unavailable right now. Please try again shortly.');
+      }
+      await runCheckout(order as RazorpayOrder);
     } catch (e: any) {
       const detail = e?.response?.data?.detail;
-      setError(typeof detail === 'string' ? detail : 'Could not submit your request. Please retry.');
-    } finally {
+      setError(
+        typeof detail === 'string'
+          ? detail
+          : e?.message || 'Could not submit your request. Please retry.',
+      );
       setSubmitting(false);
+      setPaying(false);
     }
   }
 
-  const steps = useMemo(() => ['Confirm details', 'Pickup & address', 'Package & speed'], []);
+  /** Drive the Razorpay modal and verify its result server-side. */
+  async function runCheckout(order: RazorpayOrder) {
+    const loaded = await loadRazorpay();
+    if (!loaded) {
+      throw new Error('Could not load the secure checkout. Check your connection and retry.');
+    }
+
+    const Razorpay = (window as any).Razorpay;
+    await new Promise<void>((resolve, reject) => {
+      const rz = new Razorpay({
+        key: order.key_id,
+        amount: order.amount_paise,
+        currency: order.currency,
+        name: 'LogiSync',
+        description: `Delivery ${order.token_number}`,
+        order_id: order.order_id,
+        prefill: order.prefill,
+        notes: order.notes,
+        theme: { color: '#0284c7' },
+        handler: async (response: any) => {
+          try {
+            await verifyPayment({
+              token_number: order.token_number,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+            });
+            showToast({
+              type: 'success',
+              title: 'Payment complete',
+              message: `Your delivery ${order.token_number} is with the depot.`,
+            });
+            resolve();
+          } catch (err: any) {
+            const detail = err?.response?.data?.detail;
+            reject(new Error(
+              typeof detail === 'string' ? detail : 'Payment could not be verified. Contact your depot.',
+            ));
+          }
+        },
+        modal: {
+          ondismiss: () => reject(new Error('Checkout was closed before payment was completed.')),
+        },
+      });
+      rz.open();
+    });
+
+    navigate(`/consumer/orders/${order.token_number}`, { replace: true });
+  }
 
   return (
     <div className="p-4 sm:p-6 max-w-3xl mx-auto">
@@ -143,7 +285,7 @@ export default function ConsumerBookPage() {
       </header>
 
       <div className="flex items-center gap-2 mb-6">
-        {steps.map((label, i) => {
+        {STEPS.map((label, i) => {
           const n = i + 1;
           const done = step > n;
           const active = step === n;
@@ -167,7 +309,7 @@ export default function ConsumerBookPage() {
               >
                 {label}
               </span>
-              {n < 3 && <div className="flex-1 h-px bg-slate-300/50 dark:bg-white/10" />}
+              {n < STEPS.length && <div className="flex-1 h-px bg-slate-300/50 dark:bg-white/10" />}
             </div>
           );
         })}
@@ -296,28 +438,78 @@ export default function ConsumerBookPage() {
                   className={inputCls}
                 />
               </div>
-              <div>
-                <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                  Special handling
-                </label>
-                <input
-                  value={handling}
-                  onChange={(e) => setHandling(e.target.value)}
-                  placeholder="Fragile, upright…"
-                  className={inputCls}
-                />
+            </div>
+
+            {/* Structured handling. These were a single free-text box, which
+                meant the earnings and pricing models had to guess at intent from
+                prose ("glass pls upright"). Picking chips makes the requirement
+                explicit and machine-readable; the note below is still there for
+                anything the chips cannot express. */}
+            <div>
+              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                Handling
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {HANDLING_OPTIONS.map(opt => {
+                  const on = flags.has(opt.id);
+                  const Icon = HANDLING_ICON[opt.id];
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => toggleFlag(opt.id)}
+                      aria-pressed={on}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition ${
+                        on
+                          ? 'border-amber-400/60 bg-amber-500/10 ring-2 ring-amber-400/20'
+                          : 'border-slate-200 dark:border-white/10 hover:border-amber-400/40'
+                      }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 shrink-0 ${
+                          on ? 'text-amber-600 dark:text-amber-300' : 'text-slate-400'
+                        }`}
+                      />
+                      <div className="min-w-0">
+                        <p
+                          className={`text-[11px] font-black leading-tight ${
+                            on ? 'text-amber-800 dark:text-amber-200' : 'text-slate-700 dark:text-slate-200'
+                          }`}
+                        >
+                          {opt.label}
+                        </p>
+                        <p className="text-[9px] text-slate-400 truncate">{opt.hint}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
+              <input
+                value={handling}
+                onChange={(e) => setHandling(e.target.value)}
+                placeholder="Anything else the driver should know"
+                className={`${inputCls} mt-2`}
+              />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                Preferred delivery window
+              <label className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                <Clock className="w-3.5 h-3.5" /> Preferred delivery window
               </label>
               <div className="flex items-center gap-2">
                 <input type="time" value={windowStart} onChange={(e) => setWindowStart(e.target.value)} className={`flex-1 ${inputCls} py-2.5`} />
                 <span className="text-slate-400 text-xs">to</span>
                 <input type="time" value={windowEnd} onChange={(e) => setWindowEnd(e.target.value)} className={`flex-1 ${inputCls} py-2.5`} />
               </div>
+              {/* A window that has already closed would be scored as a late
+                  delivery no matter how fast the driver is, so say so plainly
+                  rather than accepting a booking that cannot succeed. */}
+              {!windowOpen && (
+                <p className="mt-2 flex items-start gap-1.5 text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
+                  This window has already passed today - it can never be counted as on-time.
+                </p>
+              )}
             </div>
 
             <div>
@@ -367,10 +559,102 @@ export default function ConsumerBookPage() {
               <Button variant="ghost" onClick={() => setStep(2)}>
                 Back
               </Button>
-              <Button variant="primary" className="flex-1" isLoading={submitting} disabled={submitting} onClick={submit}>
-                Request delivery
+              <Button variant="primary" className="flex-1" onClick={() => setStep(4)}>
+                Review &amp; pay
               </Button>
             </div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="space-y-5">
+            {/* Order summary */}
+            <div className="rounded-2xl liquid-glass border border-white/60 dark:border-white/10 p-4 space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                Review
+              </p>
+              {[
+                ['Pickup depot', selectedPort?.name ?? '—'],
+                ['Deliver to', address.trim() || '—'],
+                ['Package', packageType + (weight ? ` · ${weight} kg` : '')],
+                ['Handling', flags.size ? [...flags].join(', ') : 'Standard handling'],
+                ['Speed', TIER_OPTIONS.find(o => o.id === tier)?.label ?? tier],
+                ['Window', `${windowStart} – ${windowEnd}`],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-start gap-3 text-xs">
+                  <span className="text-slate-400 w-28 shrink-0">{k}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100 break-words">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Price. Server-quoted, so this is the amount that gets charged. */}
+            <div className="rounded-2xl bg-sky-500/6 border border-sky-400/25 p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet className="w-4 h-4 text-sky-600 dark:text-cyan-300" />
+                <p className="text-[10px] font-black uppercase tracking-wider text-sky-700 dark:text-cyan-300">
+                  Delivery charge
+                </p>
+              </div>
+              {!estimate ? (
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Pricing your parcel…
+                </div>
+              ) : (
+                <>
+                  <ul className="space-y-1.5">
+                    {estimate.lines.map(line => (
+                      <li
+                        key={line.label}
+                        className={`flex items-center justify-between text-xs ${
+                          line.emphasis ? 'font-black text-slate-900 dark:text-white pt-1.5 mt-1.5 border-t border-sky-400/20' : ''
+                        }`}
+                      >
+                        <span className="text-slate-500 dark:text-slate-400">{line.label}</span>
+                        <span className="font-mono font-bold text-slate-800 dark:text-slate-100">
+                          {line.amount === 0 ? 'Free' : `₹${line.amount.toFixed(2)}`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  {estimate.min_charge_applied && (
+                    <p className="mt-2 text-[10px] text-slate-400">
+                      A minimum charge applies to this parcel.
+                    </p>
+                  )}
+                  <p className="mt-3 pt-2.5 border-t border-sky-400/20 text-lg font-black text-slate-900 dark:text-white tabular-nums">
+                    ₹{estimate.total.toFixed(2)}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {error && (
+              <p className="text-xs font-bold text-rose-600 dark:text-rose-300 bg-rose-500/10 border border-rose-400/25 rounded-xl px-3.5 py-2.5">
+                {error}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={() => setStep(3)} disabled={submitting || paying}>
+                Back
+              </Button>
+              <Button
+                variant="primary"
+                className="flex-1"
+                isLoading={submitting || paying}
+                disabled={submitting || paying || !estimate}
+                onClick={placeAndPay}
+                icon={<CreditCard className="w-4 h-4" />}
+              >
+                {estimate ? `Place order · ₹${estimate.total.toFixed(2)}` : 'Place order'}
+              </Button>
+            </div>
+
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              Your parcel is only released to the depot once payment is confirmed, and you can
+              still cancel free of charge until a driver picks it up.
+            </p>
           </div>
         )}
       </div>

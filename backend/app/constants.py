@@ -98,6 +98,23 @@ AVAIL_OFFLINE = "offline"
 
 AVAILABILITY_STATES: Set[str] = {AVAIL_AVAILABLE, AVAIL_BUSY, AVAIL_OFFLINE}
 
+# ── Special handling flags ───────────────────────────────────────────────────
+# A parcel's handling requirements drive both the driver's pay and the customer's
+# charge. They are captured as structured flags at intake (the customer picks
+# chips) rather than left to be re-parsed out of a free-text note.
+
+HANDLING_FRAGILE = "fragile"
+HANDLING_UPRIGHT = "upright"
+HANDLING_REFRIGERATED = "refrigerated"
+HANDLING_LIQUID = "liquid"
+
+VALID_HANDLING: Set[str] = {
+    HANDLING_FRAGILE, HANDLING_UPRIGHT, HANDLING_REFRIGERATED, HANDLING_LIQUID,
+}
+
+#: Storage for `delivery_requests.handling_flags` is a comma-joined string.
+HANDLING_FLAG_SEPARATOR = ","
+
 # ── Driver earnings model ────────────────────────────────────────────────────
 #: Flat pay per stop, by the tier the consumer paid for.
 EARNINGS_PER_STOP: Dict[str, float] = {
@@ -113,6 +130,41 @@ ESTIMATE_ROAD_FACTOR: float = 1.3
 
 #: Batch bonus per stop beyond the first — rewards fuller batches.
 EARNINGS_BATCH_BONUS: float = 75.0
+
+#: ₹ per kg above the first kilogram, capped so one pallet cannot dominate a
+#: batch's payout. The weight a customer actually declares is the weight that pays.
+EARNINGS_PER_KG: float = 6.0
+EARNINGS_WEIGHT_CAP_KG: float = 50.0
+
+#: Extra pay per stop for handling the parcel carefully. Fragile and upright stack:
+#: a glass lamp that must also stay upright takes more than either alone.
+HANDLING_SURCHARGE: Dict[str, float] = {
+    HANDLING_FRAGILE: 40.0,
+    HANDLING_UPRIGHT: 25.0,
+    HANDLING_REFRIGERATED: 90.0,
+    HANDLING_LIQUID: 60.0,
+}
+
+# ── Customer pricing model ───────────────────────────────────────────────────
+# What the customer is quoted at intake. Deliberately derived from the same
+# weights as the earnings model so the two can never drift apart, but the driver
+# base pay is strictly higher than the customer base fee — the difference is the
+# platform's cut and the depot's contribution.
+CUSTOMER_BASE_FEE: Dict[str, float] = {
+    TIER_STANDARD: 0.0,
+    TIER_EXPRESS: 500.0,
+    TIER_URGENT: 1000.0,
+}
+CUSTOMER_PER_KG: float = 4.0
+CUSTOMER_WEIGHT_CAP_KG: float = 50.0
+CUSTOMER_HANDLING_FEE: Dict[str, float] = {
+    HANDLING_FRAGILE: 60.0,
+    HANDLING_UPRIGHT: 40.0,
+    HANDLING_REFRIGERATED: 150.0,
+    HANDLING_LIQUID: 90.0,
+}
+#: Smallest chargeable amount, so a 200g document envelope is never free.
+CUSTOMER_MIN_CHARGE: float = 49.0
 
 DEFAULT_MAX_BATCH_SIZE = 4
 MIN_RADIUS_KM = 1.0
