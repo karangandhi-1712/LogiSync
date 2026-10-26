@@ -1,0 +1,18 @@
+# ─── LogiSync v2.0 - Terraform Environment Configuration Example ──────────────
+# Copy this file to terraform.tfvars to override default parameters
+
+aws_region  = "ap-south-1"       # Mumbai Region (Closest to VOC Port Thoothukudi)
+environment = "production"
+project_name = "logisync"
+
+# Database Configuration
+db_instance_class = "db.t4g.micro" # AWS Free Tier / Cost Effective
+db_name           = "logisync_prod"
+db_username       = "logisync_admin"
+db_password       = "ReplaceWithYourStrongPassword2026!"
+
+# ECS Fargate Sizing
+ecs_backend_cpu    = 256  # 0.25 vCPU
+ecs_backend_memory = 512  # 512 MB RAM
+ecs_desired_count  = 2    # High Availability across 2 AZs
+ecs_max_count      = 6    # Maximum scale out under heavy freight surge

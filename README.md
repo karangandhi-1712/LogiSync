@@ -102,9 +102,15 @@ npm run dev
 
 ---
 
-## ☁️ AWS Production Deployment
+## ☁️ AWS Enterprise Cloud Architecture & Deployment
 
-Complete step-by-step instructions for provisioning EC2, Cognito User Pools, SNS Topics, S3 Buckets, and Nginx with Let's Encrypt TLS 1.3 are documented in [`deploy/README.md`](deploy/README.md).
+For academic defense, viva evaluations, and production cloud operations, LogiSync implements a **Multi-AZ 3-Tier Enterprise Cloud Architecture** compliant with the **AWS Well-Architected Framework**:
+
+- 📖 **Full Architecture & Viva Dossier**: [`docs/AWS_ARCHITECTURE.md`](docs/AWS_ARCHITECTURE.md) *(Includes high-res Mermaid diagrams, Well-Architected pillar analysis, and Examiner Q&A)*
+- 🛠️ **Infrastructure as Code (Terraform)**: [`terraform/`](terraform/) *(Multi-AZ VPC, ALB, ECS Fargate, RDS PostgreSQL, CloudFront OAC, Cognito, SNS, CloudWatch)*
+- ⚡ **1-Click AWS Console Template**: [`deploy/cloudformation-template.yaml`](deploy/cloudformation-template.yaml) *(Turnkey CloudFormation stack)*
+- 🐳 **Local Full-Stack Containers**: [`docker-compose.yml`](docker-compose.yml) *(PostgreSQL 16 + FastAPI + React 19/Nginx)*
+- 🔄 **Automated CI/CD**: [`.github/workflows/aws-deploy.yml`](.github/workflows/aws-deploy.yml) *(Automated testing, ECR build, Fargate rolling deploy)*
 
 ---
 

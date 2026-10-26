@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  # ─── Database Tier: PostgreSQL 16 (matches AWS RDS PostgreSQL) ────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: logisync-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: logisync
+      POSTGRES_PASSWORD: logisync_secure_dev_password_2026
+      POSTGRES_DB: logisync_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U logisync -d logisync_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Application Tier: FastAPI Backend ──────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: logisync-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - APP_NAME=LogiSync v2.0 - Port Logistics Command Center
+      - APP_VERSION=2.0.0
+      - DEBUG=false
+      - DATABASE_URL=postgresql+psycopg://logisync:logisync_secure_dev_password_2026@postgres:5432/logisync_db
+      - AWS_REGION=ap-south-1
+      - DEMO_MODE=true
+      - SECRET_KEY=logisync-super-secret-production-signing-key-2026
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─── Presentation Tier: React + Nginx Proxy ─────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: logisync-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "3000:80"
+
+volumes:
+  postgres_data:
+    driver: local
