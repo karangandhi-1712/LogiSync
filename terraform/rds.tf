@@ -53,7 +53,7 @@ resource "aws_db_instance" "postgres" {
   publicly_accessible    = false
   skip_final_snapshot    = true  # Set to false in actual production
   deletion_protection    = false
-  backup_retention_period = 7
+  backup_retention_period = 1
   backup_window          = "03:00-04:00"
   maintenance_window     = "Sun:04:30-Sun:05:30"
 

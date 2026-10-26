@@ -205,7 +205,7 @@ Resources:
         - !Ref DBSecurityGroup
       PubliclyAccessible: false
       StorageEncrypted: true
-      BackupRetentionPeriod: 7
+      BackupRetentionPeriod: 1
 
   # ─── Amazon Cognito Identity ────────────────────────────────────────────────
   CognitoUserPool:
