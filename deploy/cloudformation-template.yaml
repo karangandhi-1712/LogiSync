@@ -1,14 +1,14 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >
   LogiSync v2.0 - VOC Port Logistics Command Center Enterprise Cloud Architecture.
-  Provisions a Multi-AZ VPC, Public & Private Subnets, NAT Gateway, Application Load Balancer,
-  Amazon ECS Fargate Cluster, Amazon RDS PostgreSQL, Amazon Cognito, Amazon SNS, S3, and CloudWatch.
+  Provisions a Multi-AZ VPC, Public & Private Subnets, Application Load Balancer,
+  Amazon RDS PostgreSQL, Amazon Cognito, Amazon SNS, Amazon SQS, S3, ECS, and CloudWatch.
 
 Parameters:
   EnvironmentName:
     Type: String
-    Default: production
-    Description: Environment name prefix for all provisioned resources
+    Default: prod
+    Description: Short environment name prefix (keep short to avoid name-length limits)
 
   VpcCIDR:
     Type: String
@@ -17,17 +17,20 @@ Parameters:
 
   DatabaseUsername:
     Type: String
-    Default: logisync_admin
-    Description: Master username for Amazon RDS PostgreSQL
+    Default: logisyncadmin
+    Description: Master username for Amazon RDS PostgreSQL (no underscores - RDS restriction)
 
   DatabasePassword:
     Type: String
     NoEcho: true
-    Default: LogiSync_Secure_2026!PortAdmin
-    Description: Master password for Amazon RDS PostgreSQL
+    MinLength: 8
+    Default: LogiSync2026Secure
+    Description: Master password for Amazon RDS PostgreSQL (min 8 chars, no special chars for max compat)
 
 Resources:
-  # ─── VPC & Networking ───────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # VPC & Networking
+  # ═══════════════════════════════════════════════════════════════════════════
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -51,6 +54,7 @@ Resources:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
+  # ─── 6 Subnets across 2 Availability Zones ─────────────────────────────
   PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -60,7 +64,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-subnet-1"
+          Value: !Sub "${EnvironmentName}-public-1"
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
@@ -71,7 +75,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-public-subnet-2"
+          Value: !Sub "${EnvironmentName}-public-2"
 
   PrivateAppSubnet1:
     Type: AWS::EC2::Subnet
@@ -81,7 +85,7 @@ Resources:
       AvailabilityZone: !Select [0, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-app-1"
+          Value: !Sub "${EnvironmentName}-priv-app-1"
 
   PrivateAppSubnet2:
     Type: AWS::EC2::Subnet
@@ -91,7 +95,7 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-app-2"
+          Value: !Sub "${EnvironmentName}-priv-app-2"
 
   PrivateDBSubnet1:
     Type: AWS::EC2::Subnet
@@ -101,7 +105,7 @@ Resources:
       AvailabilityZone: !Select [0, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-db-1"
+          Value: !Sub "${EnvironmentName}-priv-db-1"
 
   PrivateDBSubnet2:
     Type: AWS::EC2::Subnet
@@ -111,9 +115,9 @@ Resources:
       AvailabilityZone: !Select [1, !GetAZs ""]
       Tags:
         - Key: Name
-          Value: !Sub "${EnvironmentName}-private-db-2"
+          Value: !Sub "${EnvironmentName}-priv-db-2"
 
-  # Public Route Table
+  # ─── Route Tables ──────────────────────────────────────────────────────
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -142,11 +146,13 @@ Resources:
       SubnetId: !Ref PublicSubnet2
       RouteTableId: !Ref PublicRouteTable
 
-  # ─── Security Groups ────────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Security Groups (Zero-Trust Layered Model)
+  # ═══════════════════════════════════════════════════════════════════════════
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Enable HTTP/HTTPS to ALB
+      GroupDescription: Allow HTTP and HTTPS inbound to Application Load Balancer
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -157,56 +163,86 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-alb-sg"
 
   ECSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow ALB to talk to ECS backend containers
+      GroupDescription: Allow traffic from ALB to ECS backend containers on port 8000
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 8000
           ToPort: 8000
           SourceSecurityGroupId: !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-ecs-sg"
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow ECS backend to talk to RDS PostgreSQL
+      GroupDescription: Allow PostgreSQL traffic exclusively from ECS backend security group
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
           SourceSecurityGroupId: !Ref ECSSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-db-sg"
 
-  # ─── Amazon RDS PostgreSQL Database ─────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon RDS PostgreSQL (Database Tier)
+  # FIXES APPLIED:
+  #   - No hardcoded EngineVersion (AWS picks latest stable minor for region)
+  #   - db.t3.micro (universally supported Free Tier class)
+  #   - BackupRetentionPeriod: 1 (max allowed on Free Tier / educational)
+  #   - StorageEncrypted: false (educational accounts lack KMS permissions)
+  #   - MultiAZ: false (required for Free Tier eligibility)
+  #   - No underscores in MasterUsername (RDS restriction)
+  #   - Simple alphanumeric password (no special chars that need escaping)
+  # ═══════════════════════════════════════════════════════════════════════════
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupDescription: Subnets for LogiSync RDS Database
+      DBSubnetGroupDescription: Private subnet group for LogiSync RDS Database across 2 AZs
       SubnetIds:
         - !Ref PrivateDBSubnet1
         - !Ref PrivateDBSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-db-subnet-group"
 
   PostgreSQLDB:
     Type: AWS::RDS::DBInstance
+    DeletionPolicy: Delete
     Properties:
       DBInstanceIdentifier: !Sub "${EnvironmentName}-logisync-db"
       AllocatedStorage: 20
+      StorageType: gp2
       DBInstanceClass: db.t3.micro
       Engine: postgres
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
-      DBName: logisync_prod
+      DBName: logisyncprod
       DBSubnetGroupName: !Ref DBSubnetGroup
       VPCSecurityGroups:
         - !Ref DBSecurityGroup
       PubliclyAccessible: false
-      StorageEncrypted: true
+      StorageEncrypted: false
+      MultiAZ: false
       BackupRetentionPeriod: 1
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-logisync-rds"
 
-  # ─── Amazon Cognito Identity ────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon Cognito (Identity & RBAC Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
@@ -215,22 +251,36 @@ Resources:
         - email
       AutoVerifiedAttributes:
         - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
       Schema:
         - Name: role
           AttributeDataType: String
           Mutable: true
+          Required: false
+          StringAttributeConstraints:
+            MinLength: "1"
+            MaxLength: "32"
 
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
-      ClientName: !Sub "${EnvironmentName}-logisync-web-client"
+      ClientName: !Sub "${EnvironmentName}-logisync-web"
       UserPoolId: !Ref CognitoUserPool
       GenerateSecret: false
       ExplicitAuthFlows:
         - ALLOW_USER_PASSWORD_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
 
-  # ─── Amazon SNS Topics ──────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon SNS Topics (Decoupled Notification Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
   AlertsTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -246,26 +296,33 @@ Resources:
     Properties:
       TopicName: !Sub "${EnvironmentName}-logisync-congestion"
 
-  # ─── Amazon SQS Message Queues (Decoupling Tier) ───────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon SQS (Asynchronous Message Queue Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
   DeliveryDeadLetterQueue:
     Type: AWS::SQS::Queue
     Properties:
-      QueueName: !Sub "${EnvironmentName}-logisync-delivery-dlq"
+      QueueName: !Sub "${EnvironmentName}-logisync-dlq"
       MessageRetentionPeriod: 1209600
 
   DeliveryEventQueue:
     Type: AWS::SQS::Queue
+    DependsOn: DeliveryDeadLetterQueue
     Properties:
-      QueueName: !Sub "${EnvironmentName}-logisync-delivery-events"
+      QueueName: !Sub "${EnvironmentName}-logisync-events"
       MessageRetentionPeriod: 345600
       ReceiveMessageWaitTimeSeconds: 10
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt DeliveryDeadLetterQueue.Arn
         maxReceiveCount: 3
 
-  # ─── Amazon S3 Buckets ──────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon S3 Buckets (Object Storage Tier)
+  # NOTE: Bucket names must be globally unique. Using AWS::AccountId ensures uniqueness.
+  # ═══════════════════════════════════════════════════════════════════════════
   AuditLogsBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Sub "${EnvironmentName}-logisync-audit-${AWS::AccountId}"
       VersioningConfiguration:
@@ -277,6 +334,7 @@ Resources:
 
   DocumentsBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
       BucketName: !Sub "${EnvironmentName}-logisync-docs-${AWS::AccountId}"
       BucketEncryption:
@@ -286,15 +344,18 @@ Resources:
 
   FrontendBucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
     Properties:
-      BucketName: !Sub "${EnvironmentName}-logisync-frontend-${AWS::AccountId}"
+      BucketName: !Sub "${EnvironmentName}-logisync-web-${AWS::AccountId}"
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
-  # ─── Amazon ECS Cluster ─────────────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon ECS Cluster & ECR Repository (Container Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -308,17 +369,24 @@ Resources:
     Properties:
       RepositoryName: !Sub "${EnvironmentName}-logisync-backend"
 
-  # ─── Application Load Balancer ──────────────────────────────────────────────
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Application Load Balancer (Ingress Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AttachGateway
     Properties:
       Name: !Sub "${EnvironmentName}-logisync-alb"
       Scheme: internet-facing
+      Type: application
       Subnets:
         - !Ref PublicSubnet1
         - !Ref PublicSubnet2
       SecurityGroups:
         - !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-logisync-alb"
 
   BackendTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -330,6 +398,9 @@ Resources:
       TargetType: ip
       HealthCheckPath: /healthz
       HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
 
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -341,13 +412,44 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref BackendTargetGroup
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Amazon CloudWatch (Observability Tier)
+  # ═══════════════════════════════════════════════════════════════════════════
+  ECSLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/ecs/${EnvironmentName}-logisync-backend"
+      RetentionInDays: 14
+
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${EnvironmentName}-logisync-high-cpu"
+      AlarmDescription: ECS backend CPU utilization exceeds 80%
+      Namespace: AWS/ECS
+      MetricName: CPUUtilization
+      Dimensions:
+        - Name: ClusterName
+          Value: !Ref ECSCluster
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 2
+      Threshold: 80
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlertsTopic
+
 Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+
   ALBDNSName:
     Description: Application Load Balancer DNS Endpoint
     Value: !GetAtt ApplicationLoadBalancer.DNSName
 
   RDSInstanceEndpoint:
-    Description: RDS PostgreSQL Endpoint
+    Description: RDS PostgreSQL Endpoint (Private)
     Value: !GetAtt PostgreSQLDB.Endpoint.Address
 
   CognitoUserPoolId:
@@ -359,5 +461,41 @@ Outputs:
     Value: !Ref CognitoUserPoolClient
 
   AuditBucketName:
-    Description: Audit Trail S3 Bucket Name
+    Description: Audit Trail S3 Bucket
     Value: !Ref AuditLogsBucket
+
+  DocumentsBucketName:
+    Description: Documents & POD S3 Bucket
+    Value: !Ref DocumentsBucket
+
+  FrontendBucketName:
+    Description: Frontend Static Assets S3 Bucket
+    Value: !Ref FrontendBucket
+
+  SQSQueueUrl:
+    Description: SQS Delivery Events Queue URL
+    Value: !Ref DeliveryEventQueue
+
+  SNSAlertsTopicArn:
+    Description: SNS Alerts Topic ARN
+    Value: !Ref AlertsTopic
+
+  SNSRerouteTopicArn:
+    Description: SNS Reroute Topic ARN
+    Value: !Ref RerouteTopic
+
+  SNSCongestionTopicArn:
+    Description: SNS Congestion Topic ARN
+    Value: !Ref CongestionTopic
+
+  ECSClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref ECSCluster
+
+  ECRRepoUri:
+    Description: ECR Repository URI
+    Value: !GetAtt ECRRepository.RepositoryUri
+
+  CloudWatchLogGroup:
+    Description: CloudWatch Log Group for ECS Backend
+    Value: !Ref ECSLogGroup
