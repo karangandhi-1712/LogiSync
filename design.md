@@ -1,4 +1,4 @@
-# Project Specification & Prompt: LogiSync v2.0 — Port Logistics Command Center
+# System Architecture & Design Specification: LogiSync v2.0 — Port Logistics Command Center
 
 Build a high-performance, production-grade desktop web application for "LogiSync v2.0", an AI-powered port logistics and container terminal command console. The app must implement a **dual-theme system (Light Theme as DEFAULT with an instant toggle to Dark Theme)**, custom Google Maps API integration, real-time dispatch telemetry, automated gate slot allocation, fleet telematics, and predictive analytics.
 

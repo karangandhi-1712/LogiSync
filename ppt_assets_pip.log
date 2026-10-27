@@ -1,5 +1,0 @@
-﻿python : WARNING: Connection timed out while downloading.
-    + CategoryInfo          : NotSpecified: (WARNING: Connec...le downloading.:String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-WARNING: Attempting to resume incomplete download (0 bytes/9.3 MB, attempt 1)
