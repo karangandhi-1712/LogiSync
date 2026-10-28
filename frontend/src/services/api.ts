@@ -27,8 +27,7 @@ import type {
 } from '../types';
 
 // VITE_API_URL is baked at build time. Empty string means same-origin (Nginx
-// proxies /api/ in prod), so use nullish coalescing: explicit "" stays "".
-const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const BASE = import.meta.env.VITE_API_URL || 'http://prod-logisync-alb-1939190072.ap-south-1.elb.amazonaws.com';
 
 const api = axios.create({
   baseURL: BASE,
@@ -572,15 +571,12 @@ export function createEventSocket(
     const configured = import.meta.env.VITE_WS_URL as string | undefined;
     if (configured) return configured.replace(/^http/, 'ws');
     if (typeof window !== 'undefined') {
-      // The local Vite app runs on 5173 and the API/WebSocket server on 8000.
-      // In production, use the same origin (typically reverse-proxied by Nginx).
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.hostname}:8000`;
       }
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      return `${proto}://${window.location.host}`;
+      return 'ws://prod-logisync-alb-1939190072.ap-south-1.elb.amazonaws.com';
     }
-    return 'ws://localhost:8000';
+    return 'ws://prod-logisync-alb-1939190072.ap-south-1.elb.amazonaws.com';
   })();
 
   function token(): string | null {

@@ -104,9 +104,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <p className="mt-4 text-[11px] text-slate-400">
             Is the backend running? Most first-load failures here are the API being unreachable -
             check{' '}
-            <span className="font-mono text-slate-500 dark:text-slate-300">
-              http://localhost:8000/healthz
-            </span>
+            <a
+              href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/healthz`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-sky-600 dark:text-sky-400 underline underline-offset-2 hover:opacity-80"
+            >
+              /healthz
+            </a>
             .
           </p>
         </div>

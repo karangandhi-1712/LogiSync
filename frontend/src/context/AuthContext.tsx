@@ -141,8 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 function apiErrorMessage(error: any, fallback: string): string {
   const detail = error?.response?.data?.detail;
   if (typeof detail === 'string') return detail;
-  if (error?.code === 'ECONNABORTED') return 'The backend did not respond. Check that it is running on port 8000, then try again.';
-  if (!error?.response) return 'Cannot reach the backend at http://localhost:8000. Start the backend, then try again.';
+  if (error?.code === 'ECONNABORTED') return 'The backend did not respond in time. Please check your connection and try again.';
+  if (!error?.response) return 'Cannot reach the backend. Please check your network connection and verify the backend status.';
   return fallback;
 }
 
